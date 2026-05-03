@@ -1,14 +1,14 @@
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem('lexnova_token');
+  const token = localStorage.getItem('clearcase_token');
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
   if (res.status === 401) {
-    localStorage.removeItem('lexnova_token');
-    localStorage.removeItem('lexnova_user');
+    localStorage.removeItem('clearcase_token');
+    localStorage.removeItem('clearcase_user');
     window.location.href = '/login';
     throw new Error('Session expired');
   }
@@ -43,7 +43,7 @@ export const api = {
   getMyDocuments: () => apiFetch('/documents/my'),
   getMatterDocuments: (matterId) => apiFetch(`/documents/matter/${matterId}`),
   uploadDocument: async (matterId, file) => {
-    const token = localStorage.getItem('lexnova_token');
+    const token = localStorage.getItem('clearcase_token');
     const formData = new FormData();
     formData.append('file', file);
     formData.append('matter_id', matterId);
@@ -94,6 +94,13 @@ export const api = {
   getNotifications: () => apiFetch('/users/notifications'),
   getUnreadNotifCount: () => apiFetch('/users/notifications/unread-count'),
   markNotifRead: (id) => apiFetch(`/users/notifications/${id}/read`, { method: 'PATCH' }),
+
+  // Consultation Requests & Sessions
+  getConsultationRequests: () => apiFetch('/consultations/requests'),
+  getAdvocateConsultationRequests: (advocateId) => apiFetch(`/consultations/requests/${advocateId}`),
+  updateConsultationRequestStatus: (requestId, status) => apiFetch(`/consultations/requests/${requestId}`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  getConsultationSessions: (advocateId) => apiFetch(`/consultations/sessions/${advocateId}`),
+  createConsultationSession: (data) => apiFetch('/consultations/sessions', { method: 'POST', body: JSON.stringify(data) }),
 
   // AI Guide
   askAI: (question) => apiFetch('/ai-guide/ask', { method: 'POST', body: JSON.stringify({ question }) }),

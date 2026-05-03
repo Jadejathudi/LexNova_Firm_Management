@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clear Case — Web UX Prototype</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#F8FAFF}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.fade-up{animation:fadeUp 0.4s ease forwards}
+.btn-gold{background:#C9A84C;color:#1E2761;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:system-ui,sans-serif}
+.btn-navy{background:#1E2761;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:system-ui,sans-serif}
+.btn-outline{background:transparent;color:#1E2761;border:1.5px solid #1E2761;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:system-ui,sans-serif}
+input,select,textarea{border:1.5px solid #D1D5DB;border-radius:8px;padding:10px 14px;font-size:14px;width:100%;font-family:system-ui,sans-serif;outline:none;background:#fff;color:#1A1A2E}
+input:focus,select:focus,textarea:focus{border-color:#1E2761}
+.adv-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1)}
+.adv-card{transition:transform 0.2s,box-shadow 0.2s;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const NAVY="#1E2761",GOLD="#C9A84C",BG="#F8FAFF",DARK="#1A1A2E",GRAY="#6B7280",WHITE="#fff",GREEN="#16A34A",RED="#DC2626",LIGHT="#EEF2FF";
+
+const ADVOCATES=[
+  {id:1,name:"Adv. Meera Krishnamurthy",ini:"MK",exp:14,specs:["Criminal","Family","Civil"],state:"Telangana",city:"Hyderabad",bio:"Senior High Court advocate with 14 years in criminal defense and family law. Former public prosecutor with deep knowledge of Telangana courts.",cases:420,success:81,rating:4.9,reviews:63,available:true,langs:["Telugu","English","Hindi"],wins:[{t:"State vs. Krishnaiah — Acquittal",c:"Telangana HC, 2022"},{t:"Land Boundary Dispute — Warangal",c:"District Court, 2021"}]},
+  {id:2,name:"Adv. Venkata Subramaniam",ini:"VS",exp:9,specs:["Corporate","Banking","Civil"],state:"Andhra Pradesh",city:"Vijayawada",bio:"Corporate specialist with expertise in banking disputes, NCLT insolvency matters, and commercial litigation across AP courts.",cases:210,success:74,rating:4.6,reviews:38,available:true,langs:["Telugu","English"],wins:[{t:"IBC Insolvency Resolution",c:"NCLT Hyderabad, 2023"}]},
+  {id:3,name:"Adv. Lakshmi Devi Nair",ini:"LD",exp:7,specs:["Civil","Real Estate","Consumer"],state:"Telangana",city:"Hyderabad",bio:"Specialises in property disputes, consumer protection, and civil litigation. Known for transparent client communication.",cases:156,success:79,rating:4.7,reviews:29,available:false,langs:["Telugu","English","Tamil"],wins:[]},
+  {id:4,name:"Adv. Ravi Teja Reddy",ini:"RT",exp:11,specs:["Criminal","Family","Revenue"],state:"Andhra Pradesh",city:"Visakhapatnam",bio:"Experienced criminal advocate with a strong record in high-stakes defense cases across Andhra Pradesh.",cases:310,success:76,rating:4.5,reviews:51,available:true,langs:["Telugu","English"],wins:[{t:"Bail Application — NDPS Act",c:"AP HC, 2023"},{t:"Revenue Tribunal Appeal",c:"AP Revenue Tribunal, 2022"}]},
+  {id:5,name:"Adv. Sravanthi Rao",ini:"SR",exp:5,specs:["Family","Civil","Consumer"],state:"Telangana",city:"Warangal",bio:"Rising advocate focused on family law and consumer protection. Recognised for thoroughness and client-first approach.",cases:89,success:72,rating:4.4,reviews:18,available:true,langs:["Telugu","English"],wins:[]},
+  {id:6,name:"Adv. Prasad Yeluri",ini:"PY",exp:18,specs:["Criminal","Corporate","Banking"],state:"Andhra Pradesh",city:"Amaravati",bio:"Senior advocate, 18 years. Former Additional Advocate General. Expert in high-value criminal and corporate matters.",cases:580,success:83,rating:4.9,reviews:87,available:true,langs:["Telugu","English","Hindi"],wins:[{t:"Multi-crore Banking Fraud Acquittal",c:"AP HC, 2023"},{t:"Corporate Dispute Resolution",c:"NCLT Amaravati, 2022"},{t:"Criminal Appeal — CBI Court",c:"2021"}]},
+];
+
+const SPEC_COLORS={Criminal:"#B91C1C",Civil:"#1D4ED8",Family:"#7C3AED",Corporate:"#0F766E",Banking:"#0369A1","Real Estate":"#C2410C",Consumer:"#0E7490",Revenue:"#92400E"};
+const STORIES=[{stat:"50M+",sub:"cases pending in Indian courts"},{stat:"82%",sub:"of litigants don't know their case status"},{stat:"₹0",sub:"transparency in most law firms. We're changing that."},{stat:"30 min",sub:"free. No card. Know exactly where you stand."}];
+
+let state={
+  screen:"landing",regStep:1,phone:"",otp:["","","","","",""],
+  form:{name:"",state:"Telangana",city:"",matter:"",occupation:"",how:"",brief:""},
+  stateFilter:"all",specFilter:"all",selAdv:ADVOCATES[0],selDate:14,selSlot:"11:00 AM",meetType:"video",
+  storyIdx:0,sessionSecs:1800,sessionPhase:"active",timerOn:false,
+};
+
+let storyTimer=null,sessionTimer=null;
+function setState(patch){Object.assign(state,patch);render();}
+function go(s){setState({screen:s});window.scrollTo(0,0);}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+function startStoryTimer(){
+  if(storyTimer)return;
+  storyTimer=setInterval(()=>{setState({storyIdx:(state.storyIdx+1)%STORIES.length});},3500);
+}
+function startSession(){
+  setState({timerOn:true,sessionPhase:"active"});
+  if(sessionTimer)return;
+  sessionTimer=setInterval(()=>{
+    if(state.sessionPhase!=="active"){clearInterval(sessionTimer);sessionTimer=null;return;}
+    const s=state.sessionSecs-1;
+    if(s<=0){setState({sessionSecs:0,sessionPhase:"ending"});clearInterval(sessionTimer);sessionTimer=null;}
+    else setState({sessionSecs:s});
+  },1000);
+}
+
+function renderStars(r){return '★'.repeat(Math.round(r))+'☆'.repeat(5-Math.round(r));}
+function SpecBadge(spec){
+  const c=SPEC_COLORS[spec]||NAVY;
+  return `<span style="font-size:11px;background:${c}18;color:${c};border-radius:20px;padding:3px 10px;font-weight:600;white-space:nowrap">${spec}</span>`;
+}
+function AdvCard(a,onClick){
+  return `<div class="adv-card" onclick="${onClick}" style="background:${WHITE};border-radius:14px;padding:22px;border:1px solid #E5E7EB">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+      <div style="width:54px;height:54px;border-radius:27px;background:${NAVY};display:flex;align-items:center;justify-content:center;color:${GOLD};font-size:18px;font-weight:700;flex-shrink:0">${a.ini}</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;color:${NAVY};font-family:Georgia,serif">${a.name}</div>
+        <div style="color:${GRAY};font-size:12px;margin-top:2px">${a.exp} yrs · ${a.city} · ${a.state}</div>
+        <div style="color:${GOLD};font-size:12px">${renderStars(a.rating)} ${a.rating} (${a.reviews})</div>
+      </div>
+      <div style="margin-left:auto"><span style="font-size:11px;background:${a.available?'#DCFCE7':'#F3F4F6'};color:${a.available?GREEN:GRAY};border-radius:20px;padding:4px 10px;font-weight:600">${a.available?'Available':'Busy'}</span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${a.specs.map(s=>SpecBadge(s)).join('')}</div>
+    <div style="display:flex;gap:16px;font-size:12px;color:${GRAY};margin-bottom:14px">
+      <span>📁 ${a.cases} cases</span><span>✅ ${a.success}% success</span><span>⚖️ ${a.langs.join(' · ')}</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-navy" style="flex:1;padding:9px" onclick="${onClick}">View Profile →</button>
+      <button class="btn-gold" style="flex:1;padding:9px" onclick="${onClick}">Book Free 30 Min</button>
+    </div>
+  </div>`;
+}
+
+function Nav(){
+  return `<div style="background:${NAVY};padding:0 48px;height:60px;display:flex;align-items:center;position:sticky;top:0;z-index:50;gap:32px">
+    <span onclick="go('landing')" style="display:flex;align-items:center;gap:8px;cursor:pointer;color:${WHITE};font-size:17px;font-weight:800;font-family:Georgia,serif">⚖️ CLEAR CASE</span>
+    <div style="flex:1"></div>
+    <span onclick="go('advocates')" style="color:rgba(255,255,255,0.75);font-size:14px;cursor:pointer">Find an Advocate</span>
+    <span style="color:rgba(255,255,255,0.35);font-size:14px;cursor:pointer">For Advocates</span>
+    <button class="btn-gold" onclick="go('register')" style="padding:9px 20px">Register Free</button>
+  </div>`;
+}
+
+function renderLanding(){
+  const s=STORIES[state.storyIdx];
+  startStoryTimer();
+  return `
+  ${Nav()}
+  <div style="background:linear-gradient(135deg,${NAVY} 0%,#0D1440 100%);padding:100px 48px 80px;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;opacity:0.03;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:20px 20px"></div>
+    <div style="position:relative;max-width:780px;margin:0 auto">
+      <div style="display:inline-block;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);border-radius:20px;padding:5px 16px;margin-bottom:22px">
+        <span style="color:${GOLD};font-size:13px;font-weight:600">Now serving Telangana &amp; Andhra Pradesh</span>
+      </div>
+      <h1 style="color:${WHITE};font-size:52px;font-weight:800;line-height:1.1;margin-bottom:20px;font-family:Georgia,serif">Your Legal Problem.<br><span style="color:${GOLD}">Solved with Clarity.</span></h1>
+      <p style="color:rgba(255,255,255,0.7);font-size:17px;line-height:1.7;margin-bottom:36px">Expert advocates. Radical transparency. Your first consultation is completely free — no obligations, no fine print.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-gold" onclick="go('register')" style="padding:14px 36px;font-size:15px">Book Free Consultation →</button>
+        <button onclick="go('advocates')" style="background:transparent;color:${WHITE};border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:14px 36px;font-size:15px;font-weight:600;cursor:pointer">Browse Advocates</button>
+      </div>
+    </div>
+    <div style="margin-top:64px;text-align:center">
+      <div style="display:flex;justify-content:center;gap:7px;margin-bottom:16px">
+        ${STORIES.map((_,i)=>`<div style="width:${i===state.storyIdx?22:6}px;height:6px;border-radius:3px;background:${i===state.storyIdx?GOLD:'rgba(255,255,255,0.2)'};transition:width 0.4s"></div>`).join('')}
+      </div>
+      <div class="fade-up">
+        <div style="color:${GOLD};font-size:44px;font-weight:800;font-family:Georgia,serif">${s.stat}</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:15px;margin-top:6px">${s.sub}</div>
+      </div>
+    </div>
+  </div>
+  <div style="background:${WHITE};padding:72px 48px">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:52px">
+        <h2 style="font-size:34px;color:${NAVY};font-weight:800;font-family:Georgia,serif">The problem with legal help in India</h2>
+        <p style="color:${GRAY};font-size:15px;margin-top:10px">We built Clear Case because we lived these frustrations.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px">
+        ${[
+          {icon:"🌑",t:"Complete opacity",d:"You hire a lawyer and go silent. No updates. No timeline. No clarity on what's happening in your case."},
+          {icon:"📵",t:"Inaccessible advocates",d:"Calls go unanswered. Urgency isn't acknowledged. You feel abandoned at the worst possible time."},
+          {icon:"❓",t:"No idea what to expect",d:"First-time litigants don't know what a court date means, what documents to bring, or what outcome to hope for."},
+        ].map(x=>`<div style="background:${LIGHT};border-radius:16px;padding:28px;border-top:3px solid ${GOLD}">
+          <div style="font-size:32px;margin-bottom:14px">${x.icon}</div>
+          <h3 style="color:${NAVY};font-size:17px;font-weight:700;margin-bottom:10px;font-family:Georgia,serif">${x.t}</h3>
+          <p style="color:${GRAY};font-size:14px;line-height:1.7">${x.d}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div style="background:${NAVY};padding:72px 48px">
+    <div style="max-width:1100px;margin:0 auto;text-align:center">
+      <h2 style="color:${WHITE};font-size:34px;font-weight:800;font-family:Georgia,serif;margin-bottom:10px">How it works</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:15px;margin-bottom:56px">Three steps. Zero confusion.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;text-align:left">
+        ${[
+          {n:"01",t:"Find your advocate",d:"Browse verified advocates by specialisation and location. Read their profiles, experience, and notable wins."},
+          {n:"02",t:"Book free 30 mins",d:"Zero cost. No credit card. Pick a slot and meet your advocate by video or phone. Ask everything."},
+          {n:"03",t:"Know where you stand",d:"After your consultation you'll have clarity, a plan, and the option to retain your advocate on a retainer."},
+        ].map(x=>`<div>
+          <div style="color:${GOLD};font-size:56px;font-weight:800;opacity:0.3;font-family:Georgia,serif;line-height:1">${x.n}</div>
+          <h3 style="color:${WHITE};font-size:18px;font-weight:700;margin:8px 0 10px;font-family:Georgia,serif">${x.t}</h3>
+          <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.7">${x.d}</p>
+        </div>`).join('')}
+      </div>
+      <button class="btn-gold" onclick="go('register')" style="margin-top:52px;padding:14px 48px;font-size:15px">Book Your Free Consultation →</button>
+    </div>
+  </div>
+  <div style="background:${BG};padding:72px 48px">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:44px">
+        <h2 style="font-size:34px;color:${NAVY};font-weight:800;font-family:Georgia,serif">Meet our advocates</h2>
+        <p style="color:${GRAY};font-size:15px;margin-top:10px">Verified. Experienced. Based in Telangana and Andhra Pradesh.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+        ${ADVOCATES.slice(0,3).map(a=>AdvCard(a,`selectAdv(${a.id})`)).join('')}
+      </div>
+      <div style="text-align:center;margin-top:32px">
+        <button class="btn-outline" onclick="go('advocates')" style="padding:12px 36px">See All ${ADVOCATES.length} Advocates</button>
+      </div>
+    </div>
+  </div>
+  <div style="background:${NAVY};padding:32px 48px;text-align:center">
+    <p style="color:rgba(255,255,255,0.4);font-size:13px">© 2025 Clear Case Legal Services · Hyderabad · DPDP Act 2023 Compliant</p>
+  </div>`;
+}
+
+function renderRegister(){
+  const {regStep,phone,otp,form}=state;
+  return `
+  ${Nav()}
+  <div style="min-height:100vh;background:${BG};display:flex;align-items:flex-start;justify-content:center;padding:60px 20px">
+    <div style="width:100%;max-width:480px">
+      <div onclick="go('landing')" style="color:${GRAY};font-size:14px;cursor:pointer;margin-bottom:24px">← Back</div>
+      <div style="background:${WHITE};border-radius:16px;padding:36px;border:1px solid #E5E7EB">
+        <div style="margin-bottom:28px">
+          <div style="display:flex;gap:8px;margin-bottom:20px">
+            ${[1,2,3].map(i=>`<div style="flex:1;height:4px;border-radius:2px;background:${i<=regStep?GOLD:'#E5E7EB'};transition:background 0.3s"></div>`).join('')}
+          </div>
+          ${regStep===1?`<h2 style="font-size:22px;font-weight:800;color:${NAVY};font-family:Georgia,serif;margin-bottom:6px">Create your account</h2><p style="color:${GRAY};font-size:14px">Step 1 of 3 · Enter your phone number</p>`
+          :regStep===2?`<h2 style="font-size:22px;font-weight:800;color:${NAVY};font-family:Georgia,serif;margin-bottom:6px">Verify your number</h2><p style="color:${GRAY};font-size:14px">OTP sent to +91 ${phone||'98765 43210'}</p>`
+          :`<h2 style="font-size:22px;font-weight:800;color:${NAVY};font-family:Georgia,serif;margin-bottom:6px">A few more details</h2><p style="color:${GRAY};font-size:14px">Step 3 of 3 · Helps us match you to the right advocate</p>`}
+        </div>
+        ${regStep===1?`
+          <div style="margin-bottom:20px">
+            <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px">Phone Number *</label>
+            <div style="display:flex;gap:8px">
+              <div style="background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;color:${DARK};white-space:nowrap">🇮🇳 +91</div>
+              <input type="tel" placeholder="10-digit mobile number" value="${phone}" oninput="setState({phone:this.value.replace(/\\D/g,'').slice(0,10)})"/>
+            </div>
+          </div>
+          <div style="background:${LIGHT};border-radius:10px;padding:14px;margin-bottom:24px;font-size:13px;color:${GRAY};line-height:1.6">🔒 Your number is your identity. We verify via OTP. No spam.</div>
+          <button class="btn-navy" style="width:100%;padding:13px" onclick="setState({regStep:2})">Send OTP →</button>
+        `:regStep===2?`
+          <div style="margin-bottom:24px">
+            <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:12px">Enter 6-Digit OTP</label>
+            <div style="display:flex;gap:10px;justify-content:center">
+              ${[0,1,2,3,4,5].map(i=>`<input maxlength="1" value="${otp[i]}" style="width:48px;height:54px;text-align:center;font-size:22px;font-weight:700;border:2px solid ${otp[i]?NAVY:'#E5E7EB'};border-radius:10px;background:${otp[i]?LIGHT:WHITE}" oninput="handleOtp(${i},this.value)" id="otp${i}"/>`).join('')}
+            </div>
+          </div>
+          <div style="text-align:center;color:${GRAY};font-size:13px;margin-bottom:20px">Didn't receive it? <span style="color:${NAVY};font-weight:600;cursor:pointer">Resend in 0:45</span></div>
+          <button class="btn-navy" style="width:100%;padding:13px" onclick="setState({regStep:3})">Verify & Continue →</button>
+        `:`
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Full Name *</label>
+              <input placeholder="Your full name" value="${form.name}" oninput="setState({form:{...state.form,name:this.value}})"/>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">State *</label>
+                <select onchange="setState({form:{...state.form,state:this.value}})">
+                  <option value="Telangana" ${form.state==="Telangana"?"selected":""}>Telangana</option>
+                  <option value="Andhra Pradesh" ${form.state==="Andhra Pradesh"?"selected":""}>Andhra Pradesh</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">City *</label>
+                <input placeholder="Your city" value="${form.city}" oninput="setState({form:{...state.form,city:this.value}})"/>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Type of Legal Matter</label>
+              <select onchange="setState({form:{...state.form,matter:this.value}})">
+                <option value="">Select matter type</option>
+                ${["Criminal","Civil","Corporate","Family","Real Estate","Consumer","Banking","Revenue"].map(m=>`<option value="${m}" ${form.matter===m?"selected":""}>${m}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Your Occupation</label>
+              <input placeholder="e.g. Business owner, Salaried, Student..." value="${form.occupation}" oninput="setState({form:{...state.form,occupation:this.value}})"/>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">Briefly describe your situation</label>
+              <textarea placeholder="What happened? The more you share, the better your advocate can prepare..." rows="3" style="resize:none" oninput="setState({form:{...state.form,brief:this.value}})">${form.brief||''}</textarea>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:${NAVY};text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px">How did you hear about us?</label>
+              <select onchange="setState({form:{...state.form,how:this.value}})">
+                <option value="">Select</option>
+                ${["Google Search","Friend / Family","Social Media","Court Advertisement","Advocate Referral","Other"].map(h=>`<option value="${h}" ${form.how===h?"selected":""}>${h}</option>`).join('')}
+              </select>
+            </div>
+            <button class="btn-gold" style="width:100%;padding:14px;font-size:15px;margin-top:8px" onclick="go('advocates')">Complete Registration &amp; Find My Advocate →</button>
+          </div>
+        `}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAdvocates(){
+  const specs=[...new Set(ADVOCATES.flatMap(a=>a.specs))];
+  const filtered=ADVOCATES.filter(a=>(state.stateFilter==="all"||a.state===state.stateFilter)&&(state.specFilter==="all"||a.specs.includes(state.specFilter)));
+  return `
+  ${Nav()}
+  <div style="background:${NAVY};padding:32px 48px">
+    <h1 style="color:${WHITE};font-size:28px;font-weight:800;font-family:Georgia,serif;margin-bottom:6px">Find Your Advocate</h1>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px">Verified advocates in Telangana &amp; Andhra Pradesh</p>
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center">
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:4px 8px">
+        <select onchange="setState({stateFilter:this.value})" style="background:transparent;color:${WHITE};border:none;font-size:14px;font-weight:600;cursor:pointer;padding:4px 8px">
+          <option value="all" style="color:${DARK}">All States</option>
+          <option value="Telangana" style="color:${DARK}" ${state.stateFilter==="Telangana"?"selected":""}>Telangana</option>
+          <option value="Andhra Pradesh" style="color:${DARK}" ${state.stateFilter==="Andhra Pradesh"?"selected":""}>Andhra Pradesh</option>
+        </select>
+      </div>
+      ${['all',...specs].map(s=>`<div onclick="setState({specFilter:'${s}'})" style="background:${state.specFilter===s?GOLD:'rgba(255,255,255,0.1)'};color:${state.specFilter===s?NAVY:WHITE};border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">${s==='all'?'All':s}</div>`).join('')}
+    </div>
+  </div>
+  <div style="background:${BG};padding:32px 48px;min-height:60vh">
+    <p style="color:${GRAY};font-size:14px;margin-bottom:20px">Showing ${filtered.length} advocate${filtered.length!==1?'s':''}</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
+      ${filtered.length?filtered.map(a=>AdvCard(a,`selectAdv(${a.id})`)).join(''):`<div style="text-align:center;padding:60px;color:${GRAY};grid-column:1/-1">No advocates found for this combination.</div>`}
+    </div>
+  </div>`;
+}
+
+function renderProfile(){
+  const a=state.selAdv;
+  return `
+  ${Nav()}
+  <div style="background:${BG};min-height:100vh">
+    <div style="background:${NAVY};padding:32px 48px">
+      <div onclick="go('advocates')" style="color:rgba(255,255,255,0.6);font-size:14px;cursor:pointer;margin-bottom:20px">← Back to Advocates</div>
+      <div style="display:flex;gap:24px;align-items:flex-start;max-width:1100px;margin:0 auto">
+        <div style="width:96px;height:96px;border-radius:48px;background:${GOLD};display:flex;align-items:center;justify-content:center;color:${NAVY};font-size:32px;font-weight:800;flex-shrink:0">${a.ini}</div>
+        <div style="flex:1">
+          <h1 style="color:${WHITE};font-size:26px;font-weight:800;font-family:Georgia,serif">${a.name}</h1>
+          <div style="color:rgba(255,255,255,0.7);font-size:14px;margin-top:4px">${a.exp} years experience · ${a.city}, ${a.state}</div>
+          <div style="color:${GOLD};font-size:14px;margin-top:4px">${renderStars(a.rating)} ${a.rating} · ${a.reviews} client reviews</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">${a.specs.map(s=>SpecBadge(s)).join('')}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:14px 20px;text-align:center;flex-shrink:0">
+          <div style="color:${GOLD};font-size:28px;font-weight:800">${a.success}%</div>
+          <div style="color:rgba(255,255,255,0.6);font-size:12px">Success Rate</div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1100px;margin:0 auto;padding:32px 48px;display:grid;grid-template-columns:2fr 1fr;gap:28px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:16px;font-weight:700;font-family:Georgia,serif;margin-bottom:12px">About</h3>
+          <p style="color:${GRAY};font-size:14px;line-height:1.8">${a.bio}</p>
+          <div style="display:flex;gap:20px;margin-top:18px;padding-top:18px;border-top:1px solid #F3F4F6">
+            <div><div style="font-size:22px;font-weight:800;color:${NAVY}">${a.cases}</div><div style="font-size:12px;color:${GRAY}">Cases handled</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:${NAVY}">${a.exp}</div><div style="font-size:12px;color:${GRAY}">Years experience</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:${NAVY}">${a.langs.length}</div><div style="font-size:12px;color:${GRAY}">Languages</div></div>
+          </div>
+        </div>
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:16px;font-weight:700;font-family:Georgia,serif;margin-bottom:12px">Credentials</h3>
+          <div style="font-size:13px;color:${DARK};margin-bottom:8px">🏛 Bar No: ${a.state==="Telangana"?"TS":"AP"}/HC/${2025-a.exp}/${Math.floor(1000+a.id*1234)}</div>
+          <div style="font-size:13px;color:${DARK};margin-bottom:14px">🗣 ${a.langs.join(' · ')}</div>
+          <div style="padding:12px;background:${LIGHT};border-radius:8px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:18px">✅</span>
+            <span style="font-size:13px;font-weight:600;color:${NAVY}">Clear Case Verified Advocate</span>
+          </div>
+        </div>
+        ${a.wins.length?`
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:16px;font-weight:700;font-family:Georgia,serif;margin-bottom:4px">Notable Wins</h3>
+          <div style="color:${GRAY};font-size:13px;margin-bottom:14px">Published judgements &amp; landmark matters</div>
+          ${a.wins.map(w=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #F3F4F6">
+            <span style="font-size:18px;color:${GOLD};flex-shrink:0">⚖️</span>
+            <div><div style="font-size:13px;font-weight:600;color:${NAVY}">${w.t}</div><div style="font-size:12px;color:${GRAY};margin-top:2px">${w.c}</div></div>
+            <span style="margin-left:auto;font-size:12px;color:${NAVY};font-weight:600;cursor:pointer;white-space:nowrap">View →</span>
+          </div>`).join('')}
+        </div>`:`
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:16px;font-weight:700;font-family:Georgia,serif;margin-bottom:12px">Track Record</h3>
+          <div style="display:flex;gap:16px;margin-bottom:14px">
+            <div style="background:${LIGHT};border-radius:10px;padding:14px 20px;text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:${NAVY}">${a.cases}+</div><div style="font-size:12px;color:${GRAY}">Cases handled</div></div>
+            <div style="background:${LIGHT};border-radius:10px;padding:14px 20px;text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:${NAVY}">${a.success}%</div><div style="font-size:12px;color:${GRAY}">Favourable outcomes</div></div>
+          </div>
+          <div style="padding:12px;background:#FFF8E8;border-radius:8px;border-left:3px solid ${GOLD}"><div style="font-size:13px;color:#7A5A00">📁 Judgement links shared with retained clients directly.</div></div>
+        </div>`}
+      </div>
+      <div style="position:sticky;top:80px">
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:2px solid ${GOLD}">
+          <div style="background:#FFF8E8;border-radius:8px;padding:12px;text-align:center;margin-bottom:18px">
+            <div style="font-size:22px;font-weight:800;color:${NAVY}">FREE</div>
+            <div style="font-size:13px;color:#7A5A00;font-weight:600">30-minute consultation</div>
+            <div style="font-size:12px;color:${GRAY};margin-top:2px">No card · No commitment</div>
+          </div>
+          <div style="font-size:13px;color:${GRAY};margin-bottom:16px;line-height:1.8">✓ Video, phone, or in-person<br>✓ Advocate reviews your case beforehand<br>✓ Get clarity and a clear plan<br>✓ Option to retain after</div>
+          <button class="btn-gold" style="width:100%;padding:14px;font-size:15px" onclick="go('booking')">Book Free 30 Minutes →</button>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F3F4F6;text-align:center">
+            <div style="font-size:13px;font-weight:700;color:${NAVY};margin-bottom:8px">Or retain ${a.name.split(' ')[1]}</div>
+            <button class="btn-outline" style="width:100%;padding:10px;font-size:13px" onclick="go('retainer')">View Retainer Plans</button>
+          </div>
+        </div>
+        <div style="background:${WHITE};border-radius:14px;padding:20px;border:1px solid #E5E7EB;margin-top:16px">
+          <div style="font-size:13px;font-weight:700;color:${NAVY};margin-bottom:10px">Availability this week</div>
+          <div style="display:flex;gap:6px">
+            ${["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>`<div style="flex:1;text-align:center;padding:8px 4px;border-radius:8px;background:${i===1||i===3?'#DCFCE7':LIGHT}"><div style="font-size:10px;color:${GRAY}">${d}</div><div style="font-size:11px;font-weight:600;color:${i===1||i===3?GREEN:GRAY};margin-top:2px">${i===1||i===3?'Open':'Busy'}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderBooking(){
+  const a=state.selAdv;
+  const dates=[{d:10,day:"Mon"},{d:11,day:"Tue"},{d:12,day:"Wed"},{d:13,day:"Thu"},{d:14,day:"Fri"},{d:17,day:"Mon"},{d:18,day:"Tue"}];
+  const slots=["10:00 AM","11:00 AM","11:30 AM","2:00 PM","3:30 PM","5:00 PM"];
+  return `
+  ${Nav()}
+  <div style="background:${BG};min-height:100vh;padding:40px 48px">
+    <div onclick="go('profile')" style="color:${GRAY};font-size:14px;cursor:pointer;margin-bottom:28px">← Back to Profile</div>
+    <div style="max-width:840px;margin:0 auto">
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:32px">
+        <div style="width:52px;height:52px;border-radius:26px;background:${NAVY};display:flex;align-items:center;justify-content:center;color:${GOLD};font-size:18px;font-weight:700">${a.ini}</div>
+        <div><h2 style="font-size:20px;font-weight:800;color:${NAVY};font-family:Georgia,serif">Book with ${a.name}</h2><p style="color:${GRAY};font-size:14px">Free 30-minute consultation · March 2025</p></div>
+        <div style="margin-left:auto;background:#DCFCE7;border-radius:8px;padding:10px 16px;text-align:center"><div style="font-size:18px;font-weight:800;color:${GREEN}">FREE</div><div style="font-size:11px;color:${GREEN}">30 minutes</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:15px;font-weight:700;margin-bottom:16px;font-family:Georgia,serif">1. Choose a date</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${dates.map(({d,day})=>`<div onclick="setState({selDate:${d}})" style="min-width:60px;padding:10px 8px;border-radius:10px;border:1.5px solid ${state.selDate===d?NAVY:'#E5E7EB'};background:${state.selDate===d?NAVY:WHITE};cursor:pointer;text-align:center"><div style="font-size:11px;color:${state.selDate===d?'rgba(255,255,255,0.6)':GRAY}">${day}</div><div style="font-size:17px;font-weight:700;color:${state.selDate===d?WHITE:NAVY};margin-top:2px">${d}</div></div>`).join('')}
+          </div>
+          <div style="margin-top:16px;padding:10px;background:${LIGHT};border-radius:8px;font-size:12px;color:${GRAY}">📅 March ${state.selDate}, 2025 selected</div>
+        </div>
+        <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB">
+          <h3 style="color:${NAVY};font-size:15px;font-weight:700;margin-bottom:16px;font-family:Georgia,serif">2. Choose a time</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            ${slots.map(t=>`<div onclick="setState({selSlot:'${t}'})" style="padding:11px 8px;border-radius:10px;border:1.5px solid ${state.selSlot===t?GOLD:'#E5E7EB'};background:${state.selSlot===t?'#FFF8E8':WHITE};cursor:pointer;text-align:center;font-size:13px;font-weight:600;color:${state.selSlot===t?'#7A5A00':NAVY}">${state.selSlot===t?'✓ ':''} ${t}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div style="background:${WHITE};border-radius:14px;padding:24px;border:1px solid #E5E7EB;margin-top:24px">
+        <h3 style="color:${NAVY};font-size:15px;font-weight:700;margin-bottom:16px;font-family:Georgia,serif">3. How would you like to meet?</h3>
+        <div style="display:flex;gap:12px">
+          ${[{t:"video",i:"📹",l:"Video Call",d:"We send you a link"},{t:"phone",i:"📞",l:"Phone Call",d:"+91 number only"},{t:"office",i:"🏢",l:"In-Person",d:a.city+" office"}].map(o=>`<div onclick="setState({meetType:'${o.t}'})" style="flex:1;padding:14px;border-radius:12px;border:1.5px solid ${state.meetType===o.t?NAVY:'#E5E7EB'};background:${state.meetType===o.t?LIGHT:WHITE};cursor:pointer;text-align:center"><div style="font-size:22px;margin-bottom:6px">${o.i}</div><div style="font-size:13px;font-weight:700;color:${NAVY}">${o.l}</div><div style="font-size:11px;color:${GRAY};margin-top:2px">${o.d}</div></div>`).join('')}
+        </div>
+      </div>
+      <div style="background:#FFF8E8;border-radius:12px;padding:16px 20px;margin-top:20px;border-left:3px solid ${GOLD}">
+        <div style="font-size:13px;font-weight:700;color:#7A5A00;margin-bottom:4px">💡 Boost your consultation quality</div>
+        <div style="font-size:13px;color:#92600A">Upload your FIR copy, property deed, contract, or any relevant document after booking — your advocate reviews it before the call.</div>
+      </div>
+      <button class="btn-gold" onclick="go('session');startSession()" style="width:100%;padding:15px;font-size:16px;margin-top:24px">Confirm Booking: ${state.selDate} March · ${state.selSlot} →</button>
+    </div>
+  </div>`;
+}
+
+function renderSession(){
+  const a=state.selAdv;
+  const secs=state.sessionSecs;
+  const pct=Math.round(((1800-secs)/1800)*100);
+  const urgent=secs<300;
+  if(state.sessionPhase==="ending") return `
+  ${Nav()}
+  <div style="min-height:100vh;background:${DARK};display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="max-width:500px;width:100%;text-align:center">
+      <div style="font-size:52px;margin-bottom:20px">⏰</div>
+      <h2 style="color:${WHITE};font-size:28px;font-weight:800;font-family:Georgia,serif;margin-bottom:10px">Your 30-minute session has ended</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:15px;margin-bottom:32px">You've had a great conversation. We'd like to give you a little more time.</p>
+      <div style="background:rgba(201,168,76,0.1);border:1.5px solid ${GOLD};border-radius:16px;padding:28px;margin-bottom:24px">
+        <div style="font-size:36px;margin-bottom:10px">🎁</div>
+        <div style="color:${GOLD};font-size:22px;font-weight:800;font-family:Georgia,serif;margin-bottom:6px">5 More Minutes — Our Gift</div>
+        <div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6">We're giving you an extra 5 minutes on us. No charge. Finish your thoughts and ask your final questions.</div>
+        <button class="btn-gold" onclick="setState({sessionPhase:'extended',sessionSecs:300});startSession()" style="margin-top:20px;padding:13px 36px;font-size:15px;width:100%">Accept 5 Free Minutes →</button>
+      </div>
+      <div style="color:rgba(255,255,255,0.4);font-size:13px">Don't need more time? <span onclick="go('retainer')" style="color:${GOLD};cursor:pointer;font-weight:600">View retainer options</span></div>
+    </div>
+  </div>`;
+  if(state.sessionPhase==="pay") return `
+  ${Nav()}
+  <div style="min-height:100vh;background:${DARK};display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="max-width:520px;width:100%;text-align:center">
+      <h2 style="color:${WHITE};font-size:26px;font-weight:800;font-family:Georgia,serif;margin-bottom:10px">Continue the conversation</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:28px">You've used your 30 + 5 complimentary minutes. Choose how to continue.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        ${[{p:"₹299",t:"30 more minutes",d:"Continue this session now"},{p:"₹499",t:"Full hour session",d:"Extended deep-dive"}].map(o=>`<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:20px;cursor:pointer" onclick="go('retainer')"><div style="color:${GOLD};font-size:24px;font-weight:800;font-family:Georgia,serif">${o.p}</div><div style="color:${WHITE};font-size:14px;font-weight:600;margin:6px 0">${o.t}</div><div style="color:rgba(255,255,255,0.5);font-size:12px">${o.d}</div></div>`).join('')}
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:20px">
+        <div style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:14px">Or secure ongoing access to ${a.name.split(' ')[1]}</div>
+        <button class="btn-gold" onclick="go('retainer')" style="width:100%;padding:14px;font-size:15px">View Retainer Plans (Recommended) →</button>
+      </div>
+    </div>
+  </div>`;
+  return `
+  ${Nav()}
+  <div style="min-height:100vh;background:${DARK};display:grid;grid-template-columns:1fr 340px">
+    <div style="padding:40px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px">
+        <div style="width:48px;height:48px;border-radius:24px;background:${NAVY};display:flex;align-items:center;justify-content:center;color:${GOLD};font-size:16px;font-weight:700">${a.ini}</div>
+        <div><div style="color:${WHITE};font-weight:700;font-size:15px">${a.name}</div><div style="display:flex;align-items:center;gap:6px"><div style="width:7px;height:7px;border-radius:4px;background:${GREEN}"></div><span style="color:${GREEN};font-size:12px;font-weight:600">Session active</span></div></div>
+        <div style="margin-left:auto;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 18px;text-align:center;border:1px solid ${urgent?RED:'rgba(255,255,255,0.1)'}">
+          <div style="color:${urgent?RED:WHITE};font-size:28px;font-weight:800;font-family:monospace;line-height:1">${fmt(secs)}</div>
+          <div style="color:${urgent?RED:'rgba(255,255,255,0.4)'};font-size:11px;margin-top:3px">${state.sessionPhase==="extended"?"BONUS TIME":"remaining"}</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:3px;height:4px;margin-bottom:28px;overflow:hidden"><div style="height:100%;background:${urgent?RED:GOLD};width:${pct}%;transition:width 1s linear;border-radius:3px"></div></div>
+      <div style="flex:1;background:rgba(255,255,255,0.03);border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;gap:12px">
+          <div style="width:36px;height:36px;border-radius:18px;background:${NAVY};display:flex;align-items:center;justify-content:center;color:${GOLD};font-size:12px;font-weight:700;flex-shrink:0">${a.ini}</div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px 12px 12px 0;padding:12px 16px;max-width:70%"><div style="color:${WHITE};font-size:14px;line-height:1.6">Thank you for sharing those details. Based on what you've described, I believe we have a strong case. Let me explain the process step by step...</div><div style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:6px">10:04 AM</div></div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:flex-end">
+          <div style="background:${NAVY};border-radius:12px 12px 0 12px;padding:12px 16px;max-width:70%"><div style="color:${WHITE};font-size:14px;line-height:1.6">That's reassuring. What documents do I need to bring for the next step?</div><div style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:6px;text-align:right">10:06 AM ✓✓</div></div>
+        </div>
+        <div style="margin-top:auto;display:flex;gap:10px">
+          <input placeholder="Type your message..." style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:${WHITE};font-size:14px"/>
+          <button class="btn-gold" style="padding:12px 20px">Send</button>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <button onclick="setState({sessionSecs:0,sessionPhase:'ending',timerOn:false})" style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer">⏩ Demo: Trigger End of Session</button>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-left:1px solid rgba(255,255,255,0.08);padding:32px 24px;display:flex;flex-direction:column;gap:20px">
+      <h3 style="color:${WHITE};font-size:15px;font-weight:700;font-family:Georgia,serif">Session Notes</h3>
+      <textarea placeholder="Jot down key points from the consultation..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;color:${WHITE};font-size:13px;resize:none;min-height:200px;line-height:1.6" rows="10"></textarea>
+      <div style="background:rgba(201,168,76,0.1);border:1px solid ${GOLD};border-radius:10px;padding:16px">
+        <div style="color:${GOLD};font-size:13px;font-weight:700;margin-bottom:6px">After this session</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:12px;line-height:1.8">• Retain ${a.name.split(' ')[1]} on a monthly plan<br>• Upload your case documents securely<br>• Track your case in real time<br>• Direct messaging, always</div>
+      </div>
+      <button class="btn-gold" onclick="go('retainer')" style="width:100%;padding:12px">View Retainer Plans</button>
+    </div>
+  </div>`;
+}
+
+function renderRetainer(){
+  const a=state.selAdv;
+  return `
+  ${Nav()}
+  <div style="background:${NAVY};padding:48px;text-align:center">
+    <h1 style="color:${WHITE};font-size:32px;font-weight:800;font-family:Georgia,serif;margin-bottom:10px">Retain ${a.name}</h1>
+    <p style="color:rgba(255,255,255,0.6);font-size:16px">Ongoing legal partnership. Your advocate, always available.</p>
+  </div>
+  <div style="background:${BG};padding:48px">
+    <div style="max-width:900px;margin:0 auto">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:40px">
+        ${[
+          {name:"Essential",price:"₹4,999",per:"/ month",highlight:false,features:["2 consultations per month","Dedicated advocate messaging","Case status tracking","Document vault (500 MB)","Email support"]},
+          {name:"Standard",price:"₹9,999",per:"/ month",highlight:true,features:["5 consultations per month","Priority advocate access","Same-day responses","Document vault (2 GB)","Court date reminders","Case strategy reviews"]},
+          {name:"Premium",price:"₹19,999",per:"/ month",highlight:false,features:["Unlimited consultations","Senior advocate + junior team","24-hour emergency access","Unlimited document storage","Quarterly legal audit","Mentorship by Retd. Judge"]},
+        ].map(p=>`<div style="background:${WHITE};border-radius:16px;padding:28px;border:${p.highlight?`2px solid ${GOLD}`:'1px solid #E5E7EB'};position:relative">
+          ${p.highlight?`<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:${GOLD};color:${NAVY};font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap">MOST POPULAR</div>`:''}
+          <div style="font-size:15px;font-weight:700;color:${GRAY};margin-bottom:8px">${p.name}</div>
+          <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:20px"><span style="font-size:28px;font-weight:800;color:${NAVY};font-family:Georgia,serif">${p.price}</span><span style="font-size:13px;color:${GRAY}">${p.per}</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">${p.features.map(f=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:${DARK}"><span style="color:${GREEN};flex-shrink:0">✓</span>${f}</div>`).join('')}</div>
+          <button class="${p.highlight?'btn-gold':'btn-outline'}" style="width:100%;padding:12px;font-size:14px">Choose ${p.name}</button>
+        </div>`).join('')}
+      </div>
+      <div style="background:${WHITE};border-radius:14px;padding:28px;border:1px solid #E5E7EB;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center">
+        <div>
+          <h3 style="color:${NAVY};font-size:18px;font-weight:700;font-family:Georgia,serif;margin-bottom:10px">Included in every plan</h3>
+          <div style="display:flex;flex-direction:column;gap:8px">${["Clear Case Verified advocate","Case progress dashboard","Encrypted document storage","Court hearing reminders","GST-compliant invoicing","Cancel anytime — no lock-in"].map(f=>`<div style="display:flex;gap:8px;font-size:14px;color:${DARK}"><span style="color:${GREEN}">✓</span>${f}</div>`).join('')}</div>
+        </div>
+        <div style="background:${LIGHT};border-radius:12px;padding:24px;text-align:center">
+          <div style="font-size:36px;margin-bottom:10px">⚖️</div>
+          <h4 style="color:${NAVY};font-size:16px;font-weight:700;font-family:Georgia,serif;margin-bottom:8px">Not sure yet?</h4>
+          <p style="color:${GRAY};font-size:13px;line-height:1.6;margin-bottom:16px">Your free 30-minute consultation is already booked. Talk to ${a.name.split(' ')[1]} first — then decide.</p>
+          <button class="btn-navy" onclick="go('session')" style="width:100%;padding:11px;font-size:13px">Back to Session →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function selectAdv(id){setState({selAdv:ADVOCATES.find(x=>x.id===id)});go('profile');}
+window.selectAdv=selectAdv;
+window.setState=setState;
+window.go=go;
+window.startSession=startSession;
+window.handleOtp=function(i,v){
+  const o=[...state.otp];o[i]=v.slice(-1);setState({otp:o});
+  if(v){const next=document.getElementById('otp'+(i+1));if(next)next.focus();}
+};
+
+function render(){
+  const s=state.screen;
+  let html='';
+  if(s==='landing') html=renderLanding();
+  else if(s==='register') html=renderRegister();
+  else if(s==='advocates') html=renderAdvocates();
+  else if(s==='profile') html=renderProfile();
+  else if(s==='booking') html=renderBooking();
+  else if(s==='session') html=renderSession();
+  else if(s==='retainer') html=renderRetainer();
+  document.getElementById('app').innerHTML=html;
+}
+render();
+</script>
+</body>
+</html>

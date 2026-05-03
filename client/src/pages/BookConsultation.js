@@ -1,194 +1,293 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
+
+const NAVY = '#0A1628';
+const BG = '#F8FAFC';
+const WHITE = '#FFFFFF';
+const GRAY = '#64748B';
+const GOLD = '#C9A84C';
 
 const MATTER_TYPES = ['Criminal', 'Civil', 'Corporate', 'Family', 'Real Estate', 'Other'];
 const MODES = [
   { value: 'video', icon: '📹', label: 'Video Call' },
-  { value: 'phone', icon: '📞', label: 'Phone' },
-  { value: 'office', icon: '🏢', label: 'In Office' },
+  { value: 'phone', icon: '📞', label: 'Phone Call' },
+  { value: 'office', icon: '🏢', label: 'Office Visit' },
 ];
 const TIME_SLOTS = ['10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
 
+function formatDateLabel(date) {
+  return date.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 export default function BookConsultation() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const advocateId = query.get('advocateId');
+
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState(null);
+  const [advocate, setAdvocate] = useState(null);
   const [form, setForm] = useState({
-    guest_name: '', guest_phone: '', matter_type: '', description: '', urgency: 'standard',
-    consultation_mode: 'video', preferred_date: '', preferred_time: '',
+    guest_name: '',
+    guest_phone: '',
+    guest_email: '',
+    matter_type: '',
+    description: '',
+    urgency: 'standard',
+    consultation_mode: 'video',
+    preferred_date: '',
+    preferred_time: '',
   });
 
-  const update = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  useEffect(() => {
+    if (advocateId) {
+      fetchAdvocate();
+    }
+  }, [advocateId]);
+
+  const fetchAdvocate = async () => {
+    try {
+      const data = await api.getAdvocate(advocateId);
+      setAdvocate(data);
+    } catch (err) {
+      console.error('Failed to load advocate details', err);
+    }
+  };
+
+  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const validateStepOne = () => {
+    if (!form.guest_name || form.guest_name.length < 2) {
+      setError('Please enter your name (at least 2 characters)');
+      return false;
+    }
+    if (!/^\d{10}$/.test(form.guest_phone)) {
+      setError('Please enter a valid 10-digit phone number');
+      return false;
+    }
+    if (form.guest_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guest_email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+    if (!form.matter_type) {
+      setError('Please select a matter type');
+      return false;
+    }
+    return true;
+  };
+
+  const validateStepTwo = () => {
+    if (!form.preferred_date) {
+      setError('Please select a preferred date');
+      return false;
+    }
+    if (!form.preferred_time) {
+      setError('Please select a preferred time slot');
+      return false;
+    }
+    return true;
+  };
 
   const nextStep = () => {
     setError('');
     if (step === 1) {
-      if (!form.guest_name || form.guest_name.length < 2) return setError('Please enter your name (min 2 characters)');
-      if (!/^\d{10}$/.test(form.guest_phone)) return setError('Please enter a valid 10-digit phone number');
-      if (!form.matter_type) return setError('Please select a matter type');
+      if (!validateStepOne()) return;
+      setStep(2);
     }
-    if (step === 2) {
-      if (!form.preferred_date) return setError('Please select a date');
-      if (!form.preferred_time) return setError('Please select a time slot');
-    }
-    setStep(s => s + 1);
   };
 
   const submitBooking = async () => {
+    if (!validateStepTwo()) return;
+    setError('');
+
+    if (advocateId) {
+      const payload = {
+        advocate_id: advocateId,
+        client_name: form.guest_name,
+        client_phone: form.guest_phone,
+        client_email: form.guest_email || null,
+        matter_type: form.matter_type,
+        brief: form.description,
+        urgency: form.urgency,
+        preferred_mode: form.consultation_mode,
+        preferred_date: form.preferred_date,
+        preferred_time: form.preferred_time,
+      };
+
+      try {
+        const result = await api.createConsultationRequest(payload);
+        setBooking(result);
+        setStep(3);
+      } catch (err) {
+        setError(err.message || 'Unable to book consultation. Please try again.');
+      }
+      return;
+    }
+
+    const guestPayload = {
+      guest_name: form.guest_name,
+      guest_phone: form.guest_phone,
+      matter_type: form.matter_type,
+      description: form.description,
+      urgency: form.urgency,
+      consultation_mode: form.consultation_mode,
+      preferred_date: form.preferred_date,
+      preferred_time: form.preferred_time,
+    };
+
     try {
-      setError('');
-      const result = await api.guestBook(form);
+      const result = await api.guestBook(guestPayload);
       setBooking(result);
       setStep(3);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Unable to book consultation. Please try again.');
     }
   };
 
-  // Generate dates for next 14 days
   const getAvailableDates = () => {
     const dates = [];
-    for (let i = 1; i <= 14; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      if (d.getDay() !== 0) dates.push(d); // Skip Sundays
+    for (let i = 1; i <= 14; i += 1) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      if (date.getDay() !== 0) {
+        dates.push(date);
+      }
     }
     return dates;
   };
 
   if (step === 3 && booking) {
     return (
-      <div className="booking-page">
-        <div className="confirmation">
-          <div className="confirm-icon">✓</div>
-          <h2 className="confirm-title">Consultation Booked!</h2>
-          <p style={{ color: '#64748B', marginBottom: 24 }}>Your free 30-min consultation is confirmed.</p>
-          <div className="confirm-detail">📅 {form.preferred_date} at {form.preferred_time}</div>
-          <div className="confirm-detail">
-            {form.consultation_mode === 'video' ? '📹' : form.consultation_mode === 'phone' ? '📞' : '🏢'}
-            {' '}{form.consultation_mode === 'video' ? 'Video Call (link sent via SMS)' : form.consultation_mode === 'phone' ? 'Phone Call' : 'Office Visit'}
+      <div className="booking-page" style={{ background: BG, minHeight: '100vh', padding: '40px 24px' }}>
+        <div style={{ maxWidth: '540px', margin: '0 auto', background: WHITE, borderRadius: '18px', padding: '32px', boxShadow: '0 24px 70px rgba(15,23,42,0.08)' }}>
+          <div style={{ fontSize: '48px', color: GOLD, marginBottom: '16px', textAlign: 'center' }}>✓</div>
+          <h2 style={{ textAlign: 'center', marginBottom: '12px' }}>Consultation Booked!</h2>
+          <p style={{ color: GRAY, lineHeight: 1.7, textAlign: 'center', marginBottom: '24px' }}>{booking.message}</p>
+          <div style={{ fontSize: '14px', color: GRAY, marginBottom: '10px' }}>📅 {form.preferred_date} at {form.preferred_time}</div>
+          <div style={{ fontSize: '14px', color: GRAY, marginBottom: '10px' }}>
+            {form.consultation_mode === 'video' ? '📹 Video call' : form.consultation_mode === 'phone' ? '📞 Phone call' : '🏢 Office visit'}
           </div>
-          <div className="confirm-detail">👤 Advocate assigned within 2 hours</div>
-          <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
-          <p style={{ color: '#64748B', marginBottom: 16 }}>Create an account to track your case after the consultation.</p>
-          <button className="btn btn-navy btn-full" onClick={() => navigate('/register')} style={{ marginBottom: 12 }}>
-            Create My Account
-          </button>
-          <button className="btn btn-full" onClick={() => navigate('/')} style={{ color: '#64748B' }}>
-            Maybe Later — Skip
-          </button>
+          {advocate && <div style={{ fontSize: '14px', color: GRAY, marginBottom: '20px' }}>Advocate: {advocate.full_name || advocate.name}</div>}
+          <button className="btn btn-navy btn-full" onClick={() => navigate('/register')} style={{ width: '100%', marginBottom: '14px' }}>Create Account to Track Case</button>
+          <button className="btn btn-outline btn-full" onClick={() => navigate('/')} style={{ width: '100%', color: GRAY }}>Maybe Later — Continue Browsing</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="booking-page">
-      <button className="back-btn" onClick={() => step > 1 ? setStep(s => s - 1) : navigate('/')}>
-        ← Back
-      </button>
-      <div className="step-label">Step {step} of 3</div>
-      <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
-      </div>
-
-      {error && <div className="error-msg">{error}</div>}
-
-      {step === 1 && (
-        <>
-          <h2>Tell us about your matter</h2>
-          <p className="subtitle">No signup needed. Free. Confidential.</p>
-
-          <div className="form-group">
-            <label>Your Name *</label>
-            <input placeholder="e.g. Rahul Sharma" value={form.guest_name}
-              onChange={e => update('guest_name', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label>Phone Number *</label>
-            <input placeholder="10-digit number" value={form.guest_phone} maxLength={10}
-              onChange={e => update('guest_phone', e.target.value.replace(/\D/g, ''))} />
-          </div>
-          <div className="form-group">
-            <label>Matter Type *</label>
-            <div className="radio-group">
-              {MATTER_TYPES.map(t => (
-                <label key={t} className={`radio-option ${form.matter_type === t.toLowerCase() ? 'selected' : ''}`}
-                  onClick={() => update('matter_type', t.toLowerCase())}>
-                  <input type="radio" name="matter_type" /> {t}
-                </label>
-              ))}
+    <div style={{ background: BG, minHeight: '100vh', padding: '24px 20px 60px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <button className="back-btn" onClick={() => (step > 1 ? setStep((prev) => prev - 1) : navigate('/'))} style={{ marginBottom: '24px' }}>
+          ← Back
+        </button>
+        <div style={{ background: WHITE, borderRadius: '18px', padding: '28px', boxShadow: '0 24px 70px rgba(15,23,42,0.08)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
+            <div>
+              <div style={{ fontSize: '14px', color: GRAY, marginBottom: '6px' }}>Step {step} of 3</div>
+              <h2 style={{ fontSize: '28px', margin: 0 }}>Book Your Free Consultation</h2>
+              {advocate && <p style={{ color: GRAY, marginTop: '10px' }}>You are booking with {advocate.full_name || advocate.name}.</p>}
+            </div>
+            <div style={{ width: '120px', padding: '12px 16px', borderRadius: '14px', background: '#FEF3C7', color: '#92400E', fontWeight: 700, textAlign: 'center' }}>
+              FREE 30 MIN
             </div>
           </div>
-          <div className="form-group">
-            <label>Brief description (optional)</label>
-            <textarea rows={3} maxLength={500} placeholder="Describe your situation..."
-              value={form.description} onChange={e => update('description', e.target.value)} />
-            <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>{form.description.length}/500</div>
-          </div>
-          <div className="form-group">
-            <label>Urgency</label>
-            <div style={{ display: 'flex', gap: 12 }}>
-              {['standard', 'urgent'].map(u => (
-                <label key={u} className={`radio-option ${form.urgency === u ? 'selected' : ''}`}
-                  style={{ flex: 1 }} onClick={() => update('urgency', u)}>
-                  <input type="radio" name="urgency" /> {u === 'standard' ? '📋 Standard' : '🚨 Urgent'}
-                </label>
-              ))}
-            </div>
-          </div>
-          <button className="btn btn-gold btn-full" onClick={nextStep}>Next →</button>
-        </>
-      )}
 
-      {step === 2 && (
-        <>
-          <h2>Choose how you'd like to meet</h2>
-          <div className="mode-selector">
-            {MODES.map(m => (
-              <div key={m.value} className={`mode-option ${form.consultation_mode === m.value ? 'selected' : ''}`}
-                onClick={() => update('consultation_mode', m.value)}>
-                <div className="icon">{m.icon}</div>
-                <div className="label">{m.label}</div>
-              </div>
-            ))}
+          <div style={{ height: '8px', background: '#E2E8F0', borderRadius: '999px', overflow: 'hidden', marginBottom: '24px' }}>
+            <div style={{ width: `${(step / 3) * 100}%`, height: '100%', background: GOLD, transition: 'width 0.3s ease' }} />
           </div>
 
-          <h3 style={{ marginBottom: 12 }}>Pick a date</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-            {getAvailableDates().map(d => {
-              const str = d.toISOString().split('T')[0];
-              const label = d.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-              return (
-                <div key={str} className={`time-slot ${form.preferred_date === str ? 'selected' : ''}`}
-                  onClick={() => update('preferred_date', str)}>
-                  {label}
-                </div>
-              );
-            })}
-          </div>
+          {error && <div style={{ color: '#B91C1C', marginBottom: '20px' }}>{error}</div>}
 
-          {form.preferred_date && (
+          {step === 1 && (
             <>
-              <h3 style={{ marginBottom: 12 }}>Available Slots</h3>
-              <div className="time-slots">
-                {TIME_SLOTS.map(t => (
-                  <div key={t} className={`time-slot ${form.preferred_time === t ? 'selected' : ''}`}
-                    onClick={() => update('preferred_time', t)}>
-                    {t}
-                  </div>
-                ))}
+              <div style={{ display: 'grid', gap: '18px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Your Name *</label>
+                  <input value={form.guest_name} onChange={(e) => update('guest_name', e.target.value)} placeholder="e.g. Rahul Sharma" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #CBD5E1' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Phone Number *</label>
+                  <input value={form.guest_phone} maxLength={10} onChange={(e) => update('guest_phone', e.target.value.replace(/\D/g, ''))} placeholder="10-digit mobile number" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #CBD5E1' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Email (optional)</label>
+                  <input value={form.guest_email} onChange={(e) => update('guest_email', e.target.value)} placeholder="you@example.com" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #CBD5E1' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Matter Type *</label>
+                  <select value={form.matter_type} onChange={(e) => update('matter_type', e.target.value)} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #CBD5E1' }}>
+                    <option value="">Select matter type</option>
+                    {MATTER_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Brief description (optional)</label>
+                  <textarea value={form.description} onChange={(e) => update('description', e.target.value)} rows={4} placeholder="Describe your situation..." style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #CBD5E1' }} />
+                  <div style={{ marginTop: '8px', color: GRAY, fontSize: '13px' }}>{form.description.length}/500</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', background: form.urgency === 'standard' ? '#EFF6FF' : '#FFFFFF', borderRadius: '12px', border: `1px solid ${form.urgency === 'standard' ? '#93C5FD' : '#CBD5E1'}`, cursor: 'pointer' }}>
+                    <input type="radio" checked={form.urgency === 'standard'} onChange={() => update('urgency', 'standard')} /> Standard
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', background: form.urgency === 'urgent' ? '#FEF3C7' : '#FFFFFF', borderRadius: '12px', border: `1px solid ${form.urgency === 'urgent' ? '#FACC15' : '#CBD5E1'}`, cursor: 'pointer' }}>
+                    <input type="radio" checked={form.urgency === 'urgent'} onChange={() => update('urgency', 'urgent')} /> Urgent
+                  </label>
+                </div>
               </div>
+              <button className="btn btn-gold" onClick={nextStep} style={{ marginTop: '28px', width: '100%', padding: '16px' }}>Continue →</button>
             </>
           )}
 
-          <button className="btn btn-gold btn-full" style={{ marginTop: 24 }} onClick={() => { nextStep(); submitBooking(); }}>
-            Confirm Booking
-          </button>
-        </>
-      )}
+          {step === 2 && (
+            <>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600 }}>Meeting mode</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                    {MODES.map((mode) => (
+                      <button key={mode.value} type="button" onClick={() => update('consultation_mode', mode.value)} style={{ padding: '16px', borderRadius: '16px', border: `1px solid ${form.consultation_mode === mode.value ? NAVY : '#CBD5E1'}`, background: form.consultation_mode === mode.value ? '#EFF6FF' : WHITE, cursor: 'pointer', textAlign: 'left' }}>
+                        <div style={{ fontSize: '18px', marginBottom: '8px' }}>{mode.icon}</div>
+                        <div style={{ fontWeight: 700 }}>{mode.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600 }}>Select a date</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {getAvailableDates().map((date) => {
+                      const value = date.toISOString().split('T')[0];
+                      return (
+                        <button key={value} type="button" onClick={() => update('preferred_date', value)} style={{ minWidth: '96px', padding: '12px', borderRadius: '14px', border: `1px solid ${form.preferred_date === value ? NAVY : '#CBD5E1'}`, background: form.preferred_date === value ? '#EFF6FF' : WHITE, cursor: 'pointer' }}>
+                          <div style={{ fontSize: '12px', color: GRAY }}>{formatDateLabel(date)}</div>
+                          <div style={{ fontWeight: 700, marginTop: '4px' }}>{value.split('-').pop()}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {form.preferred_date && (
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600 }}>Choose a time slot</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                      {TIME_SLOTS.map((slot) => (
+                        <button key={slot} type="button" onClick={() => update('preferred_time', slot)} style={{ padding: '14px', borderRadius: '14px', border: `1px solid ${form.preferred_time === slot ? GOLD : '#CBD5E1'}`, background: form.preferred_time === slot ? '#FEF3C7' : WHITE, cursor: 'pointer' }}>
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button className="btn btn-gold" onClick={submitBooking} style={{ marginTop: '24px', width: '100%', padding: '16px' }}>Confirm Booking</button>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

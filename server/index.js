@@ -4,10 +4,10 @@ const path = require('path');
 const Database = require('better-sqlite3');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Database
-const DB_PATH = path.join(__dirname, 'db', 'lexnova.db');
+const DB_PATH = path.join(__dirname, 'db', 'clearcase.db');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
@@ -31,6 +31,8 @@ app.use('/api/clients', require('./routes/clients')(db));
 app.use('/api/users', require('./routes/users')(db));
 app.use('/api/dashboard', require('./routes/dashboard')(db));
 app.use('/api/ai-guide', require('./routes/aiGuide')(db));
+app.use('/api/consultations', require('./routes/consultations')(db));
+app.use('/api/advocates', require('./routes/advocates')(db));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -46,5 +48,5 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(PORT, () => {
-  console.log(`Lex Nova API server running on http://localhost:${PORT}`);
+  console.log(`Clear Case API server running on http://localhost:${PORT}`);
 });

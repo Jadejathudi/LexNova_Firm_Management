@@ -79,7 +79,7 @@ module.exports = function (db) {
     }
 
     // Update last login
-    db.prepare('UPDATE users SET last_login = datetime("now") WHERE user_id = ?').run(user.user_id);
+    db.prepare('UPDATE users SET last_login = ? WHERE user_id = ?').run(new Date().toISOString(), user.user_id);
 
     // Log audit
     db.prepare(`INSERT INTO audit_logs (log_id, actor_id, action, resource_type, ip_address) VALUES (?, ?, 'LOGIN', 'user', ?)`)

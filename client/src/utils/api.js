@@ -20,6 +20,7 @@ async function apiFetch(endpoint, options = {}) {
 export const api = {
   // Auth
   guestBook: (data) => apiFetch('/auth/guest-book', { method: 'POST', body: JSON.stringify(data) }),
+  createConsultationRequest: (data) => apiFetch('/consultations/requests', { method: 'POST', body: JSON.stringify(data) }),
   register: (data) => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   login: (data) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
@@ -75,9 +76,21 @@ export const api = {
   getClients: () => apiFetch('/clients'),
   getClient: (id) => apiFetch(`/clients/${id}`),
 
+  // Advocates
+  getAdvocates: ({ state, spec, available } = {}) => {
+    const params = new URLSearchParams();
+    if (state) params.append('state', state);
+    if (spec) params.append('spec', spec);
+    if (available) params.append('available', 'true');
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return apiFetch(`/advocates${query}`);
+  },
+  getAdvocate: (id) => apiFetch(`/advocates/${id}`),
+  getAdvocateAvailability: (id) => apiFetch(`/advocates/${id}/availability`),
+  getAdvocateEarnings: (id, period) => apiFetch(`/advocates/${id}/earnings?period=${period}`),
+
   // Users
   getTeam: () => apiFetch('/users'),
-  getAdvocates: () => apiFetch('/users/advocates'),
   getNotifications: () => apiFetch('/users/notifications'),
   getUnreadNotifCount: () => apiFetch('/users/notifications/unread-count'),
   markNotifRead: (id) => apiFetch(`/users/notifications/${id}/read`, { method: 'PATCH' }),

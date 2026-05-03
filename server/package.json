@@ -1,7 +1,7 @@
 {
   "name": "lexnova-server",
   "version": "1.0.0",
-  "description": "Lex Nova Legal Services API Server",
+  "description": "Clear Case Legal Services API Server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

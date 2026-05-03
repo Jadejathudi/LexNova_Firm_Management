@@ -35,7 +35,7 @@ export default function Register() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ fontSize: 36 }}>⚖️</div>
           <h1 style={{ fontSize: 24, color: '#0A1628', marginTop: 8 }}>Create Account</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>Join Lex Nova to track your cases</p>
+          <p style={{ color: '#64748B', fontSize: 14 }}>Join Clear Case to track your cases</p>
         </div>
 
         {error && <div className="error-msg">{error}</div>}

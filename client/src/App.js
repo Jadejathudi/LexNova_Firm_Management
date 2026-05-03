@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Landing from './pages/Landing';
+import AdvocatesList from './pages/AdvocatesList';
+import AdvocateProfile from './pages/AdvocateProfile';
 import BookConsultation from './pages/BookConsultation';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -69,6 +71,8 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
+      <Route path="/advocates" element={<AdvocatesList />} />
+      <Route path="/advocates/:id" element={<AdvocateProfile />} />
       <Route path="/book" element={<BookConsultation />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'lexnova.db');
+const DB_PATH = path.join(__dirname, 'clearcase.db');
 
 function setup() {
   const db = new Database(DB_PATH);
@@ -159,6 +159,117 @@ function setup() {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS advocates (
+      advocate_id TEXT PRIMARY KEY,
+      user_id TEXT,
+      bar_number TEXT UNIQUE NOT NULL,
+      experience_years INTEGER NOT NULL,
+      specializations TEXT NOT NULL, -- JSON array
+      state TEXT NOT NULL,
+      city TEXT NOT NULL,
+      bio TEXT,
+      languages TEXT, -- JSON array
+      rating REAL DEFAULT 0,
+      review_count INTEGER DEFAULT 0,
+      success_rate INTEGER DEFAULT 0,
+      cases_handled INTEGER DEFAULT 0,
+      is_verified INTEGER DEFAULT 0,
+      is_available INTEGER DEFAULT 1,
+      profile_photo TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(user_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS consultation_requests (
+      request_id TEXT PRIMARY KEY,
+      advocate_id TEXT NOT NULL,
+      client_name TEXT NOT NULL,
+      client_phone TEXT NOT NULL,
+      client_email TEXT,
+      matter_type TEXT NOT NULL,
+      brief TEXT NOT NULL,
+      urgency TEXT DEFAULT 'normal' CHECK(urgency IN ('normal','high')),
+      preferred_mode TEXT CHECK(preferred_mode IN ('video','phone','office')),
+      preferred_date TEXT,
+      preferred_time TEXT,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending','accepted','declined','completed')),
+      submitted_at TEXT DEFAULT (datetime('now')),
+      responded_at TEXT,
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS consultation_sessions (
+      session_id TEXT PRIMARY KEY,
+      request_id TEXT,
+      advocate_id TEXT NOT NULL,
+      client_name TEXT NOT NULL,
+      client_phone TEXT NOT NULL,
+      scheduled_date TEXT NOT NULL,
+      scheduled_time TEXT NOT NULL,
+      duration_minutes INTEGER DEFAULT 30,
+      session_mode TEXT CHECK(session_mode IN ('video','phone','office')),
+      status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled','active','completed','cancelled')),
+      started_at TEXT,
+      ended_at TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (request_id) REFERENCES consultation_requests(request_id),
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS retainer_clients (
+      retainer_id TEXT PRIMARY KEY,
+      advocate_id TEXT NOT NULL,
+      client_name TEXT NOT NULL,
+      client_phone TEXT NOT NULL,
+      client_email TEXT,
+      plan_type TEXT NOT NULL CHECK(plan_type IN ('Essential','Standard','Premium')),
+      monthly_fee REAL NOT NULL,
+      matter_type TEXT,
+      status TEXT DEFAULT 'active' CHECK(status IN ('active','inactive','terminated')),
+      since_date TEXT NOT NULL,
+      next_hearing TEXT,
+      unread_messages INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS advocate_earnings (
+      earning_id TEXT PRIMARY KEY,
+      advocate_id TEXT NOT NULL,
+      session_id TEXT,
+      retainer_id TEXT,
+      amount REAL NOT NULL,
+      fee_type TEXT CHECK(fee_type IN ('consultation','retainer','bonus')),
+      description TEXT,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending','paid','cancelled')),
+      payout_date TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id),
+      FOREIGN KEY (session_id) REFERENCES consultation_sessions(session_id),
+      FOREIGN KEY (retainer_id) REFERENCES retainer_clients(retainer_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS advocate_availability (
+      availability_id TEXT PRIMARY KEY,
+      advocate_id TEXT NOT NULL,
+      day_of_week TEXT NOT NULL CHECK(day_of_week IN ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')),
+      is_available INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id),
+      UNIQUE(advocate_id, day_of_week)
+    );
+
+    CREATE TABLE IF NOT EXISTS advocate_reviews (
+      review_id TEXT PRIMARY KEY,
+      advocate_id TEXT NOT NULL,
+      client_name TEXT NOT NULL,
+      rating INTEGER NOT NULL CHECK(rating >=1 AND rating <=5),
+      review_text TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id)
+    );
+
     CREATE TABLE IF NOT EXISTS notifications (
       notification_id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -194,16 +305,16 @@ function setup() {
   const advisorId = uuidv4();
 
   const insertUser = db.prepare(`INSERT INTO users (user_id, full_name, email, phone, role, password_hash) VALUES (?,?,?,?,?,?)`);
-  insertUser.run(partnerId, 'Prashanth Kumar', 'prashanth@lexnova.in', '9876543210', 'managing_partner', hash);
-  insertUser.run(seniorAdv1Id, 'Adv. Meera Pillai', 'meera@lexnova.in', '9876543211', 'senior_advocate', hash);
-  insertUser.run(seniorAdv2Id, 'Adv. Arvind Kumar', 'arvind@lexnova.in', '9876543212', 'senior_advocate', hash);
-  insertUser.run(juniorAdv1Id, 'Adv. Suresh Naik', 'suresh@lexnova.in', '9876543213', 'junior_advocate', hash);
-  insertUser.run(juniorAdv2Id, 'Adv. Priya Menon', 'priya@lexnova.in', '9876543214', 'junior_advocate', hash);
-  insertUser.run(billingId, 'Anita Desai', 'billing@lexnova.in', '9876543215', 'billing', hash);
-  insertUser.run(receptionId, 'Kavitha Rao', 'reception@lexnova.in', '9876543216', 'reception', hash);
+  insertUser.run(partnerId, 'Prashanth Kumar', 'prashanth@clearcase.in', '9876543210', 'managing_partner', hash);
+  insertUser.run(seniorAdv1Id, 'Adv. Meera Pillai', 'meera@clearcase.in', '9876543211', 'senior_advocate', hash);
+  insertUser.run(seniorAdv2Id, 'Adv. Arvind Kumar', 'arvind@clearcase.in', '9876543212', 'senior_advocate', hash);
+  insertUser.run(juniorAdv1Id, 'Adv. Suresh Naik', 'suresh@clearcase.in', '9876543213', 'junior_advocate', hash);
+  insertUser.run(juniorAdv2Id, 'Adv. Priya Menon', 'priya@clearcase.in', '9876543214', 'junior_advocate', hash);
+  insertUser.run(billingId, 'Anita Desai', 'billing@clearcase.in', '9876543215', 'billing', hash);
+  insertUser.run(receptionId, 'Kavitha Rao', 'reception@clearcase.in', '9876543216', 'reception', hash);
   insertUser.run(clientUserId1, 'Rahul Sharma', 'rahul@example.com', '9876543217', 'client', hash);
   insertUser.run(clientUserId2, 'Sneha Patel', 'sneha@example.com', '9876543218', 'client', hash);
-  insertUser.run(advisorId, 'Justice (Retd.) K.N. Rao', 'rao@lexnova.in', '9876543219', 'advisor', hash);
+  insertUser.run(advisorId, 'Justice (Retd.) K.N. Rao', 'rao@clearcase.in', '9876543219', 'advisor', hash);
 
   // Clients
   const client1Id = uuidv4();
@@ -278,13 +389,66 @@ function setup() {
   insertConsult.run(uuidv4(), 'Amit Joshi', '9988776655', 'criminal', 'Need advice regarding an FIR filed against me', 'urgent', 'video', '2025-03-15', '10:00', 'booked');
   insertConsult.run(uuidv4(), 'Priyanka Das', '8877665544', 'family', 'Divorce proceedings guidance needed', 'standard', 'phone', '2025-03-16', '14:00', 'confirmed');
 
+  // Advocates
+  const adv1Id = uuidv4();
+  const adv2Id = uuidv4();
+  const adv3Id = uuidv4();
+  const insertAdvocate = db.prepare(`INSERT INTO advocates (advocate_id, user_id, bar_number, experience_years, specializations, state, city, bio, languages, rating, review_count, success_rate, cases_handled, is_verified, is_available) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  insertAdvocate.run(adv1Id, seniorAdv1Id, 'TS/HC/2011/1234', 14, JSON.stringify(['Criminal','Family','Civil']), 'Telangana', 'Hyderabad', 'Senior High Court advocate with 14 years in criminal defense and family law. Former public prosecutor with deep knowledge of Telangana courts.', JSON.stringify(['Telugu','English','Hindi']), 4.9, 63, 81, 420, 1, 1);
+  insertAdvocate.run(adv2Id, seniorAdv2Id, 'AP/HC/2009/5678', 16, JSON.stringify(['Corporate','Banking','Civil']), 'Andhra Pradesh', 'Vijayawada', 'Corporate specialist with expertise in banking disputes, NCLT insolvency matters, and commercial litigation across AP courts.', JSON.stringify(['Telugu','English']), 4.6, 38, 74, 210, 1, 1);
+  insertAdvocate.run(adv3Id, juniorAdv1Id, 'TS/HC/2018/9012', 7, JSON.stringify(['Civil','Real Estate','Consumer']), 'Telangana', 'Hyderabad', 'Specialises in property disputes, consumer protection, and civil litigation. Known for transparent client communication.', JSON.stringify(['Telugu','English','Tamil']), 4.7, 29, 79, 156, 1, 0);
+
+  // Advocate Availability
+  const insertAvailability = db.prepare(`INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available) VALUES (?,?,?,?)`);
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  days.forEach(day => {
+    insertAvailability.run(uuidv4(), adv1Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0);
+    insertAvailability.run(uuidv4(), adv2Id, day, day !== 'Sun' ? 1 : 0);
+    insertAvailability.run(uuidv4(), adv3Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0);
+  });
+
+  // Consultation Requests
+  const req1Id = uuidv4();
+  const req2Id = uuidv4();
+  const req3Id = uuidv4();
+  const insertRequest = db.prepare(`INSERT INTO consultation_requests (request_id, advocate_id, client_name, client_phone, matter_type, brief, urgency, preferred_mode, preferred_date, preferred_time, status, submitted_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
+  insertRequest.run(req1Id, adv1Id, 'Rahul Sharma', '9876543217', 'Criminal', 'FIR filed against me under section 420. Need urgent guidance on bail and next steps.', 'high', 'video', '2025-03-12', '11:00 AM', 'pending', '2025-03-10 14:00:00');
+  insertRequest.run(req2Id, adv1Id, 'Priya Reddy', '8765432198', 'Family', 'Mutual divorce proceedings. Already separated for 18 months. Need to understand the process and timeline.', 'normal', 'phone', '2025-03-13', '14:00 PM', 'pending', '2025-03-10 17:00:00');
+  insertRequest.run(req3Id, adv2Id, 'Anjaneyulu G.', '7654321987', 'Civil', 'Inherited ancestral property dispute with siblings. Patta documents available.', 'normal', 'office', '2025-03-14', '15:30 PM', 'accepted', '2025-03-09 10:00:00');
+
+  // Consultation Sessions
+  const sess1Id = uuidv4();
+  const insertSession = db.prepare(`INSERT INTO consultation_sessions (session_id, request_id, advocate_id, client_name, client_phone, scheduled_date, scheduled_time, duration_minutes, session_mode, status) VALUES (?,?,?,?,?,?,?,?,?,?)`);
+  insertSession.run(sess1Id, req3Id, adv2Id, 'Anjaneyulu G.', '7654321987', '2025-03-14', '15:30', 45, 'office', 'scheduled');
+
+  // Retainer Clients
+  const ret1Id = uuidv4();
+  const ret2Id = uuidv4();
+  const ret3Id = uuidv4();
+  const insertRetainer = db.prepare(`INSERT INTO retainer_clients (retainer_id, advocate_id, client_name, client_phone, plan_type, monthly_fee, matter_type, since_date, next_hearing, unread_messages) VALUES (?,?,?,?,?,?,?,?,?,?)`);
+  insertRetainer.run(ret1Id, adv1Id, 'Vikram Joshi', '6543219876', 'Standard', 9999, 'Banking dispute', '2025-01-01', '2025-03-15', 2);
+  insertRetainer.run(ret2Id, adv2Id, 'Lakshmi Industries', '5432198765', 'Premium', 19999, 'NCLT matter', '2024-11-01', '2025-03-22', 0);
+  insertRetainer.run(ret3Id, adv1Id, 'K. Ramesh', '4321987654', 'Essential', 4999, 'Property partition', '2025-02-01', null, 1);
+
+  // Advocate Earnings
+  const insertEarning = db.prepare(`INSERT INTO advocate_earnings (earning_id, advocate_id, session_id, retainer_id, amount, fee_type, description, status, payout_date) VALUES (?,?,?,?,?,?,?,?,?)`);
+  insertEarning.run(uuidv4(), adv1Id, null, ret1Id, 9999, 'retainer', 'Standard retainer - Vikram Joshi', 'paid', '2025-03-01');
+  insertEarning.run(uuidv4(), adv2Id, null, ret2Id, 19999, 'retainer', 'Premium retainer - Lakshmi Industries', 'pending', '2025-03-15');
+  insertEarning.run(uuidv4(), adv1Id, sess1Id, null, 1500, 'consultation', 'Office consultation - Anjaneyulu G.', 'pending', null);
+
+  // Advocate Reviews
+  const insertReview = db.prepare(`INSERT INTO advocate_reviews (review_id, advocate_id, client_name, rating, review_text) VALUES (?,?,?,?,?)`);
+  insertReview.run(uuidv4(), adv1Id, 'Vikram Joshi', 5, 'Excellent guidance on banking dispute. Very professional.');
+  insertReview.run(uuidv4(), adv1Id, 'Sneha Patil', 5, 'Handled my consumer complaint perfectly. Highly recommended.');
+  insertReview.run(uuidv4(), adv2Id, 'Corporate Client', 4, 'Good corporate law expertise, but could be more responsive.');
+
   console.log('Database seeded successfully!');
   console.log('Demo accounts:');
-  console.log('  Managing Partner: prashanth@lexnova.in / password123');
-  console.log('  Senior Advocate:  meera@lexnova.in / password123');
-  console.log('  Junior Advocate:  suresh@lexnova.in / password123');
-  console.log('  Billing:          billing@lexnova.in / password123');
-  console.log('  Reception:        reception@lexnova.in / password123');
+  console.log('  Managing Partner: prashanth@clearcase.in / password123');
+  console.log('  Senior Advocate:  meera@clearcase.in / password123');
+  console.log('  Junior Advocate:  suresh@clearcase.in / password123');
+  console.log('  Billing:          billing@clearcase.in / password123');
+  console.log('  Reception:        reception@clearcase.in / password123');
   console.log('  Client (Rahul):   rahul@example.com / password123');
   console.log('  Client (Sneha):   sneha@example.com / password123');
 

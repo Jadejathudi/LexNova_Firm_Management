@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'lexnova-dev-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'clearcase-dev-secret-key-change-in-production';
 const JWT_EXPIRY = '24h';
 
 function authenticateToken(req, res, next) {

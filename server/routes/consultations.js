@@ -44,6 +44,19 @@ module.exports = function (db) {
   router.post('/requests', (req, res) => {
     const { advocate_id, client_name, client_phone, client_email, matter_type, brief, urgency, preferred_mode, preferred_date, preferred_time } = req.body;
 
+    if (!advocate_id || !client_name || !client_phone || !matter_type) {
+      return res.status(400).json({ error: 'Advocate, name, phone, and matter type are required' });
+    }
+    if (!/^\d{10}$/.test(client_phone)) {
+      return res.status(400).json({ error: 'Phone must be 10 digits' });
+    }
+
+    // Verify advocate exists
+    const advocateExists = db.prepare('SELECT advocate_id FROM advocates WHERE advocate_id = ?').get(advocate_id);
+    if (!advocateExists) {
+      return res.status(404).json({ error: 'Advocate not found' });
+    }
+
     try {
       const requestId = uuidv4();
       const stmt = db.prepare(`

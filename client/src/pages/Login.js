@@ -34,7 +34,7 @@ export default function Login() {
       <div style={{ background: 'white', borderRadius: 16, padding: 40, width: '100%', maxWidth: 420 }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 36 }}>⚖️</div>
-          <h1 style={{ fontSize: 24, color: '#0A1628', marginTop: 8 }}>LEX <span style={{ color: '#C9A84C' }}>NOVA</span></h1>
+          <h1 style={{ fontSize: 24, color: '#0A1628', marginTop: 8 }}>CLEAR <span style={{ color: '#C9A84C' }}>CASE</span></h1>
           <p style={{ color: '#64748B', fontSize: 14 }}>Sign in to your account</p>
         </div>
 
@@ -65,8 +65,8 @@ export default function Login() {
 
         <div style={{ marginTop: 24, padding: 16, background: '#F8FAFC', borderRadius: 8, fontSize: 12, color: '#64748B' }}>
           <strong>Demo Accounts:</strong><br />
-          Partner: prashanth@lexnova.in<br />
-          Sr. Advocate: meera@lexnova.in<br />
+          Partner: prashanth@clearcase.in<br />
+          Sr. Advocate: meera@clearcase.in<br />
           Client: rahul@example.com<br />
           <em>Password for all: password123</em>
         </div>

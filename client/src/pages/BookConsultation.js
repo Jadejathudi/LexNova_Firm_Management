@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 
 const NAVY = '#0A1628';
+const WHITE = '#FFFFFF';
 const BG = '#F8FAFC';
 const WHITE = '#FFFFFF';
 const GRAY = '#64748B';
@@ -179,9 +180,20 @@ export default function BookConsultation() {
   }
 
   return (
-    <div style={{ background: BG, minHeight: '100vh', padding: '24px 20px 60px' }}>
+    <div style={{ background: BG, minHeight: '100vh' }}>
+      {/* Navbar */}
+      <div style={{ background: NAVY, padding: '0 48px', height: '60px', display: 'flex', alignItems: 'center', gap: '32px', position: 'sticky', top: 0, zIndex: 50 }}>
+        <span onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: 'Georgia, serif' }}>
+          ⚖️ CLEAR CASE
+        </span>
+        <div style={{ flex: 1 }} />
+        <span onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', cursor: 'pointer' }}>Find an Advocate</span>
+        <button className="btn btn-gold" onClick={() => navigate('/register')} style={{ padding: '9px 20px' }}>Register Free</button>
+      </div>
+
+      <div style={{ padding: '24px 20px 60px' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <button className="back-btn" onClick={() => (step > 1 ? setStep((prev) => prev - 1) : navigate('/'))} style={{ marginBottom: '24px' }}>
+        <button className="back-btn" onClick={() => (step > 1 ? setStep((prev) => prev - 1) : navigate(-1))} style={{ marginBottom: '24px' }}>
           ← Back
         </button>
         <div style={{ background: WHITE, borderRadius: '18px', padding: '28px', boxShadow: '0 24px 70px rgba(15,23,42,0.08)' }}>
@@ -287,6 +299,7 @@ export default function BookConsultation() {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../utils/api';
 
@@ -215,7 +215,7 @@ export default function AdvocateProfile() {
             <button className="btn btn-gold" onClick={() => navigate(`/book?advocateId=${a.advocate_id}`)} style={{ width: '100%', padding: '14px', fontSize: '15px' }}>Book Free 30 Minutes →</button>
             <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #F3F4F6', textAlign: 'center' }}>
               <div style={{ fontSize: '13px', fontWeight: 700, color: NAVY, marginBottom: '8px' }}>Or retain {displayName}</div>
-              <button className="btn btn-outline" onClick={() => navigate('/retainer')} style={{ width: '100%', padding: '10px', fontSize: '13px' }}>View Retainer Plans</button>
+              <button className="btn btn-outline" onClick={() => navigate(`/book?advocateId=${a.advocate_id}`)} style={{ width: '100%', padding: '10px', fontSize: '13px' }}>View Retainer Plans</button>
             </div>
           </div>
 

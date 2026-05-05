@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const INTERNAL_ROLES = ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate', 'billing', 'reception'];
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const from = location.state?.from || null;
+  const message = location.state?.message || null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,12 +22,10 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      // Route based on role
-      if (['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate', 'billing', 'reception'].includes(user.role)) {
-        navigate('/crm');
-      } else {
-        navigate('/dashboard');
-      }
+      const isInternal = INTERNAL_ROLES.includes(user.role);
+      // Redirect back to the page they came from, or role-based default
+      const destination = from || (isInternal ? '/crm' : '/dashboard');
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -38,6 +42,16 @@ export default function Login() {
           <p style={{ color: '#64748B', fontSize: 14 }}>Sign in to your account</p>
         </div>
 
+        {message && (
+          <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400E', fontWeight: 600 }}>
+            🔒 {message}
+          </div>
+        )}
+        {from && !message && (
+          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#1D4ED8' }}>
+            Sign in to continue — you'll be taken back to where you left off.
+          </div>
+        )}
         {error && <div className="error-msg">{error}</div>}
 
         <form onSubmit={handleSubmit}>

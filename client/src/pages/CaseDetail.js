@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
@@ -7,13 +7,22 @@ const STATUS_BADGE = {
   intake: 'badge-draft', active: 'badge-active', hearing_pending: 'badge-pending',
   awaiting_docs: 'badge-pending', judgment: 'badge-sent', closed: 'badge-closed',
 };
+const STATUS_LABEL = {
+  intake: 'Intake', active: 'Active', hearing_pending: 'Hearing Pending',
+  awaiting_docs: 'Awaiting Docs', judgment: 'Judgment', closed: 'Closed',
+};
+const VALID_STATUSES = ['intake', 'active', 'hearing_pending', 'awaiting_docs', 'judgment', 'closed'];
+const URGENCY_COLORS = { critical: '#EF4444', urgent: '#F59E0B', standard: '#64748B' };
+
+const CAN_EDIT_ROLES = ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate'];
 
 export default function CaseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [matter, setMatter] = useState(null);
-  const [tab, setTab] = useState('timeline');
+  const [tab, setTab] = useState('details');
   const [timeline, setTimeline] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -21,8 +30,21 @@ export default function CaseDetail() {
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState('');
 
-  useEffect(() => {
-    Promise.all([
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState(null);
+
+  // Add hearing state
+  const [showAddHearing, setShowAddHearing] = useState(false);
+  const [hearingForm, setHearingForm] = useState({ hearing_date: '', hearing_time: '', court_name: '', purpose: '', outcome: '' });
+  const [addingHearing, setAddingHearing] = useState(false);
+
+  const canEdit = CAN_EDIT_ROLES.includes(user?.role);
+
+  const loadAll = useCallback(() => {
+    return Promise.all([
       api.getMatter(id),
       api.getMatterTimeline(id),
       api.getMatterDocuments(id).catch(() => []),
@@ -30,13 +52,24 @@ export default function CaseDetail() {
       api.getInvoices().catch(() => []),
     ]).then(([m, t, d, msg, inv]) => {
       setMatter(m);
+      setEditForm({
+        title: m.title || '',
+        description: m.description || '',
+        court_name: m.court_name || '',
+        opposing_party: m.opposing_party || '',
+        urgency: m.urgency || 'standard',
+        status: m.status || 'intake',
+      });
       setTimeline(t);
       setDocuments(d);
       setMessages(msg);
       setInvoices(inv.filter(i => i.matter_id === id));
-    }).catch(console.error)
-      .finally(() => setLoading(false));
+    });
   }, [id]);
+
+  useEffect(() => {
+    loadAll().catch(console.error).finally(() => setLoading(false));
+  }, [loadAll]);
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -45,40 +78,251 @@ export default function CaseDetail() {
       setNewMessage('');
       const msgs = await api.getMatterMessages(id);
       setMessages(msgs);
+    } catch (err) { console.error(err); }
+  };
+
+  const saveEdit = async () => {
+    setSaving(true);
+    setSaveMsg(null);
+    try {
+      await api.updateMatter(id, editForm);
+      await loadAll();
+      setEditing(false);
+      setSaveMsg({ type: 'success', text: 'Case updated successfully.' });
+      setTimeout(() => setSaveMsg(null), 3000);
     } catch (err) {
-      console.error(err);
+      setSaveMsg({ type: 'error', text: err.message || 'Update failed.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveHearing = async () => {
+    if (!hearingForm.hearing_date || !hearingForm.court_name) return;
+    setAddingHearing(true);
+    try {
+      await api.createHearing({ ...hearingForm, matter_id: id });
+      const t = await api.getMatterTimeline(id);
+      setTimeline(t);
+      setShowAddHearing(false);
+      setHearingForm({ hearing_date: '', hearing_time: '', court_name: '', purpose: '', outcome: '' });
+    } catch (err) {
+      alert(err.message || 'Failed to add hearing');
+    } finally {
+      setAddingHearing(false);
     }
   };
 
   if (loading) return <div className="loading">Loading case details...</div>;
   if (!matter) return <div className="loading">Case not found</div>;
 
-  const leadAdvocate = matter.advocates?.find(a => a.role_on_matter === 'lead_senior');
+  const leadAdvocate = matter.advocates?.find(a => a.role_on_matter === 'lead_senior') || matter.advocates?.[0];
+
+  const TABS = [
+    { key: 'details', label: '📋 Details' },
+    { key: 'timeline', label: `⚖️ Hearings (${timeline.length})` },
+    { key: 'documents', label: `📄 Documents (${documents.length})` },
+    { key: 'messages', label: '💬 Messages' },
+    { key: 'billing', label: `💰 Billing (${invoices.length})` },
+  ];
 
   return (
     <div className="case-detail page-with-nav">
       <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
 
+      {/* ── Case Header ─────────────────────────────────────────────────────── */}
       <div className="case-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <h1>MATTER #{matter.matter_number}</h1>
-          <span className={`badge ${STATUS_BADGE[matter.status]}`}>{matter.status?.replace('_', ' ').toUpperCase()}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <h1 style={{ margin: 0 }}>MATTER #{matter.matter_number}</h1>
+          <span className={`badge ${STATUS_BADGE[matter.status] || 'badge-draft'}`} style={{ fontSize: 13 }}>
+            {STATUS_LABEL[matter.status] || matter.status}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: URGENCY_COLORS[matter.urgency] || '#64748B', background: '#F1F5F9', padding: '3px 10px', borderRadius: 20 }}>
+            {matter.urgency?.toUpperCase()}
+          </span>
         </div>
-        <div className="case-info">{matter.title}</div>
-        {matter.court_name && <div className="case-info">📍 {matter.court_name}</div>}
-        <div className="case-info">Filed: {new Date(matter.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+        <div className="case-info" style={{ fontSize: 18, fontWeight: 700, color: '#0A1628', marginTop: 6 }}>{matter.title}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: 8 }}>
+          {matter.court_name && <div className="case-info">📍 {matter.court_name}</div>}
+          {matter.matter_type && <div className="case-info">⚖️ {matter.matter_type.charAt(0).toUpperCase() + matter.matter_type.slice(1)}</div>}
+          <div className="case-info">📅 Filed: {new Date(matter.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+          {leadAdvocate && <div className="case-info">👤 {leadAdvocate.full_name}</div>}
+        </div>
       </div>
 
+      {/* Save message */}
+      {saveMsg && (
+        <div style={{ margin: '12px 0', padding: '10px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600, background: saveMsg.type === 'success' ? '#DCFCE7' : '#FEF2F2', color: saveMsg.type === 'success' ? '#166534' : '#B91C1C' }}>
+          {saveMsg.type === 'success' ? '✅' : '❌'} {saveMsg.text}
+        </div>
+      )}
+
+      {/* ── Tabs ─────────────────────────────────────────────────────────────── */}
       <div className="tabs">
-        {['timeline', 'documents', 'messages', 'billing'].map(t => (
-          <div key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+        {TABS.map(t => (
+          <div key={t.key} className={`tab ${tab === t.key ? 'active' : ''}`} onClick={() => setTab(t.key)}>
+            {t.label}
           </div>
         ))}
       </div>
 
+      {/* ── DETAILS TAB ──────────────────────────────────────────────────────── */}
+      {tab === 'details' && (
+        <div>
+          {/* Advocate edit toolbar */}
+          {canEdit && !editing && (
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => setEditing(true)}
+              style={{ marginBottom: 16 }}
+            >
+              ✏️ Edit Case Details
+            </button>
+          )}
+
+          {canEdit && editing ? (
+            /* ── Edit Form ── */
+            <div className="card" style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#0A1628', marginBottom: 16 }}>Edit Case Details</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Case Title</label>
+                  <input value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>Status</label>
+                  <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}>
+                    {VALID_STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Urgency</label>
+                  <select value={editForm.urgency} onChange={e => setEditForm(f => ({ ...f, urgency: e.target.value }))}>
+                    <option value="standard">Standard</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Court Name</label>
+                  <input value={editForm.court_name} onChange={e => setEditForm(f => ({ ...f, court_name: e.target.value }))} placeholder="e.g. District Court, Mumbai" />
+                </div>
+                <div className="form-group">
+                  <label>Opposing Party</label>
+                  <input value={editForm.opposing_party} onChange={e => setEditForm(f => ({ ...f, opposing_party: e.target.value }))} placeholder="Name of opposing party" />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Case Description / Notes</label>
+                  <textarea rows={4} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} placeholder="Detailed case notes, background, strategy..." style={{ resize: 'vertical' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button className="btn btn-navy btn-sm" onClick={saveEdit} disabled={saving}>
+                  {saving ? 'Saving…' : '✅ Save Changes'}
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setEditing(false)} disabled={saving}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Read-Only View ── */
+            <div>
+              {/* Core info grid */}
+              <div className="card" style={{ marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
+                  <InfoRow label="Matter Number" value={`#${matter.matter_number}`} />
+                  <InfoRow label="Matter Type" value={matter.matter_type ? matter.matter_type.charAt(0).toUpperCase() + matter.matter_type.slice(1) : '—'} />
+                  <InfoRow label="Status" value={
+                    <span className={`badge ${STATUS_BADGE[matter.status] || 'badge-draft'}`}>{STATUS_LABEL[matter.status] || matter.status}</span>
+                  } />
+                  <InfoRow label="Urgency" value={
+                    <span style={{ fontWeight: 700, color: URGENCY_COLORS[matter.urgency] }}>{matter.urgency?.charAt(0).toUpperCase() + matter.urgency?.slice(1)}</span>
+                  } />
+                  <InfoRow label="Court" value={matter.court_name || '—'} />
+                  <InfoRow label="Opposing Party" value={matter.opposing_party || '—'} />
+                  <InfoRow label="Filed On" value={new Date(matter.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                  {matter.closed_at && <InfoRow label="Closed On" value={new Date(matter.closed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} />}
+                </div>
+              </div>
+
+              {/* Description */}
+              {matter.description ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Case Notes & Background</div>
+                  <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{matter.description}</div>
+                </div>
+              ) : canEdit ? (
+                <div className="card" style={{ marginBottom: 16, textAlign: 'center', padding: '20px', color: '#94A3B8', fontSize: 14 }}>
+                  No case notes yet. Click "Edit Case Details" to add notes.
+                </div>
+              ) : null}
+
+              {/* Assigned Advocates */}
+              {matter.advocates?.length > 0 && (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Assigned Legal Team</div>
+                  {matter.advocates.map(a => (
+                    <div key={a.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: '#0A1628' }}>👤 {a.full_name}</div>
+                        <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{a.role_on_matter?.replace('_', ' ')}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: 12, color: '#64748B' }}>
+                        {a.email && <div>{a.email}</div>}
+                        {a.phone && <div>{a.phone}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TIMELINE TAB ──────────────────────────────────────────────────────── */}
       {tab === 'timeline' && (
         <div>
+          {canEdit && (
+            <div style={{ marginBottom: 16 }}>
+              <button className="btn btn-navy btn-sm" onClick={() => setShowAddHearing(v => !v)}>
+                {showAddHearing ? 'Cancel' : '+ Add Hearing'}
+              </button>
+            </div>
+          )}
+
+          {showAddHearing && (
+            <div className="card" style={{ marginBottom: 20, background: '#F8FAFC' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#0A1628', marginBottom: 12 }}>Schedule New Hearing</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label>Date *</label>
+                  <input type="date" value={hearingForm.hearing_date} onChange={e => setHearingForm(f => ({ ...f, hearing_date: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>Time</label>
+                  <input type="time" value={hearingForm.hearing_time} onChange={e => setHearingForm(f => ({ ...f, hearing_time: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>Court Name *</label>
+                  <input placeholder="e.g. District Court, Mumbai" value={hearingForm.court_name} onChange={e => setHearingForm(f => ({ ...f, court_name: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label>Purpose</label>
+                  <input placeholder="e.g. Arguments, Evidence, Judgment" value={hearingForm.purpose} onChange={e => setHearingForm(f => ({ ...f, purpose: e.target.value }))} />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Outcome (if already concluded)</label>
+                  <input placeholder="Leave blank for upcoming hearings" value={hearingForm.outcome} onChange={e => setHearingForm(f => ({ ...f, outcome: e.target.value }))} />
+                </div>
+              </div>
+              <button className="btn btn-navy btn-sm" onClick={saveHearing} disabled={addingHearing || !hearingForm.hearing_date || !hearingForm.court_name}>
+                {addingHearing ? 'Adding…' : 'Add Hearing'}
+              </button>
+            </div>
+          )}
+
           <div className="timeline">
             {timeline.map((h, i) => {
               const isPast = new Date(h.hearing_date) < new Date();
@@ -86,23 +330,24 @@ export default function CaseDetail() {
               return (
                 <div key={h.hearing_id} className={`timeline-item ${isPast ? 'completed' : isNext ? 'upcoming' : ''}`}>
                   <div className="tl-date">
-                    {isPast ? '✅' : isNext ? '🔵' : '○'} {new Date(h.hearing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    {h.hearing_time && ` at ${h.hearing_time}`}
+                    {isPast ? '✅' : isNext ? '🔵' : '○'}{' '}
+                    {new Date(h.hearing_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                    {h.hearing_time && ` · ${h.hearing_time}`}
                   </div>
                   <div className="tl-event">{h.purpose || 'Hearing'} — {h.court_name}</div>
-                  {h.outcome && <div className="tl-outcome">{h.outcome}</div>}
+                  {h.outcome && <div className="tl-outcome" style={{ marginTop: 4, fontSize: 13, color: '#334155', fontStyle: 'italic' }}>Outcome: {h.outcome}</div>}
                 </div>
               );
             })}
           </div>
-
           {timeline.length === 0 && <p style={{ color: '#94A3B8', textAlign: 'center', padding: 20 }}>No hearings scheduled yet.</p>}
 
-          {leadAdvocate && (
+          {leadAdvocate && user?.role === 'client' && (
             <div className="card" style={{ marginTop: 24 }}>
               <h3 style={{ marginBottom: 8 }}>Your Advocate</h3>
-              <p>👤 {leadAdvocate.full_name}</p>
-              <p style={{ fontSize: 13, color: '#64748B' }}>📞 Available: Mon–Sat 9AM–7PM</p>
+              <p style={{ fontWeight: 600 }}>👤 {leadAdvocate.full_name}</p>
+              {leadAdvocate.phone && <p style={{ fontSize: 13, color: '#64748B' }}>📞 {leadAdvocate.phone}</p>}
+              {leadAdvocate.email && <p style={{ fontSize: 13, color: '#64748B' }}>✉️ {leadAdvocate.email}</p>}
               <button className="btn btn-gold btn-sm" style={{ marginTop: 12 }} onClick={() => setTab('messages')}>
                 💬 Message Now
               </button>
@@ -111,17 +356,16 @@ export default function CaseDetail() {
         </div>
       )}
 
+      {/* ── DOCUMENTS TAB ─────────────────────────────────────────────────────── */}
       {tab === 'documents' && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <p style={{ fontSize: 12, color: '#94A3B8' }}>🔒 All documents encrypted end-to-end</p>
-          </div>
+          <p style={{ fontSize: 12, color: '#94A3B8', marginBottom: 16 }}>🔒 All documents encrypted end-to-end</p>
           {documents.map(d => (
             <div key={d.document_id} className="doc-item">
               <div className="doc-info">
                 <div className="doc-name">📄 {d.filename}</div>
                 <div className="doc-meta">
-                  {(d.file_size_bytes / 1024 / 1024).toFixed(1)} MB • Uploaded {new Date(d.uploaded_at).toLocaleDateString('en-IN')} by {d.uploader_name}
+                  {(d.file_size_bytes / 1024 / 1024).toFixed(1)} MB · Uploaded {new Date(d.uploaded_at).toLocaleDateString('en-IN')} by {d.uploader_name}
                 </div>
               </div>
             </div>
@@ -130,6 +374,7 @@ export default function CaseDetail() {
         </div>
       )}
 
+      {/* ── MESSAGES TAB ──────────────────────────────────────────────────────── */}
       {tab === 'messages' && (
         <div>
           <div style={{ maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16, padding: '10px 0' }}>
@@ -143,14 +388,18 @@ export default function CaseDetail() {
             {messages.length === 0 && <p style={{ color: '#94A3B8', textAlign: 'center' }}>No messages yet. Start a conversation.</p>}
           </div>
           <div className="chat-input-area">
-            <input placeholder="Type a message..." value={newMessage}
+            <input
+              placeholder="Type a message…"
+              value={newMessage}
               onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()} />
+              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+            />
             <button onClick={sendMessage}>➤</button>
           </div>
         </div>
       )}
 
+      {/* ── BILLING TAB ───────────────────────────────────────────────────────── */}
       {tab === 'billing' && (
         <div>
           {invoices.map(inv => (
@@ -173,6 +422,15 @@ export default function CaseDetail() {
           {invoices.length === 0 && <p style={{ color: '#94A3B8', textAlign: 'center', padding: 20 }}>No invoices yet.</p>}
         </div>
       )}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, color: '#1B2559', fontWeight: 500 }}>{value || '—'}</div>
     </div>
   );
 }

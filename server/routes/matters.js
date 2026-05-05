@@ -122,7 +122,7 @@ module.exports = function (db) {
     const matter_id = uuidv4();
     const year = new Date().getFullYear();
     const count = db.prepare('SELECT COUNT(*) as c FROM matters').get().c;
-    const matter_number = `LN-${year}-${String(count + 1).padStart(4, '0')}`;
+    const matter_number = `CC-${year}-${String(count + 1).padStart(4, '0')}`;
 
     db.prepare(`
       INSERT INTO matters (matter_id, matter_number, client_id, matter_type, title, description, status, court_name, opposing_party, urgency)
@@ -135,7 +135,51 @@ module.exports = function (db) {
     res.status(201).json({ matter_id, matter_number });
   });
 
-  // PATCH /api/matters/:id/status — Update status
+  // PATCH /api/matters/:id — Update matter details (advocate/partner)
+  router.patch('/:id', authenticateToken, requireRole('managing_partner', 'senior_advocate', 'junior_advocate'), (req, res) => {
+    if (!canAccessMatter(db, req.user, req.params.id)) {
+      return res.status(403).json({ error: 'Forbidden — not assigned to this matter' });
+    }
+
+    const allowed = ['title', 'description', 'court_name', 'opposing_party', 'urgency', 'status'];
+    const validStatuses = ['intake', 'active', 'hearing_pending', 'awaiting_docs', 'judgment', 'closed'];
+    const setClauses = [];
+    const params = [];
+
+    for (const field of allowed) {
+      if (req.body[field] !== undefined) {
+        if (field === 'status' && !validStatuses.includes(req.body[field])) {
+          return res.status(400).json({ error: `Invalid status: ${req.body[field]}` });
+        }
+        setClauses.push(`${field} = ?`);
+        params.push(req.body[field]);
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    setClauses.push('updated_at = datetime("now")');
+    params.push(req.params.id);
+
+    const result = db.prepare(
+      `UPDATE matters SET ${setClauses.join(', ')} WHERE matter_id = ?`
+    ).run(...params);
+
+    if (result.changes === 0) return res.status(404).json({ error: 'Matter not found' });
+
+    if (req.body.status === 'closed') {
+      db.prepare('UPDATE matters SET closed_at = datetime("now") WHERE matter_id = ?').run(req.params.id);
+    }
+
+    db.prepare('INSERT INTO audit_logs (log_id, actor_id, action, resource_type, resource_id, ip_address) VALUES (?,?,?,?,?,?)')
+      .run(uuidv4(), req.user.user_id, 'UPDATE_MATTER', 'matter', req.params.id, req.ip);
+
+    res.json({ message: 'Matter updated successfully' });
+  });
+
+  // PATCH /api/matters/:id/status — Update status only (kept for backwards compat)
   router.patch('/:id/status', authenticateToken, requireRole('managing_partner', 'senior_advocate'), (req, res) => {
     const { status } = req.body;
     const validStatuses = ['intake', 'active', 'hearing_pending', 'awaiting_docs', 'judgment', 'closed'];

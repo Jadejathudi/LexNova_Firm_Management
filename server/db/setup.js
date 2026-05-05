@@ -10,8 +10,30 @@ function setup() {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
+  // Temporarily disable FK for dropping tables
+  db.pragma('foreign_keys = OFF');
+
   // Create tables
   db.exec(`
+    DROP TABLE IF EXISTS advocate_reviews;
+    DROP TABLE IF EXISTS advocate_availability;
+    DROP TABLE IF EXISTS advocate_earnings;
+    DROP TABLE IF EXISTS retainer_clients;
+    DROP TABLE IF EXISTS consultation_sessions;
+    DROP TABLE IF EXISTS consultation_requests;
+    DROP TABLE IF EXISTS consultations;
+    DROP TABLE IF EXISTS invoices;
+    DROP TABLE IF EXISTS documents;
+    DROP TABLE IF EXISTS hearings;
+    DROP TABLE IF EXISTS matter_assignments;
+    DROP TABLE IF EXISTS matters;
+    DROP TABLE IF EXISTS messages;
+    DROP TABLE IF EXISTS audit_logs;
+    DROP TABLE IF EXISTS notifications;
+    DROP TABLE IF EXISTS advocates;
+    DROP TABLE IF EXISTS clients;
+    DROP TABLE IF EXISTS users;
+
     CREATE TABLE IF NOT EXISTS users (
       user_id TEXT PRIMARY KEY,
       full_name TEXT NOT NULL,
@@ -145,13 +167,15 @@ function setup() {
       FOREIGN KEY (actor_id) REFERENCES users(user_id)
     );
 
+    DROP TABLE IF EXISTS consultations;
+
     CREATE TABLE IF NOT EXISTS consultations (
       consultation_id TEXT PRIMARY KEY,
       guest_name TEXT NOT NULL,
       guest_phone TEXT NOT NULL,
-      matter_type TEXT NOT NULL,
+      matter_type TEXT NOT NULL CHECK(matter_type IN ('criminal','civil','corporate','family','real_estate','other')),
       description TEXT,
-      urgency TEXT DEFAULT 'standard',
+      urgency TEXT DEFAULT 'normal' CHECK(urgency IN ('normal','high')),
       consultation_mode TEXT CHECK(consultation_mode IN ('video','phone','office')),
       preferred_date TEXT,
       preferred_time TEXT,
@@ -180,14 +204,17 @@ function setup() {
       FOREIGN KEY (user_id) REFERENCES users(user_id)
     );
 
+    DROP TABLE IF EXISTS consultation_requests;
+
     CREATE TABLE IF NOT EXISTS consultation_requests (
       request_id TEXT PRIMARY KEY,
+      user_id TEXT,
       advocate_id TEXT NOT NULL,
-      client_name TEXT NOT NULL,
-      client_phone TEXT NOT NULL,
+      client_name TEXT,
+      client_phone TEXT,
       client_email TEXT,
       matter_type TEXT NOT NULL,
-      brief TEXT NOT NULL,
+      brief TEXT,
       urgency TEXT DEFAULT 'normal' CHECK(urgency IN ('normal','high')),
       preferred_mode TEXT CHECK(preferred_mode IN ('video','phone','office')),
       preferred_date TEXT,
@@ -195,6 +222,8 @@ function setup() {
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending','accepted','declined','completed')),
       submitted_at TEXT DEFAULT (datetime('now')),
       responded_at TEXT,
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
       FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id)
     );
 
@@ -211,6 +240,9 @@ function setup() {
       status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled','active','completed','cancelled')),
       started_at TEXT,
       ended_at TEXT,
+      meeting_link TEXT,
+      calendar_event_id TEXT,
+      instant_service INTEGER DEFAULT 0,
       notes TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (request_id) REFERENCES consultation_requests(request_id),
@@ -255,6 +287,8 @@ function setup() {
       advocate_id TEXT NOT NULL,
       day_of_week TEXT NOT NULL CHECK(day_of_week IN ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')),
       is_available INTEGER DEFAULT 1,
+      start_time TEXT DEFAULT '09:00',
+      end_time TEXT DEFAULT '18:00',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (advocate_id) REFERENCES advocates(advocate_id),
       UNIQUE(advocate_id, day_of_week)
@@ -282,9 +316,12 @@ function setup() {
     );
   `);
 
+  // Re-enable FK
+  db.pragma('foreign_keys = ON');
+
   // Seed data
   const existingUser = db.prepare('SELECT user_id FROM users LIMIT 1').get();
-  if (existingUser) {
+  if (false) {  // Always reseed for development
     console.log('Database already seeded.');
     db.close();
     return;
@@ -292,17 +329,44 @@ function setup() {
 
   const hash = bcrypt.hashSync('password123', 10);
 
-  // Users
+  // User IDs
   const partnerId = uuidv4();
   const seniorAdv1Id = uuidv4();
   const seniorAdv2Id = uuidv4();
   const juniorAdv1Id = uuidv4();
   const juniorAdv2Id = uuidv4();
+  const seniorAdv3Id = uuidv4();
+  const juniorAdv3Id = uuidv4();
   const billingId = uuidv4();
   const receptionId = uuidv4();
   const clientUserId1 = uuidv4();
   const clientUserId2 = uuidv4();
+  const clientUserId3 = uuidv4();
   const advisorId = uuidv4();
+
+  // Other IDs
+  const matter1Id = uuidv4();
+  const matter2Id = uuidv4();
+  const matter3Id = uuidv4();
+  const client1Id = uuidv4();
+  const client2Id = uuidv4();
+  const client3Id = uuidv4();
+  const doc1Id = uuidv4();
+  const doc2Id = uuidv4();
+  const req1Id = uuidv4();
+  const req2Id = uuidv4();
+  const req3Id = uuidv4();
+  const req4Id = uuidv4();
+  const req5Id = uuidv4();
+  const adv1Id = uuidv4();
+  const adv2Id = uuidv4();
+  const adv3Id = uuidv4();
+  const adv4Id = uuidv4();
+  const adv5Id = uuidv4();
+  const adv6Id = uuidv4();
+  const ret1Id = uuidv4();
+  const ret2Id = uuidv4();
+  const ret3Id = uuidv4();
 
   const insertUser = db.prepare(`INSERT INTO users (user_id, full_name, email, phone, role, password_hash) VALUES (?,?,?,?,?,?)`);
   insertUser.run(partnerId, 'Prashanth Kumar', 'prashanth@clearcase.in', '9876543210', 'managing_partner', hash);
@@ -310,27 +374,26 @@ function setup() {
   insertUser.run(seniorAdv2Id, 'Adv. Arvind Kumar', 'arvind@clearcase.in', '9876543212', 'senior_advocate', hash);
   insertUser.run(juniorAdv1Id, 'Adv. Suresh Naik', 'suresh@clearcase.in', '9876543213', 'junior_advocate', hash);
   insertUser.run(juniorAdv2Id, 'Adv. Priya Menon', 'priya@clearcase.in', '9876543214', 'junior_advocate', hash);
+  insertUser.run(seniorAdv3Id, 'Adv. Priya Singh', 'priya.singh@clearcase.in', '9876543223', 'senior_advocate', hash);
+  insertUser.run(juniorAdv3Id, 'Adv. Amit Kumar', 'amit@clearcase.in', '9876543224', 'junior_advocate', hash);
   insertUser.run(billingId, 'Anita Desai', 'billing@clearcase.in', '9876543215', 'billing', hash);
   insertUser.run(receptionId, 'Kavitha Rao', 'reception@clearcase.in', '9876543216', 'reception', hash);
   insertUser.run(clientUserId1, 'Rahul Sharma', 'rahul@example.com', '9876543217', 'client', hash);
   insertUser.run(clientUserId2, 'Sneha Patel', 'sneha@example.com', '9876543218', 'client', hash);
+  insertUser.run(clientUserId3, 'Kiran Patel', 'kiran@example.com', '9876543225', 'client', hash);
   insertUser.run(advisorId, 'Justice (Retd.) K.N. Rao', 'rao@clearcase.in', '9876543219', 'advisor', hash);
 
   // Clients
-  const client1Id = uuidv4();
-  const client2Id = uuidv4();
   const insertClient = db.prepare(`INSERT INTO clients (client_id, user_id, full_name, email, phone, address, client_type, onboarded_by) VALUES (?,?,?,?,?,?,?,?)`);
   insertClient.run(client1Id, clientUserId1, 'Rahul Sharma', 'rahul@example.com', '9876543217', '42 MG Road, Bengaluru 560001', 'individual', seniorAdv1Id);
   insertClient.run(client2Id, clientUserId2, 'Sneha Patel', 'sneha@example.com', '9876543218', '15 Bandra West, Mumbai 400050', 'corporate', seniorAdv2Id);
+  insertClient.run(client3Id, clientUserId3, 'Kiran Patel', 'kiran@example.com', '9876543225', '22 Bandra East, Mumbai 400051', 'individual', seniorAdv3Id);
 
   // Matters
-  const matter1Id = uuidv4();
-  const matter2Id = uuidv4();
-  const matter3Id = uuidv4();
   const insertMatter = db.prepare(`INSERT INTO matters (matter_id, matter_number, client_id, matter_type, title, description, status, court_name, opposing_party, conflict_checked, urgency) VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
-  insertMatter.run(matter1Id, 'LN-2025-0047', client1Id, 'civil', 'Property Dispute — Civil', 'Dispute regarding ownership of plot #42 in Whitefield, Bengaluru. Defendant claims prior possession.', 'hearing_pending', 'District Court, Bengaluru', 'Vikram Reddy', 1, 'urgent');
-  insertMatter.run(matter2Id, 'LN-2025-0051', client1Id, 'corporate', 'Employment Contract Review — Corporate', 'Review of employment contract with TechCorp India Pvt Ltd regarding non-compete clause validity.', 'awaiting_docs', null, 'TechCorp India Pvt Ltd', 1, 'standard');
-  insertMatter.run(matter3Id, 'LN-2025-0052', client2Id, 'criminal', 'Cheque Bounce Case — Criminal', 'Section 138 NI Act case. Cheque of Rs 15,00,000 returned unpaid.', 'active', 'Metropolitan Magistrate Court, Mumbai', 'Raj Enterprises', 1, 'critical');
+  insertMatter.run(matter1Id, 'CC-2025-0047', client1Id, 'civil', 'Property Dispute — Civil', 'Dispute regarding ownership of plot #42 in Whitefield, Bengaluru. Defendant claims prior possession.', 'hearing_pending', 'District Court, Bengaluru', 'Vikram Reddy', 1, 'urgent');
+  insertMatter.run(matter2Id, 'CC-2025-0051', client1Id, 'corporate', 'Employment Contract Review — Corporate', 'Review of employment contract with TechCorp India Pvt Ltd regarding non-compete clause validity.', 'awaiting_docs', null, 'TechCorp India Pvt Ltd', 1, 'standard');
+  insertMatter.run(matter3Id, 'CC-2025-0052', client2Id, 'criminal', 'Cheque Bounce Case — Criminal', 'Section 138 NI Act case. Cheque of Rs 15,00,000 returned unpaid.', 'active', 'Metropolitan Magistrate Court, Mumbai', 'Raj Enterprises', 1, 'critical');
 
   // Matter Assignments
   const insertAssignment = db.prepare(`INSERT INTO matter_assignments (assignment_id, matter_id, advocate_id, role_on_matter, assigned_by) VALUES (?,?,?,?,?)`);
@@ -350,8 +413,6 @@ function setup() {
 
   // Documents
   const insertDoc = db.prepare(`INSERT INTO documents (document_id, matter_id, uploaded_by, filename, stored_path, file_type, file_size_bytes, is_client_visible) VALUES (?,?,?,?,?,?,?,?)`);
-  const doc1Id = uuidv4();
-  const doc2Id = uuidv4();
   insertDoc.run(doc1Id, matter1Id, seniorAdv1Id, 'Plaint_Draft_v2.pdf', '/uploads/plaint_draft_v2.pdf', 'pdf', 2400000, 1);
   insertDoc.run(doc2Id, matter1Id, clientUserId1, 'PropertyDeed_Original.pdf', '/uploads/property_deed.pdf', 'pdf', 5300000, 1);
   insertDoc.run(uuidv4(), matter3Id, seniorAdv2Id, 'Cheque_Copy.pdf', '/uploads/cheque_copy.pdf', 'pdf', 1200000, 1);
@@ -374,10 +435,10 @@ function setup() {
 
   // Notifications
   const insertNotif = db.prepare(`INSERT INTO notifications (notification_id, user_id, title, message, type, is_read) VALUES (?,?,?,?,?,?)`);
-  insertNotif.run(uuidv4(), clientUserId1, 'Hearing Scheduled', 'Hearing for Matter #LN-2025-0047 on 14 March at District Court, Bengaluru', 'hearing', 0);
-  insertNotif.run(uuidv4(), clientUserId1, 'New Message', 'New message from Adv. Meera Pillai regarding Matter #LN-2025-0047', 'message', 0);
+  insertNotif.run(uuidv4(), clientUserId1, 'Hearing Scheduled', 'Hearing for Matter #CC-2025-0047 on 14 March at District Court, Bengaluru', 'hearing', 0);
+  insertNotif.run(uuidv4(), clientUserId1, 'New Message', 'New message from Adv. Meera Pillai regarding Matter #CC-2025-0047', 'message', 0);
   insertNotif.run(uuidv4(), partnerId, 'Overdue Invoice', 'Invoice INV-2025-0240 is overdue by 10 days', 'invoice', 0);
-  insertNotif.run(uuidv4(), partnerId, 'No Update Alert', 'Matter #LN-2025-0052 has not been updated in 51 hours', 'alert', 0);
+  insertNotif.run(uuidv4(), partnerId, 'No Update Alert', 'Matter #CC-2025-0052 has not been updated in 51 hours', 'alert', 0);
 
   // Audit log
   const insertAudit = db.prepare(`INSERT INTO audit_logs (log_id, actor_id, action, resource_type, resource_id, ip_address) VALUES (?,?,?,?,?,?)`);
@@ -386,35 +447,39 @@ function setup() {
 
   // Guest consultations
   const insertConsult = db.prepare(`INSERT INTO consultations (consultation_id, guest_name, guest_phone, matter_type, description, urgency, consultation_mode, preferred_date, preferred_time, status) VALUES (?,?,?,?,?,?,?,?,?,?)`);
-  insertConsult.run(uuidv4(), 'Amit Joshi', '9988776655', 'criminal', 'Need advice regarding an FIR filed against me', 'urgent', 'video', '2025-03-15', '10:00', 'booked');
-  insertConsult.run(uuidv4(), 'Priyanka Das', '8877665544', 'family', 'Divorce proceedings guidance needed', 'standard', 'phone', '2025-03-16', '14:00', 'confirmed');
+  insertConsult.run(uuidv4(), 'Amit Joshi', '9988776655', 'criminal', 'Need advice regarding an FIR filed against me', 'high', 'video', '2025-03-15', '10:00', 'booked');
+  insertConsult.run(uuidv4(), 'Priyanka Das', '8877665544', 'family', 'Divorce proceedings guidance needed', 'normal', 'phone', '2025-03-16', '14:00', 'confirmed');
+  insertConsult.run(uuidv4(), 'Alice Brown', '9876543229', 'family', 'Divorce advice', 'normal', 'video', '2025-01-15', '3:00 PM', 'completed');
+  insertConsult.run(uuidv4(), 'Charlie Wilson', '9876543230', 'civil', 'Recovery of dues', 'high', 'phone', '2025-01-16', '1:00 PM', 'booked');
 
   // Advocates
-  const adv1Id = uuidv4();
-  const adv2Id = uuidv4();
-  const adv3Id = uuidv4();
-  const insertAdvocate = db.prepare(`INSERT INTO advocates (advocate_id, user_id, bar_number, experience_years, specializations, state, city, bio, languages, rating, review_count, success_rate, cases_handled, is_verified, is_available) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
-  insertAdvocate.run(adv1Id, seniorAdv1Id, 'TS/HC/2011/1234', 14, JSON.stringify(['Criminal','Family','Civil']), 'Telangana', 'Hyderabad', 'Senior High Court advocate with 14 years in criminal defense and family law. Former public prosecutor with deep knowledge of Telangana courts.', JSON.stringify(['Telugu','English','Hindi']), 4.9, 63, 81, 420, 1, 1);
-  insertAdvocate.run(adv2Id, seniorAdv2Id, 'AP/HC/2009/5678', 16, JSON.stringify(['Corporate','Banking','Civil']), 'Andhra Pradesh', 'Vijayawada', 'Corporate specialist with expertise in banking disputes, NCLT insolvency matters, and commercial litigation across AP courts.', JSON.stringify(['Telugu','English']), 4.6, 38, 74, 210, 1, 1);
-  insertAdvocate.run(adv3Id, juniorAdv1Id, 'TS/HC/2018/9012', 7, JSON.stringify(['Civil','Real Estate','Consumer']), 'Telangana', 'Hyderabad', 'Specialises in property disputes, consumer protection, and civil litigation. Known for transparent client communication.', JSON.stringify(['Telugu','English','Tamil']), 4.7, 29, 79, 156, 1, 0);
+  const insertAdvocate = db.prepare(`INSERT INTO advocates (advocate_id, user_id, bar_number, experience_years, specializations, state, city, bio, languages, rating, review_count, success_rate, cases_handled, is_verified, is_available, profile_photo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  insertAdvocate.run(adv1Id, seniorAdv1Id, 'TS/HC/2011/1234', 14, JSON.stringify(['Criminal','Family','Civil']), 'Telangana', 'Hyderabad', 'Senior High Court advocate with 14 years in criminal defense and family law. Former public prosecutor with deep knowledge of Telangana courts.', JSON.stringify(['Telugu','English','Hindi']), 4.9, 63, 81, 420, 1, 1, null);
+  insertAdvocate.run(adv2Id, seniorAdv2Id, 'AP/HC/2009/5678', 16, JSON.stringify(['Corporate','Banking','Civil']), 'Andhra Pradesh', 'Vijayawada', 'Corporate specialist with expertise in banking disputes, NCLT insolvency matters, and commercial litigation across AP courts.', JSON.stringify(['Telugu','English']), 4.6, 38, 74, 210, 1, 1, null);
+  insertAdvocate.run(adv3Id, juniorAdv1Id, 'TS/HC/2018/9012', 7, JSON.stringify(['Civil','Real Estate','Consumer']), 'Telangana', 'Hyderabad', 'Specialises in property disputes, consumer protection, and civil litigation. Known for transparent client communication.', JSON.stringify(['Telugu','English','Tamil']), 4.7, 29, 79, 156, 1, 0, null);
+  insertAdvocate.run(adv4Id, juniorAdv2Id, 'KA/7890/2019', 4, JSON.stringify(['family','corporate']), 'Karnataka', 'Bengaluru', 'Focused on family and corporate law.', JSON.stringify(['English','Kannada','Tamil']), 4.6, 12, 78, 35, 1, 1, null);
+  insertAdvocate.run(adv5Id, seniorAdv3Id, 'DL/9012/2012', 10, JSON.stringify(['real_estate','arbitration']), 'Delhi', 'New Delhi', 'Expert in real estate and arbitration law.', JSON.stringify(['English','Hindi']), 4.7, 30, 80, 95, 1, 1, null);
+  insertAdvocate.run(adv6Id, juniorAdv3Id, 'DL/1234/2020', 3, JSON.stringify(['civil','real_estate']), 'Delhi', 'New Delhi', 'New advocate in civil and real estate law.', JSON.stringify(['English','Hindi']), 4.4, 8, 70, 25, 1, 1, null);
 
   // Advocate Availability
-  const insertAvailability = db.prepare(`INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available) VALUES (?,?,?,?)`);
+  const insertAvailability = db.prepare(`INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available, start_time, end_time) VALUES (?,?,?,?,?,?)`);
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   days.forEach(day => {
-    insertAvailability.run(uuidv4(), adv1Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0);
-    insertAvailability.run(uuidv4(), adv2Id, day, day !== 'Sun' ? 1 : 0);
-    insertAvailability.run(uuidv4(), adv3Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0);
+    insertAvailability.run(uuidv4(), adv1Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0, '09:00', '18:00');
+    insertAvailability.run(uuidv4(), adv2Id, day, day !== 'Sun' ? 1 : 0, '10:00', '17:00');
+    insertAvailability.run(uuidv4(), adv3Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0, '09:00', '18:00');
+    insertAvailability.run(uuidv4(), adv4Id, day, day !== 'Sun' ? 1 : 0, '09:00', '18:00');
+    insertAvailability.run(uuidv4(), adv5Id, day, day !== 'Sun' ? 1 : 0, '10:00', '19:00');
+    insertAvailability.run(uuidv4(), adv6Id, day, day !== 'Sat' && day !== 'Sun' ? 1 : 0, '09:00', '17:00');
   });
 
   // Consultation Requests
-  const req1Id = uuidv4();
-  const req2Id = uuidv4();
-  const req3Id = uuidv4();
-  const insertRequest = db.prepare(`INSERT INTO consultation_requests (request_id, advocate_id, client_name, client_phone, matter_type, brief, urgency, preferred_mode, preferred_date, preferred_time, status, submitted_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
-  insertRequest.run(req1Id, adv1Id, 'Rahul Sharma', '9876543217', 'Criminal', 'FIR filed against me under section 420. Need urgent guidance on bail and next steps.', 'high', 'video', '2025-03-12', '11:00 AM', 'pending', '2025-03-10 14:00:00');
-  insertRequest.run(req2Id, adv1Id, 'Priya Reddy', '8765432198', 'Family', 'Mutual divorce proceedings. Already separated for 18 months. Need to understand the process and timeline.', 'normal', 'phone', '2025-03-13', '14:00 PM', 'pending', '2025-03-10 17:00:00');
-  insertRequest.run(req3Id, adv2Id, 'Anjaneyulu G.', '7654321987', 'Civil', 'Inherited ancestral property dispute with siblings. Patta documents available.', 'normal', 'office', '2025-03-14', '15:30 PM', 'accepted', '2025-03-09 10:00:00');
+  const insertRequest = db.prepare(`INSERT INTO consultation_requests (request_id, user_id, advocate_id, client_name, client_phone, client_email, matter_type, brief, urgency, preferred_mode, preferred_date, preferred_time, status, submitted_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  insertRequest.run(req1Id, clientUserId1, adv1Id, 'Rahul Sharma', '9876543217', 'rahul@example.com', 'criminal', 'FIR filed against me under section 420. Need urgent guidance on bail and next steps.', 'high', 'video', '2025-03-12', '11:00 AM', 'pending', '2025-03-10 14:00:00');
+  insertRequest.run(req2Id, clientUserId2, adv1Id, 'Priya Reddy', '8765432198', 'priya@example.com', 'family', 'Mutual divorce proceedings. Already separated for 18 months. Need to understand the process and timeline.', 'normal', 'phone', '2025-03-13', '14:00 PM', 'pending', '2025-03-10 17:00:00');
+  insertRequest.run(req3Id, null, adv2Id, 'Anjaneyulu G.', '7654321987', 'anjaneyulu@example.com', 'civil', 'Inherited ancestral property dispute with siblings. Patta documents available.', 'normal', 'office', '2025-03-14', '15:30 PM', 'accepted', '2025-03-09 10:00:00');
+  insertRequest.run(req4Id, null, adv4Id, 'John Doe', '9876543226', 'john@example.com', 'criminal', 'Need advice on theft case', 'normal', 'video', '2025-01-20', '10:00 AM', 'pending', '2025-03-11 10:00:00');
+  insertRequest.run(req5Id, null, adv5Id, 'Jane Smith', '9876543227', 'jane@example.com', 'corporate', 'Contract review needed', 'high', 'phone', '2025-01-21', '2:00 PM', 'accepted', '2025-03-11 11:00:00');
 
   // Consultation Sessions
   const sess1Id = uuidv4();
@@ -422,9 +487,6 @@ function setup() {
   insertSession.run(sess1Id, req3Id, adv2Id, 'Anjaneyulu G.', '7654321987', '2025-03-14', '15:30', 45, 'office', 'scheduled');
 
   // Retainer Clients
-  const ret1Id = uuidv4();
-  const ret2Id = uuidv4();
-  const ret3Id = uuidv4();
   const insertRetainer = db.prepare(`INSERT INTO retainer_clients (retainer_id, advocate_id, client_name, client_phone, plan_type, monthly_fee, matter_type, since_date, next_hearing, unread_messages) VALUES (?,?,?,?,?,?,?,?,?,?)`);
   insertRetainer.run(ret1Id, adv1Id, 'Vikram Joshi', '6543219876', 'Standard', 9999, 'Banking dispute', '2025-01-01', '2025-03-15', 2);
   insertRetainer.run(ret2Id, adv2Id, 'Lakshmi Industries', '5432198765', 'Premium', 19999, 'NCLT matter', '2024-11-01', '2025-03-22', 0);

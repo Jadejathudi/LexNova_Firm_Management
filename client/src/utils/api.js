@@ -29,6 +29,7 @@ export const api = {
   // Dashboard
   getDashboard: () => apiFetch('/dashboard'),
   getClientDashboard: () => apiFetch('/dashboard/client'),
+  getAdvocateDashboard: () => apiFetch('/dashboard/advocate'),
   getConsultations: () => apiFetch('/dashboard/consultations'),
 
   // Matters
@@ -36,6 +37,7 @@ export const api = {
   getMatter: (id) => apiFetch(`/matters/${id}`),
   createMatter: (data) => apiFetch('/matters', { method: 'POST', body: JSON.stringify(data) }),
   updateMatterStatus: (id, status) => apiFetch(`/matters/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateMatter: (id, data) => apiFetch(`/matters/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getMatterTimeline: (id) => apiFetch(`/matters/${id}/timeline`),
   assignAdvocate: (id, data) => apiFetch(`/matters/${id}/assign`, { method: 'POST', body: JSON.stringify(data) }),
 
@@ -87,7 +89,10 @@ export const api = {
   },
   getAdvocate: (id) => apiFetch(`/advocates/${id}`),
   getAdvocateAvailability: (id) => apiFetch(`/advocates/${id}/availability`),
+  getAdvocateAvailableSlots: (id, date) => apiFetch(`/advocates/${id}/available-slots?date=${date}`),
+  updateAdvocateAvailability: (id, availability) => apiFetch(`/advocates/${id}/availability`, { method: 'PUT', body: JSON.stringify({ availability }) }),
   getAdvocateEarnings: (id, period) => apiFetch(`/advocates/${id}/earnings?period=${period}`),
+  getOnCallAdvocate: () => apiFetch('/advocates/on-call'),
 
   // Users
   getTeam: () => apiFetch('/users'),
@@ -97,12 +102,20 @@ export const api = {
 
   // Consultation Requests & Sessions
   getConsultationRequests: () => apiFetch('/consultations/requests'),
+  getMyConsultationRequests: () => apiFetch('/consultations/my-requests'),
   getAdvocateConsultationRequests: (advocateId) => apiFetch(`/consultations/requests/${advocateId}`),
   updateConsultationRequestStatus: (requestId, status) => apiFetch(`/consultations/requests/${requestId}`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  scheduleConsultationRequest: (requestId, data) => apiFetch(`/consultations/requests/${requestId}/schedule`, { method: 'POST', body: JSON.stringify(data) }),
   getConsultationSessions: (advocateId) => apiFetch(`/consultations/sessions/${advocateId}`),
+  getConsultationSession: (sessionId) => apiFetch(`/consultations/sessions/${sessionId}/details`),
+  getAllConsultationSessions: () => apiFetch('/consultations/sessions'),
   createConsultationSession: (data) => apiFetch('/consultations/sessions', { method: 'POST', body: JSON.stringify(data) }),
 
   // AI Guide
   askAI: (question) => apiFetch('/ai-guide/ask', { method: 'POST', body: JSON.stringify({ question }) }),
   getAIQuestions: () => apiFetch('/ai-guide/questions'),
+
+  // Google Calendar admin
+  getCalendarStatus: () => apiFetch('/admin/google-status'),
+  getGoogleAuthUrl: () => apiFetch('/admin/google-auth'),
 };

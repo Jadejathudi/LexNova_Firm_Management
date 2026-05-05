@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -12,8 +13,40 @@ const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
+// Give the auth middleware DB access so it can validate tokens against live users
+require('./middleware/auth').setDb(db);
+
+// ── DB migrations ─────────────────────────────────────────────────────────────
+// Add working-hours columns to advocate_availability (safe on existing DBs)
+try { db.prepare("ALTER TABLE advocate_availability ADD COLUMN start_time TEXT DEFAULT '09:00'").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE advocate_availability ADD COLUMN end_time TEXT DEFAULT '18:00'").run(); } catch (_) {}
+
+// Seed Mon–Sat 09:00–18:00 for advocates that have zero availability records
+(function seedAvailability() {
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const unset = db.prepare(`
+    SELECT advocate_id FROM advocates
+    WHERE NOT EXISTS (
+      SELECT 1 FROM advocate_availability aa WHERE aa.advocate_id = advocates.advocate_id
+    )
+  `).all();
+  const ins = db.prepare(`
+    INSERT OR IGNORE INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available, start_time, end_time)
+    VALUES (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' ||
+            substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(2))) || '-' ||
+            lower(hex(randomblob(6))), ?, ?, 1, '09:00', '18:00')
+  `);
+  const tx = db.transaction(() => unset.forEach(a => DAYS.forEach(d => ins.run(a.advocate_id, d))));
+  tx();
+})();
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,64 +1,50 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
+import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#0A1628';
-const GOLD = '#C9A84C';
-const BG = '#F8FAFC';
-const WHITE = '#FFFFFF';
-const GRAY = '#64748B';
+const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B', WHITE = '#FFFFFF';
+const GREEN = '#15803D', GREEN_BG = '#DCFCE7', AMBER = '#92400E', AMBER_BG = '#FFF8E8';
 
-const SPEC_COLORS = {
-  Criminal: '#B91C1C',
-  Civil: '#1D4ED8',
-  Family: '#7C3AED',
-  Corporate: '#0F766E',
-  Banking: '#0369A1',
-  'Real Estate': '#C2410C',
-  Consumer: '#0E7490',
-  Revenue: '#92400E',
-};
+const SPEC_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Family: '#7C3AED', Corporate: '#0F766E', Banking: '#0369A1', 'Real Estate': '#C2410C', Consumer: '#0E7490', Revenue: '#92400E' };
 
 function SpecBadge({ spec }) {
   const c = SPEC_COLORS[spec] || NAVY;
-  return (
-    <span style={{ display: 'inline-block', fontSize: '11px', background: `${c}18`, color: c, borderRadius: '20px', padding: '5px 12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-      {spec}
-    </span>
-  );
+  return <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '11px', fontWeight: 700, borderRadius: '20px', padding: '3px 11px', whiteSpace: 'nowrap', background: `${c}18`, color: c }}>{spec}</span>;
 }
 
 function AdvocateCard({ advocate, onViewProfile, onBook }) {
-  const displayName = advocate.full_name || advocate.name || 'Advocate';
-  const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2);
+  const name = advocate.full_name || 'Advocate';
+  const initials = name.split(' ').map(p => p[0]).join('').slice(0, 2);
+  const yrs = advocate.experience_years || 0;
+  const barNo = advocate.bar_number || '—';
+  const available = Boolean(advocate.is_available);
+  const specs = advocate.specializations || [];
+  const langs = advocate.languages || [];
+  const currentYear = new Date().getFullYear();
+  const enrolledYear = barNo.match(/\/(\d{4})\//)?.[1] || (currentYear - yrs);
 
   return (
-    <div style={{ background: WHITE, borderRadius: '14px', padding: '22px', border: '1px solid #E5E7EB', minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-        <div style={{ width: '54px', height: '54px', borderRadius: '27px', background: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GOLD, fontSize: '18px', fontWeight: 700 }}>{initials}</div>
-        <div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: NAVY }}>{displayName}</div>
-          <div style={{ fontSize: '13px', color: GRAY, marginTop: '4px' }}>{advocate.experience_years} yrs · {advocate.city}</div>
-          <div style={{ fontSize: '12px', color: GRAY, marginTop: '6px' }}>{advocate.languages?.join(' · ') || 'English'}</div>
+    <div style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '22px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', gap: '13px', alignItems: 'flex-start', marginBottom: '14px' }}>
+        <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: GOLD, fontSize: '16px', fontWeight: 800 }}>{initials}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 700, color: NAVY, lineHeight: 1.2 }}>{name}</div>
+          <div style={{ fontSize: '12px', color: GRAY, marginTop: '3px' }}>{advocate.city} · {advocate.state} · {yrs} yrs at Bar</div>
+          <div style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'monospace', marginTop: '2px' }}>{barNo}</div>
         </div>
-        <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: NAVY }}>{advocate.rating?.toFixed(1) ?? 'N/A'}</div>
-          <div style={{ fontSize: '12px', color: GRAY }}>{advocate.review_count || 0} reviews</div>
-        </div>
+        <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '11px', fontWeight: 700, borderRadius: '20px', padding: '3px 11px', whiteSpace: 'nowrap', flexShrink: 0, background: available ? GREEN_BG : '#F1F5F9', color: available ? GREEN : GRAY }}>
+          {available ? '✓ Available' : '✗ Unavailable'}
+        </span>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-        {(advocate.specializations || advocate.specs || []).slice(0, 4).map((spec) => <SpecBadge key={spec} spec={spec} />)}
+      <div style={{ fontSize: '11px', fontWeight: 700, color: GRAY, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '7px' }}>Handles matters in</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '14px' }}>
+        {specs.slice(0, 4).map(s => <SpecBadge key={s} spec={s} />)}
       </div>
-      <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: GRAY, marginBottom: '18px' }}>
-        <span>📁 {advocate.cases_handled || advocate.cases || 0} cases</span>
-        <span>✅ {advocate.success_rate || advocate.success || 0}% success</span>
-        <span>{advocate.available ? 'Available now' : 'Booking by request'}</span>
-      </div>
-      <div style={{ marginTop: 'auto', display: 'grid', gap: '10px' }}>
-        <button className="btn btn-navy" style={{ width: '100%', padding: '12px' }} onClick={() => onViewProfile(advocate)}>View Profile</button>
-        <button className="btn btn-gold" style={{ width: '100%', padding: '12px' }} onClick={() => onBook(advocate)}>
-          Book Free 30 Min
-        </button>
+      <div style={{ fontSize: '12px', color: GRAY, marginBottom: '14px' }}>🗣 {langs.join(' · ') || 'English'}</div>
+      <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
+        <button onClick={() => onViewProfile(advocate)} style={{ flex: 1, padding: '9px 8px', fontSize: '13px', background: 'transparent', border: `1.5px solid ${NAVY}`, borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>View Profile</button>
+        <button onClick={() => onBook(advocate)} style={{ flex: 1, padding: '9px 8px', fontSize: '13px', background: GOLD, border: 'none', borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Schedule Appointment</button>
       </div>
     </div>
   );
@@ -72,89 +58,88 @@ export default function AdvocatesList() {
   const [specFilter, setSpecFilter] = useState('all');
   const [availableOnly, setAvailableOnly] = useState(false);
 
-  useEffect(() => {
-    fetchAdvocates();
-  }, [stateFilter, specFilter, availableOnly]);
+  useEffect(() => { fetchAdvocates(); }, [stateFilter, specFilter, availableOnly]);
 
   const fetchAdvocates = async () => {
     setLoading(true);
     try {
       const result = await api.getAdvocates({ state: stateFilter !== 'all' ? stateFilter : undefined, spec: specFilter !== 'all' ? specFilter : undefined, available: availableOnly });
       setAdvocates(result || []);
-    } catch (error) {
-      console.error('Error fetching advocates:', error);
+    } catch {
       setAdvocates([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const openProfile = (advocate) => {
-    navigate(`/advocates/${advocate.advocate_id}`);
-  };
-
-  const bookAdvocate = (advocate) => {
-    navigate(`/book?advocateId=${advocate.advocate_id}`);
-  };
-
-  const availableSpecs = Array.from(new Set(advocates.flatMap((a) => a.specializations || a.specs || [])));
-  const states = Array.from(new Set(advocates.map((a) => a.state).filter(Boolean)));
+  const allSpecs = Array.from(new Set(advocates.flatMap(a => a.specializations || [])));
 
   return (
-    <div style={{ background: BG, minHeight: '100vh' }}>
-      <div style={{ background: NAVY, padding: '0 48px', height: '60px', display: 'flex', alignItems: 'center', gap: '32px', position: 'sticky', top: 0, zIndex: 50 }}>
-        <span onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: 'Georgia, serif' }}>
-          ⚖️ CLEAR CASE
-        </span>
-        <div style={{ flex: 1 }} />
-        <span onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', cursor: 'pointer' }}>Find an Advocate</span>
-        <span onClick={() => navigate('/login')} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', cursor: 'pointer' }}>For Advocates</span>
-        <button className="btn btn-gold" onClick={() => navigate('/register')} style={{ padding: '9px 20px' }}>Register Free</button>
-      </div>
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+      <PublicNavbar />
 
-      <div style={{ background: NAVY, padding: '32px 48px' }}>
-        <h1 style={{ color: WHITE, fontSize: '28px', fontWeight: 800, fontFamily: 'Georgia, serif', marginBottom: '6px' }}>Find Your Advocate</h1>
-        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>Verified advocates serving Telangana & Andhra Pradesh.</p>
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)} style={{ padding: '10px 14px', borderRadius: '10px', border: 'none', background: 'rgba(255,255,255,0.12)', color: WHITE, minWidth: '180px' }}>
-            <option value="all">All States</option>
-            {states.map((state) => <option key={state} value={state}>{state}</option>)}
-          </select>
-          <select value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} style={{ padding: '10px 14px', borderRadius: '10px', border: 'none', background: 'rgba(255,255,255,0.12)', color: WHITE, minWidth: '220px' }}>
-            <option value="all">All Specializations</option>
-            {availableSpecs.map((spec) => <option key={spec} value={spec}>{spec}</option>)}
-          </select>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: WHITE, fontSize: '14px' }}>
-            <input type="checkbox" checked={availableOnly} onChange={(e) => setAvailableOnly(e.target.checked)} />
-            Available now
-          </label>
-        </div>
-      </div>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg,#0B1237,#1B2559)', padding: '32px 48px 24px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <h1 style={{ color: '#fff', fontSize: '30px', fontWeight: 700, marginBottom: '6px', fontFamily: 'Georgia, serif' }}>Advocate Directory</h1>
+          <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '14px', marginBottom: '4px' }}>Bar Council enrolled advocates in Telangana & Andhra Pradesh</p>
+          <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '12px', fontStyle: 'italic', marginBottom: '20px' }}>ClearCase does not rank or recommend advocates. Listings are informational only.</p>
 
-      <div style={{ padding: '32px 48px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ color: GRAY, fontSize: '14px' }}>Showing {advocates.length} advocate{advocates.length !== 1 ? 's' : ''}</div>
-          <button className="btn btn-outline" onClick={() => navigate('/book')} style={{ padding: '10px 18px' }}>Book Consultation</button>
-        </div>
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <select value={stateFilter} onChange={e => setStateFilter(e.target.value)} style={{ background: 'rgba(255,255,255,.12)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', borderRadius: '8px', padding: '9px 14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <option value="all" style={{ color: '#111' }}>All States</option>
+              <option value="Telangana" style={{ color: '#111' }}>Telangana</option>
+              <option value="Andhra Pradesh" style={{ color: '#111' }}>Andhra Pradesh</option>
+              <option value="Karnataka" style={{ color: '#111' }}>Karnataka</option>
+              <option value="Delhi" style={{ color: '#111' }}>Delhi</option>
+            </select>
 
-        {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: GRAY }}>Loading advocates...</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-            {advocates.length > 0 ? advocates.map((advocate) => (
-              <AdvocateCard
-                key={advocate.advocate_id}
-                advocate={advocate}
-                onViewProfile={openProfile}
-                onBook={bookAdvocate}
-              />
-            )) : (
-              <div style={{ gridColumn: '1/-1', padding: '60px', textAlign: 'center', color: GRAY, border: '1px dashed #E5E7EB', borderRadius: '16px' }}>
-                No advocates found. Try a different location or specialization.
+            {/* Area pills */}
+            {['all', ...allSpecs].map(area => (
+              <div key={area} onClick={() => setSpecFilter(area)} style={{ background: specFilter === area ? GOLD : 'rgba(255,255,255,.1)', color: specFilter === area ? NAVY : '#fff', borderRadius: '20px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all .15s' }}>
+                {area === 'all' ? 'All Areas' : area}
               </div>
-            )}
+            ))}
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={availableOnly} onChange={e => setAvailableOnly(e.target.checked)} style={{ accentColor: GOLD }} />
+              Available now
+            </label>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '28px 48px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ background: AMBER_BG, borderLeft: '3px solid #C9A84C', borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '20px', maxWidth: '800px' }}>
+            <p style={{ fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>All information is self-declared by each advocate. ClearCase independently verifies Bar Council enrollment numbers only.</p>
+          </div>
+
+          <p style={{ color: GRAY, fontSize: '14px', marginBottom: '20px' }}>{loading ? 'Loading...' : `${advocates.length} advocate${advocates.length !== 1 ? 's' : ''} listed`}</p>
+
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '20px' }}>
+              {[1, 2, 3].map(i => <div key={i} style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', padding: '22px', minHeight: '280px' }} />)}
+            </div>
+          ) : advocates.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '20px' }}>
+              {advocates.map(a => (
+                <AdvocateCard
+                  key={a.advocate_id}
+                  advocate={a}
+                  onViewProfile={adv => navigate(`/advocates/${adv.advocate_id}`)}
+                  onBook={adv => navigate(`/book?advocateId=${adv.advocate_id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '80px', color: GRAY, border: '1px dashed #E2E8F0', borderRadius: '16px' }}>
+              No advocates listed for this combination. Try a different filter.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

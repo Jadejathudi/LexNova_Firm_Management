@@ -18,31 +18,40 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to={isInternal ? '/crm' : '/dashboard'} className="navbar-brand" style={{ textDecoration: 'none' }}>
-        ⚖️ LEX <span>NOVA</span>
+      <Link to={isInternal ? (user.role.includes('advocate') ? '/advocate-dashboard' : '/crm') : '/'} className="navbar-brand" style={{ textDecoration: 'none' }}>
+        ⚖️ CLEAR <span>CASE</span>
       </Link>
 
       {isInternal ? (
-        <div className="navbar-links">
-          <Link to="/crm" className={location.pathname === '/crm' ? 'active' : ''}>Dashboard</Link>
-          <Link to="/crm/matters" className={location.pathname.includes('/crm/matters') ? 'active' : ''}>Matters</Link>
-          <Link to="/crm/clients" className={location.pathname.includes('/crm/clients') ? 'active' : ''}>Clients</Link>
-          {['managing_partner', 'advisor'].includes(user.role) && (
-            <Link to="/crm/team" className={location.pathname.includes('/crm/team') ? 'active' : ''}>Team</Link>
-          )}
-          {['managing_partner', 'billing'].includes(user.role) && (
-            <Link to="/crm/finance" className={location.pathname.includes('/crm/finance') ? 'active' : ''}>Finance</Link>
-          )}
-        </div>
+        user.role.includes('advocate') ? (
+          <div className="navbar-links">
+            <Link to="/advocate-dashboard" className={location.pathname === '/advocate-dashboard' ? 'active' : ''}>Dashboard</Link>
+            <Link to="/crm/matters" className={location.pathname.includes('/crm/matters') ? 'active' : ''}>My Cases</Link>
+          </div>
+        ) : (
+          <div className="navbar-links">
+            <Link to="/crm" className={location.pathname === '/crm' ? 'active' : ''}>Dashboard</Link>
+            <Link to="/crm/matters" className={location.pathname.includes('/crm/matters') ? 'active' : ''}>Matters</Link>
+            <Link to="/crm/clients" className={location.pathname.includes('/crm/clients') ? 'active' : ''}>Clients</Link>
+            {['managing_partner', 'advisor'].includes(user.role) && (
+              <Link to="/crm/team" className={location.pathname.includes('/crm/team') ? 'active' : ''}>Team</Link>
+            )}
+            {['managing_partner', 'billing'].includes(user.role) && (
+              <Link to="/crm/finance" className={location.pathname.includes('/crm/finance') ? 'active' : ''}>Finance</Link>
+            )}
+          </div>
+        )
       ) : (
+        // Client navigation — Home (landing), Find Advocate, Dashboard
         <div className="navbar-links">
-          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Home</Link>
-          <Link to="/ai-guide" className={location.pathname === '/ai-guide' ? 'active' : ''}>AI Guide</Link>
+          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
+          <Link to="/advocates" className={location.pathname.startsWith('/advocates') ? 'active' : ''}>Find Advocate</Link>
+          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Dashboard</Link>
         </div>
       )}
 
       <div className="navbar-user">
-        <Link to={isInternal ? '/crm' : '/dashboard'} className="notif-badge" style={{ color: 'white', textDecoration: 'none' }}>
+        <Link to={isInternal ? (user.role.includes('advocate') ? '/advocate-dashboard' : '/crm') : '/dashboard'} className="notif-badge" style={{ color: 'white', textDecoration: 'none' }}>
           🔔{notifCount > 0 && <span className="count">{notifCount}</span>}
         </Link>
         <span className="user-info">{user.full_name}</span>

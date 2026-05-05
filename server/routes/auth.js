@@ -18,10 +18,13 @@ module.exports = function (db) {
     }
 
     const consultation_id = uuidv4();
+    const normalizedUrgency = urgency === 'urgent' ? 'high' : urgency === 'standard' ? 'normal' : urgency || 'normal';
+    const normalizedMode = ['video', 'phone', 'office'].includes(consultation_mode) ? consultation_mode : 'video';
+
     db.prepare(`
       INSERT INTO consultations (consultation_id, guest_name, guest_phone, matter_type, description, urgency, consultation_mode, preferred_date, preferred_time)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(consultation_id, guest_name, guest_phone, matter_type, description || null, urgency || 'standard', consultation_mode || 'video', preferred_date, preferred_time);
+    `).run(consultation_id, guest_name, guest_phone, matter_type, description || null, normalizedUrgency, normalizedMode, preferred_date, preferred_time);
 
     res.status(201).json({
       booking_id: consultation_id,
@@ -71,10 +74,12 @@ module.exports = function (db) {
 
     const user = db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1').get(email);
     if (!user) {
+      console.log('[LOGIN] User not found or inactive:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     if (!bcrypt.compareSync(password, user.password_hash)) {
+      console.log('[LOGIN] Password mismatch for user:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -86,6 +91,7 @@ module.exports = function (db) {
       .run(uuidv4(), user.user_id, req.ip);
 
     const token = generateToken(user);
+    console.log('[LOGIN] Login successful for user:', email, 'Token generated:', token.substring(0, 30) + '...');
     res.json({ token, user_id: user.user_id, role: user.role, full_name: user.full_name });
   });
 

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register } = useAuth();
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const from = location.state?.from || null;
+  const message = location.state?.message || null;
 
   const update = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
@@ -21,7 +24,8 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form.full_name, form.email, form.phone, form.password);
-      navigate('/dashboard');
+      const from = location.state?.from || '/dashboard';
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -35,8 +39,19 @@ export default function Register() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ fontSize: 36 }}>⚖️</div>
           <h1 style={{ fontSize: 24, color: '#0A1628', marginTop: 8 }}>Create Account</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>Join Clear Case to track your cases</p>
+          <p style={{ color: '#64748B', fontSize: 14 }}>Join ClearCase to manage your legal matters</p>
         </div>
+
+        {message && (
+          <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400E', fontWeight: 600 }}>
+            🔒 {message}
+          </div>
+        )}
+        {from && !message && (
+          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#1D4ED8' }}>
+            Sign up to continue — you'll be taken back to where you left off.
+          </div>
+        )}
 
         {error && <div className="error-msg">{error}</div>}
 
@@ -69,7 +84,8 @@ export default function Register() {
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <p style={{ fontSize: 14, color: '#64748B' }}>
-            Already have an account? <Link to="/login">Sign In</Link>
+            Already have an account?{' '}
+            <Link to="/login" state={from ? { from, message } : undefined}>Sign In</Link>
           </p>
         </div>
       </div>

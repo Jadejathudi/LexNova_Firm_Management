@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import AdvocatesList from './pages/AdvocatesList';
 import AdvocateProfile from './pages/AdvocateProfile';
 import BookConsultation from './pages/BookConsultation';
+import ConsultationDetails from './pages/ConsultationDetails';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,7 @@ import AILegalGuide from './pages/AILegalGuide';
 import DocumentVault from './pages/DocumentVault';
 import SecureMessaging from './pages/SecureMessaging';
 import Profile from './pages/Profile';
+import AdvocateDashboard from './pages/AdvocateDashboard';
 import CRMLayout from './pages/crm/CRMLayout';
 import CRMDashboardPage from './pages/crm/CRMDashboardPage';
 import CRMMatters from './pages/crm/CRMMatters';
@@ -23,6 +25,13 @@ import CRMClients from './pages/crm/CRMClients';
 import CRMTeam from './pages/crm/CRMTeam';
 import CRMFinance from './pages/crm/CRMFinance';
 import CRMConsultations from './pages/crm/CRMConsultations';
+import BCIDisclaimer from './components/BCIDisclaimer';
+import UrgentHelp from './pages/UrgentHelp';
+import CompliancePage from './pages/CompliancePage';
+import CaseIntelligence from './pages/CaseIntelligence';
+import CaseLibrary from './pages/CaseLibrary';
+import CaseStrategy from './pages/CaseStrategy';
+import CaseMonitoring from './pages/CaseMonitoring';
 import './App.css';
 
 function PrivateRoute({ children }) {
@@ -68,7 +77,9 @@ function InternalLayout({ children }) {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <>
+      <BCIDisclaimer />
+      <Routes>
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/advocates" element={<AdvocatesList />} />
@@ -77,10 +88,22 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/ai-guide" element={<><Navbar /><AILegalGuide /><BottomNav /></>} />
+      <Route path="/urgent" element={<UrgentHelp />} />
+      <Route path="/compliance" element={<CompliancePage />} />
+      <Route path="/intelligence" element={<CaseIntelligence />} />
+      <Route path="/case-library" element={<CaseLibrary />} />
+      <Route path="/case-strategy" element={<CaseStrategy />} />
+      <Route path="/case-monitoring" element={<CaseMonitoring />} />
 
       {/* Client routes */}
       <Route path="/dashboard" element={
         <ClientRoute><ClientLayout><Dashboard /></ClientLayout></ClientRoute>
+      } />
+      <Route path="/advocate-dashboard" element={
+        <PrivateRoute><ClientLayout><AdvocateDashboard /></ClientLayout></PrivateRoute>
+      } />
+      <Route path="/consultation/:id" element={
+        <PrivateRoute><ClientLayout><ConsultationDetails /></ClientLayout></PrivateRoute>
       } />
       <Route path="/cases" element={
         <ClientRoute><ClientLayout><CasesList /></ClientLayout></ClientRoute>
@@ -113,6 +136,7 @@ function AppRoutes() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   );
 }
 

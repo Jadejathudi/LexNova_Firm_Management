@@ -78,6 +78,7 @@ function setup() {
       conflict_checked_by TEXT,
       urgency TEXT DEFAULT 'standard' CHECK(urgency IN ('standard','urgent','critical')),
       created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT,
       closed_at TEXT,
       FOREIGN KEY (client_id) REFERENCES clients(client_id),
       FOREIGN KEY (conflict_checked_by) REFERENCES users(user_id)

@@ -135,7 +135,7 @@ module.exports = function (db) {
     res.status(201).json({ matter_id, matter_number });
   });
 
-  // PATCH /api/matters/:id — Update matter details (advocate/partner)
+  // PATCH /api/matters/:id — Update matter details (partner/advocate)
   router.patch('/:id', authenticateToken, requireRole('managing_partner', 'senior_advocate', 'junior_advocate'), (req, res) => {
     if (!canAccessMatter(db, req.user, req.params.id)) {
       return res.status(403).json({ error: 'Forbidden — not assigned to this matter' });
@@ -160,14 +160,22 @@ module.exports = function (db) {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
 
-    setClauses.push('updated_at = datetime("now")');
     params.push(req.params.id);
 
-    const result = db.prepare(
-      `UPDATE matters SET ${setClauses.join(', ')} WHERE matter_id = ?`
-    ).run(...params);
+    let result;
+    try {
+      result = db.prepare(
+        `UPDATE matters SET ${setClauses.join(', ')} WHERE matter_id = ?`
+      ).run(...params);
+    } catch (err) {
+      console.error('[PATCH matter] SQL error:', err.message);
+      return res.status(500).json({ error: 'Failed to update matter: ' + err.message });
+    }
 
     if (result.changes === 0) return res.status(404).json({ error: 'Matter not found' });
+
+    // Set updated_at separately — column added via migration; safe to skip if it doesn't exist yet
+    try { db.prepare('UPDATE matters SET updated_at = datetime("now") WHERE matter_id = ?').run(req.params.id); } catch (_) {}
 
     if (req.body.status === 'closed') {
       db.prepare('UPDATE matters SET closed_at = datetime("now") WHERE matter_id = ?').run(req.params.id);

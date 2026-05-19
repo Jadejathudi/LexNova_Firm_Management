@@ -20,6 +20,8 @@ require('./middleware/auth').setDb(db);
 // Add working-hours columns to advocate_availability (safe on existing DBs)
 try { db.prepare("ALTER TABLE advocate_availability ADD COLUMN start_time TEXT DEFAULT '09:00'").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE advocate_availability ADD COLUMN end_time TEXT DEFAULT '18:00'").run(); } catch (_) {}
+// Add updated_at to matters (missing from original schema — caused PATCH to fail)
+try { db.prepare("ALTER TABLE matters ADD COLUMN updated_at TEXT").run(); } catch (_) {}
 
 // Seed Mon–Sat 09:00–18:00 for advocates that have zero availability records
 (function seedAvailability() {

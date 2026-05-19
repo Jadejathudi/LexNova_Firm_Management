@@ -68,6 +68,7 @@ export const api = {
   getMatterHearings: (matterId) => apiFetch(`/hearings/matter/${matterId}`),
   getUpcomingHearings: () => apiFetch('/hearings/upcoming'),
   createHearing: (data) => apiFetch('/hearings', { method: 'POST', body: JSON.stringify(data) }),
+  updateHearing: (id, data) => apiFetch(`/hearings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Invoices
   getInvoices: () => apiFetch('/invoices'),

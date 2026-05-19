@@ -41,6 +41,11 @@ export default function CaseDetail() {
   const [hearingForm, setHearingForm] = useState({ hearing_date: '', hearing_time: '', court_name: '', purpose: '', outcome: '' });
   const [addingHearing, setAddingHearing] = useState(false);
 
+  // Edit hearing state
+  const [editingHearingId, setEditingHearingId] = useState(null);
+  const [editHearingForm, setEditHearingForm] = useState({});
+  const [savingHearing, setSavingHearing] = useState(false);
+
   const canEdit = CAN_EDIT_ROLES.includes(user?.role);
 
   const loadAll = useCallback(() => {
@@ -110,6 +115,32 @@ export default function CaseDetail() {
       alert(err.message || 'Failed to add hearing');
     } finally {
       setAddingHearing(false);
+    }
+  };
+
+  const startEditHearing = (h) => {
+    setEditingHearingId(h.hearing_id);
+    setEditHearingForm({
+      hearing_date: h.hearing_date || '',
+      hearing_time: h.hearing_time || '',
+      court_name: h.court_name || '',
+      purpose: h.purpose || '',
+      outcome: h.outcome || '',
+      next_date: h.next_date || '',
+    });
+  };
+
+  const saveHearingEdit = async () => {
+    setSavingHearing(true);
+    try {
+      await api.updateHearing(editingHearingId, editHearingForm);
+      const t = await api.getMatterTimeline(id);
+      setTimeline(t);
+      setEditingHearingId(null);
+    } catch (err) {
+      alert(err.message || 'Failed to update hearing');
+    } finally {
+      setSavingHearing(false);
     }
   };
 
@@ -327,15 +358,67 @@ export default function CaseDetail() {
             {timeline.map((h, i) => {
               const isPast = new Date(h.hearing_date) < new Date();
               const isNext = !isPast && (i === 0 || new Date(timeline[i - 1]?.hearing_date) < new Date());
+              const isEditing = editingHearingId === h.hearing_id;
+
+              if (isEditing) {
+                return (
+                  <div key={h.hearing_id} className="card" style={{ marginBottom: 16, background: '#F8FAFC' }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0A1628', marginBottom: 12 }}>Edit Hearing</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="form-group">
+                        <label>Date *</label>
+                        <input type="date" value={editHearingForm.hearing_date} onChange={e => setEditHearingForm(f => ({ ...f, hearing_date: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Time</label>
+                        <input type="time" value={editHearingForm.hearing_time} onChange={e => setEditHearingForm(f => ({ ...f, hearing_time: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Court Name *</label>
+                        <input value={editHearingForm.court_name} onChange={e => setEditHearingForm(f => ({ ...f, court_name: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Purpose</label>
+                        <input value={editHearingForm.purpose} onChange={e => setEditHearingForm(f => ({ ...f, purpose: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Outcome</label>
+                        <input value={editHearingForm.outcome} onChange={e => setEditHearingForm(f => ({ ...f, outcome: e.target.value }))} placeholder="Leave blank if pending" />
+                      </div>
+                      <div className="form-group">
+                        <label>Next Date</label>
+                        <input type="date" value={editHearingForm.next_date} onChange={e => setEditHearingForm(f => ({ ...f, next_date: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                      <button className="btn btn-navy btn-sm" onClick={saveHearingEdit} disabled={savingHearing || !editHearingForm.hearing_date || !editHearingForm.court_name}>
+                        {savingHearing ? 'Saving…' : '✅ Save'}
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => setEditingHearingId(null)} disabled={savingHearing}>Cancel</button>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div key={h.hearing_id} className={`timeline-item ${isPast ? 'completed' : isNext ? 'upcoming' : ''}`}>
-                  <div className="tl-date">
-                    {isPast ? '✅' : isNext ? '🔵' : '○'}{' '}
-                    {new Date(h.hearing_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                    {h.hearing_time && ` · ${h.hearing_time}`}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div className="tl-date">
+                        {isPast ? '✅' : isNext ? '🔵' : '○'}{' '}
+                        {new Date(h.hearing_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                        {h.hearing_time && ` · ${h.hearing_time}`}
+                      </div>
+                      <div className="tl-event">{h.purpose || 'Hearing'} — {h.court_name}</div>
+                      {h.outcome && <div className="tl-outcome" style={{ marginTop: 4, fontSize: 13, color: '#334155', fontStyle: 'italic' }}>Outcome: {h.outcome}</div>}
+                      {h.next_date && <div style={{ marginTop: 4, fontSize: 12, color: '#64748B' }}>Next: {new Date(h.next_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>}
+                    </div>
+                    {canEdit && (
+                      <button className="btn btn-outline btn-sm" style={{ fontSize: 11, padding: '4px 10px', marginLeft: 8, flexShrink: 0 }} onClick={() => startEditHearing(h)}>
+                        ✏️ Edit
+                      </button>
+                    )}
                   </div>
-                  <div className="tl-event">{h.purpose || 'Hearing'} — {h.court_name}</div>
-                  {h.outcome && <div className="tl-outcome" style={{ marginTop: 4, fontSize: 13, color: '#334155', fontStyle: 'italic' }}>Outcome: {h.outcome}</div>}
                 </div>
               );
             })}

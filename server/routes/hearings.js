@@ -81,11 +81,27 @@ module.exports = function (db) {
     res.status(201).json({ hearing_id });
   });
 
-  // PATCH /api/hearings/:id — Update hearing outcome
+  // PATCH /api/hearings/:id — Update hearing details
   router.patch('/:id', authenticateToken, requireRole('managing_partner', 'senior_advocate', 'junior_advocate'), (req, res) => {
-    const { outcome, next_date } = req.body;
-    db.prepare('UPDATE hearings SET outcome = ?, next_date = ? WHERE hearing_id = ?')
-      .run(outcome || null, next_date || null, req.params.id);
+    const allowed = ['hearing_date', 'hearing_time', 'court_name', 'courtroom_number', 'purpose', 'outcome', 'next_date'];
+    const setClauses = [];
+    const params = [];
+
+    for (const field of allowed) {
+      if (req.body[field] !== undefined) {
+        setClauses.push(`${field} = ?`);
+        params.push(req.body[field] === '' ? null : req.body[field]);
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    params.push(req.params.id);
+    const result = db.prepare(`UPDATE hearings SET ${setClauses.join(', ')} WHERE hearing_id = ?`).run(...params);
+
+    if (result.changes === 0) return res.status(404).json({ error: 'Hearing not found' });
     res.json({ message: 'Hearing updated' });
   });
 

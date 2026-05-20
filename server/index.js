@@ -9,11 +9,10 @@ const PORT = process.env.PORT || 5001;
 // Give auth middleware access to sql so it can validate tokens against live users
 require('./middleware/auth').setDb(sql);
 
-// Middleware
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     const allowed = ['http://localhost:3000', process.env.CLIENT_URL].filter(Boolean);
-    if (!origin || allowed.some(o => origin === o || origin.endsWith('.vercel.app'))) {
+    if (!origin || allowed.some(o => origin === o) || (origin && origin.endsWith('.vercel.app'))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -22,7 +21,11 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+// Handle preflight OPTIONS requests across all routes first
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

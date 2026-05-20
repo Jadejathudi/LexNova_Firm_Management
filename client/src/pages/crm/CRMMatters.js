@@ -120,7 +120,7 @@ export default function CRMMatters() {
               <td><span className={`badge ${STATUS_BADGE[m.status]}`}>{m.status?.replace('_', ' ')}</span></td>
               <td><span className={`badge ${m.urgency === 'critical' ? 'badge-urgent' : m.urgency === 'urgent' ? 'badge-pending' : 'badge-draft'}`}>{m.urgency}</span></td>
               <td>{m.advocates?.map(a => a.full_name).join(', ') || '—'}</td>
-              <td>{m.next_hearing ? new Date(m.next_hearing.hearing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
+              <td>{m.next_hearing ? new Date(String(m.next_hearing.hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
             </tr>
           ))}
         </tbody>

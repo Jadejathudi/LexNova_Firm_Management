@@ -46,6 +46,12 @@ export default function CaseDetail() {
   const [editHearingForm, setEditHearingForm] = useState({});
   const [savingHearing, setSavingHearing] = useState(false);
 
+  // Document upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [deletingDocId, setDeletingDocId] = useState(null);
+
   const canEdit = CAN_EDIT_ROLES.includes(user?.role);
 
   const loadAll = useCallback(() => {
@@ -141,6 +147,34 @@ export default function CaseDetail() {
       alert(err.message || 'Failed to update hearing');
     } finally {
       setSavingHearing(false);
+    }
+  };
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      await api.uploadDocument(id, file);
+      const docs = await api.getMatterDocuments(id);
+      setDocuments(docs);
+    } catch (err) {
+      setUploadError(err.message || 'Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm('Delete this document? This cannot be undone.')) return;
+    setDeletingDocId(docId);
+    try {
+      await api.deleteDocument(docId);
+      setDocuments(prev => prev.filter(d => d.document_id !== docId));
+    } catch (err) {
+      alert(err.message || 'Failed to delete document');
+    } finally {
+      setDeletingDocId(null);
     }
   };
 
@@ -356,8 +390,8 @@ export default function CaseDetail() {
 
           <div className="timeline">
             {timeline.map((h, i) => {
-              const isPast = new Date(h.hearing_date) < new Date();
-              const isNext = !isPast && (i === 0 || new Date(timeline[i - 1]?.hearing_date) < new Date());
+              const isPast = new Date(String(h.hearing_date).split('T')[0] + 'T00:00:00') < new Date();
+              const isNext = !isPast && (i === 0 || new Date(String(timeline[i - 1]?.hearing_date).split('T')[0] + 'T00:00:00') < new Date());
               const isEditing = editingHearingId === h.hearing_id;
 
               if (isEditing) {
@@ -406,12 +440,12 @@ export default function CaseDetail() {
                     <div>
                       <div className="tl-date">
                         {isPast ? '✅' : isNext ? '🔵' : '○'}{' '}
-                        {new Date(h.hearing_date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(String(h.hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                         {h.hearing_time && ` · ${h.hearing_time}`}
                       </div>
                       <div className="tl-event">{h.purpose || 'Hearing'} — {h.court_name}</div>
                       {h.outcome && <div className="tl-outcome" style={{ marginTop: 4, fontSize: 13, color: '#334155', fontStyle: 'italic' }}>Outcome: {h.outcome}</div>}
-                      {h.next_date && <div style={{ marginTop: 4, fontSize: 12, color: '#64748B' }}>Next: {new Date(h.next_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>}
+                      {h.next_date && <div style={{ marginTop: 4, fontSize: 12, color: '#64748B' }}>Next: {new Date(String(h.next_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>}
                     </div>
                     {canEdit && (
                       <button className="btn btn-outline btn-sm" style={{ fontSize: 11, padding: '4px 10px', marginLeft: 8, flexShrink: 0 }} onClick={() => startEditHearing(h)}>
@@ -442,18 +476,121 @@ export default function CaseDetail() {
       {/* ── DOCUMENTS TAB ─────────────────────────────────────────────────────── */}
       {tab === 'documents' && (
         <div>
-          <p style={{ fontSize: 12, color: '#94A3B8', marginBottom: 16 }}>🔒 All documents encrypted end-to-end</p>
-          {documents.map(d => (
-            <div key={d.document_id} className="doc-item">
-              <div className="doc-info">
-                <div className="doc-name">📄 {d.filename}</div>
-                <div className="doc-meta">
-                  {(d.file_size_bytes / 1024 / 1024).toFixed(1)} MB · Uploaded {new Date(d.uploaded_at).toLocaleDateString('en-IN')} by {d.uploader_name}
+          {/* Upload zone — advocates and managing partners only */}
+          {canEdit && (
+            <div
+              style={{
+                border: `2px dashed ${isDragging ? '#C9A84C' : '#CBD5E1'}`,
+                borderRadius: 12,
+                padding: '28px 20px',
+                textAlign: 'center',
+                background: isDragging ? '#FFFBEB' : uploading ? '#F8FAFC' : '#FAFAFA',
+                cursor: uploading ? 'default' : 'pointer',
+                marginBottom: 16,
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+              onDragOver={e => { e.preventDefault(); if (!uploading) setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={e => {
+                e.preventDefault();
+                setIsDragging(false);
+                if (!uploading && e.dataTransfer.files[0]) handleFileUpload(e.dataTransfer.files[0]);
+              }}
+              onClick={() => { if (!uploading) document.getElementById('doc-file-input').click(); }}
+            >
+              <input
+                id="doc-file-input"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.docx"
+                style={{ display: 'none' }}
+                onChange={e => { if (e.target.files[0]) handleFileUpload(e.target.files[0]); e.target.value = ''; }}
+              />
+              {uploading ? (
+                <>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Uploading document…</div>
+                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Please wait, do not close this page</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 30, marginBottom: 8 }}>☁️</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Upload Document</div>
+                  <div style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>Click or drag & drop a file here</div>
+                  <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                    {['PDF', 'DOCX', 'JPG', 'PNG'].map(t => (
+                      <span key={t} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#E2E8F0', color: '#475569', fontWeight: 600 }}>{t}</span>
+                    ))}
+                    <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#E2E8F0', color: '#475569', fontWeight: 600 }}>Max 20 MB</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {uploadError && (
+            <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#DC2626', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>⚠️ {uploadError}</span>
+              <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', fontSize: 18, lineHeight: 1, padding: '0 4px' }}>×</button>
+            </div>
+          )}
+
+          <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 5 }}>
+            🔒 Stored securely on Vercel Blob · {documents.length} file{documents.length !== 1 ? 's' : ''}
+          </div>
+
+          {documents.map(d => {
+            const ext = (d.file_type || d.filename?.split('.').pop() || '').toLowerCase();
+            const isPdf = ext === 'pdf';
+            const isDoc = ['doc', 'docx'].includes(ext);
+            const isImg = ['jpg', 'jpeg', 'png'].includes(ext);
+            const icon = isPdf ? '📕' : isDoc ? '📘' : isImg ? '🖼️' : '📄';
+            const accentColor = isPdf ? '#EF4444' : isDoc ? '#3B82F6' : isImg ? '#10B981' : '#64748B';
+            const bytes = d.file_size_bytes || 0;
+            const sizeLabel = bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(0)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+            return (
+              <div key={d.document_id} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: `4px solid ${accentColor}`, borderRadius: 10, padding: '14px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontSize: 26, flexShrink: 0 }}>{icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#1B2559', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {d.filename}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>
+                    {sizeLabel} · Uploaded by {d.uploader_name} · {new Date(d.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <a
+                    href={d.stored_path}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  >
+                    View ↗
+                  </a>
+                  {(user?.role === 'managing_partner' || user?.role === 'advisor' || user?.user_id === d.uploaded_by) && (
+                    <button
+                      onClick={() => handleDeleteDocument(d.document_id)}
+                      disabled={deletingDocId === d.document_id}
+                      style={{ padding: '6px 12px', background: deletingDocId === d.document_id ? '#E2E8F0' : '#FEE2E2', color: deletingDocId === d.document_id ? '#94A3B8' : '#DC2626', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      {deletingDocId === d.document_id ? '…' : 'Delete'}
+                    </button>
+                  )}
                 </div>
               </div>
+            );
+          })}
+
+          {documents.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '36px 20px', background: '#F8FAFC', borderRadius: 12, border: '1px dashed #E2E8F0' }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>📂</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#475569', marginBottom: 4 }}>No documents yet</div>
+              <div style={{ fontSize: 12, color: '#94A3B8' }}>
+                {canEdit ? 'Upload the first document using the zone above' : 'Your advocate will upload relevant case documents here'}
+              </div>
             </div>
-          ))}
-          {documents.length === 0 && <p style={{ color: '#94A3B8', textAlign: 'center', padding: 20 }}>No documents yet.</p>}
+          )}
         </div>
       )}
 
@@ -490,7 +627,7 @@ export default function CaseDetail() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <strong>{inv.invoice_number}</strong>
-                  <div style={{ fontSize: 13, color: '#64748B' }}>Due: {new Date(inv.due_date).toLocaleDateString('en-IN')}</div>
+                  <div style={{ fontSize: 13, color: '#64748B' }}>Due: {new Date(String(inv.due_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN')}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 18, fontWeight: 700 }}>₹{inv.total_amount?.toLocaleString('en-IN')}</div>

@@ -49,7 +49,7 @@ export default function ConsultationDetails() {
   const formatDateTime = (date, time) => {
     if (!date) return 'TBD';
     try {
-      const [year, month, day] = date.split('-');
+      const [year, month, day] = String(date).split('T')[0].split('-');
       const dateObj = new Date(`${year}-${month}-${day}T00:00:00`);
       const formattedDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       return `${formattedDate} at ${time || 'TBD'}`;

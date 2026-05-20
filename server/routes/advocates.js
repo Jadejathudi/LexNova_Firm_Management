@@ -1,7 +1,7 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/auth');
 
-// Standard consultation slots the platform offers (24-hour)
 const ALL_SLOTS_24 = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -16,47 +16,45 @@ function fmt12h(time24) {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${period}`;
 }
 
-module.exports = function (db) {
+module.exports = function (sql) {
   const router = express.Router();
 
-  // ── GET / — List verified advocates (with optional filters) ─────────────────
-  router.get('/', (req, res) => {
+  // GET / — List verified advocates (with optional filters)
+  router.get('/', async (req, res) => {
     const { state, spec, available } = req.query;
     try {
-      let query = `
-        SELECT a.*, u.full_name, u.email
-        FROM advocates a
-        JOIN users u ON a.user_id = u.user_id
-        WHERE a.is_verified = 1
-      `;
+      let query = `SELECT a.*, u.full_name, u.email FROM advocates a JOIN users u ON a.user_id = u.user_id WHERE a.is_verified = 1`;
       const params = [];
-      if (state && state !== 'all') { query += ' AND a.state = ?'; params.push(state); }
-      if (spec && spec !== 'all') { query += ' AND a.specializations LIKE ?'; params.push(`%${spec}%`); }
-      if (available === 'true') { query += ' AND a.is_available = 1'; }
+      let paramIdx = 1;
+
+      if (state && state !== 'all') { query += ` AND a.state = $${paramIdx++}`; params.push(state); }
+      if (spec && spec !== 'all')   { query += ` AND a.specializations LIKE $${paramIdx++}`; params.push(`%${spec}%`); }
+      if (available === 'true')     { query += ' AND a.is_available = 1'; }
       query += ' ORDER BY a.rating DESC, a.review_count DESC';
 
-      const advocates = db.prepare(query).all(...params).map(adv => ({
+      const advocates = await sql(query, params);
+      res.json(advocates.map(adv => ({
         ...adv,
         specializations: JSON.parse(adv.specializations),
         languages: JSON.parse(adv.languages),
-      }));
-      res.json(advocates);
+      })));
     } catch (err) {
       console.error('Error fetching advocates:', err);
       res.status(500).json({ error: 'Failed to fetch advocates' });
     }
   });
 
-  // ── GET /on-call — Random available advocate ─────────────────────────────────
-  router.get('/on-call', (req, res) => {
+  // GET /on-call
+  router.get('/on-call', async (req, res) => {
     try {
-      const advocate = db.prepare(`
+      const rows = await sql`
         SELECT a.*, u.full_name, u.email FROM advocates a
         JOIN users u ON a.user_id = u.user_id
         WHERE a.is_verified = 1 AND a.is_available = 1
         ORDER BY RANDOM() LIMIT 1
-      `).get();
-      if (!advocate) return res.status(404).json({ error: 'No on-call advocate available' });
+      `;
+      if (rows.length === 0) return res.status(404).json({ error: 'No on-call advocate available' });
+      const advocate = rows[0];
       advocate.specializations = JSON.parse(advocate.specializations);
       advocate.languages = JSON.parse(advocate.languages);
       res.json(advocate);
@@ -65,10 +63,8 @@ module.exports = function (db) {
     }
   });
 
-  // ── GET /:id/available-slots?date=YYYY-MM-DD ─────────────────────────────────
-  // Returns which time slots are available for a given advocate on a given date.
-  // Accounts for: working hours, day-off, and already-booked sessions.
-  router.get('/:id/available-slots', (req, res) => {
+  // GET /:id/available-slots?date=YYYY-MM-DD
+  router.get('/:id/available-slots', async (req, res) => {
     const { id } = req.params;
     const { date } = req.query;
 
@@ -76,7 +72,6 @@ module.exports = function (db) {
       return res.status(400).json({ error: 'Valid date required (YYYY-MM-DD)' });
     }
 
-    // Reject past dates
     const today = new Date().toISOString().split('T')[0];
     if (date < today) {
       return res.json({ date, is_available: false, reason: 'past', slots: [] });
@@ -85,58 +80,35 @@ module.exports = function (db) {
     try {
       const dayOfWeek = DAY_NAMES[new Date(date + 'T12:00:00').getDay()];
 
-      // Look up the advocate's schedule for this day
-      // Gracefully handle DBs that don't yet have start_time/end_time columns
-      let avail = null;
-      try {
-        avail = db.prepare(`
-          SELECT is_available, start_time, end_time
-          FROM advocate_availability
-          WHERE advocate_id = ? AND day_of_week = ?
-        `).get(id, dayOfWeek);
-      } catch (_) {
-        // Columns may be missing on older DBs — fall back to is_available only
-        const row = db.prepare(`
-          SELECT is_available
-          FROM advocate_availability
-          WHERE advocate_id = ? AND day_of_week = ?
-        `).get(id, dayOfWeek);
-        if (row) avail = { is_available: row.is_available, start_time: '09:00', end_time: '18:00' };
-      }
+      const availRows = await sql`
+        SELECT is_available, start_time, end_time
+        FROM advocate_availability
+        WHERE advocate_id = ${id} AND day_of_week = ${dayOfWeek}
+      `;
+      const avail = availRows[0];
 
-      // If no record exists, treat Mon–Sat as available 09:00–18:00, Sunday off
       const defaultAvail = dayOfWeek !== 'Sun';
       const isAvailable = avail ? Boolean(avail.is_available) : defaultAvail;
 
       if (!isAvailable) {
-        return res.json({
-          date,
-          day_of_week: dayOfWeek,
-          is_available: false,
-          reason: 'day_off',
-          working_hours: null,
-          slots: [],
-        });
+        return res.json({ date, day_of_week: dayOfWeek, is_available: false, reason: 'day_off', working_hours: null, slots: [] });
       }
 
       const startTime = avail?.start_time || '09:00';
-      const endTime = avail?.end_time || '18:00';
-      const startMin = toMinutes(startTime);
-      const endMin = toMinutes(endTime);
+      const endTime   = avail?.end_time   || '18:00';
+      const startMin  = toMinutes(startTime);
+      const endMin    = toMinutes(endTime);
 
-      // Filter standard slots to those within working hours
       const slotsInWindow = ALL_SLOTS_24.filter(slot => {
         const m = toMinutes(slot);
         return m >= startMin && m + 30 <= endMin;
       });
 
-      // Get sessions already booked on this date (not cancelled/completed)
-      const booked = db.prepare(`
+      const booked = await sql`
         SELECT scheduled_time FROM consultation_sessions
-        WHERE advocate_id = ? AND scheduled_date = ?
+        WHERE advocate_id = ${id} AND scheduled_date = ${date}
           AND status NOT IN ('cancelled', 'completed')
-      `).all(id, date);
-
+      `;
       const bookedSet = new Set(booked.map(s => s.scheduled_time));
 
       const slots = slotsInWindow.map(t24 => ({
@@ -146,15 +118,13 @@ module.exports = function (db) {
         is_available: !bookedSet.has(t24),
       }));
 
-      const availableCount = slots.filter(s => s.is_available).length;
-
       res.json({
         date,
         day_of_week: dayOfWeek,
         is_available: true,
         working_hours: { start: startTime, end: endTime, start_display: fmt12h(startTime), end_display: fmt12h(endTime) },
         total_slots: slots.length,
-        available_count: availableCount,
+        available_count: slots.filter(s => s.is_available).length,
         slots,
       });
     } catch (err) {
@@ -163,50 +133,45 @@ module.exports = function (db) {
     }
   });
 
-  // ── GET /:id — Single advocate detail ────────────────────────────────────────
-  router.get('/:id', (req, res) => {
+  // GET /:id — Single advocate detail
+  router.get('/:id', async (req, res) => {
     try {
-      const advocate = db.prepare(`
+      const rows = await sql`
         SELECT a.*, u.full_name, u.email
         FROM advocates a JOIN users u ON a.user_id = u.user_id
-        WHERE a.advocate_id = ?
-      `).get(req.params.id);
-
-      if (!advocate) return res.status(404).json({ error: 'Advocate not found' });
-
+        WHERE a.advocate_id = ${req.params.id}
+      `;
+      if (rows.length === 0) return res.status(404).json({ error: 'Advocate not found' });
+      const advocate = { ...rows[0] };
       advocate.specializations = JSON.parse(advocate.specializations);
       advocate.languages = JSON.parse(advocate.languages);
-      advocate.reviews = db.prepare(
-        'SELECT * FROM advocate_reviews WHERE advocate_id = ? ORDER BY created_at DESC LIMIT 10'
-      ).all(req.params.id);
-
+      advocate.reviews = await sql`SELECT * FROM advocate_reviews WHERE advocate_id = ${req.params.id} ORDER BY created_at DESC LIMIT 10`;
       res.json(advocate);
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch advocate' });
     }
   });
 
-  // ── GET /:id/availability — Weekly schedule ──────────────────────────────────
-  router.get('/:id/availability', (req, res) => {
+  // GET /:id/availability
+  router.get('/:id/availability', async (req, res) => {
     try {
-      const rows = db.prepare(`
+      const rows = await sql`
         SELECT day_of_week, is_available, start_time, end_time
         FROM advocate_availability
-        WHERE advocate_id = ?
+        WHERE advocate_id = ${req.params.id}
         ORDER BY CASE day_of_week
           WHEN 'Mon' THEN 1 WHEN 'Tue' THEN 2 WHEN 'Wed' THEN 3
           WHEN 'Thu' THEN 4 WHEN 'Fri' THEN 5 WHEN 'Sat' THEN 6
           WHEN 'Sun' THEN 7 END
-      `).all(req.params.id);
+      `;
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch availability' });
     }
   });
 
-  // ── PUT /:id/availability — Save weekly schedule (advocate only) ─────────────
-  // Body: { availability: [{day_of_week, is_available, start_time, end_time}] }
-  router.put('/:id/availability', authenticateToken, (req, res) => {
+  // PUT /:id/availability
+  router.put('/:id/availability', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { availability } = req.body;
 
@@ -214,36 +179,20 @@ module.exports = function (db) {
       return res.status(400).json({ error: 'availability array required' });
     }
 
-    // Advocates can only update their own schedule
-    const advocate = db.prepare('SELECT advocate_id FROM advocates WHERE advocate_id = ? AND user_id = ?').get(id, req.user.user_id);
+    const advocateRows = await sql`SELECT advocate_id FROM advocates WHERE advocate_id = ${id} AND user_id = ${req.user.user_id}`;
     const isPartner = ['managing_partner', 'advisor'].includes(req.user.role);
-    if (!advocate && !isPartner) {
+    if (advocateRows.length === 0 && !isPartner) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     try {
-      db.prepare('DELETE FROM advocate_availability WHERE advocate_id = ?').run(id);
-
-      const ins = db.prepare(`
-        INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available, start_time, end_time)
-        VALUES (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' ||
-                substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(2))) || '-' ||
-                lower(hex(randomblob(6))), ?, ?, ?, ?, ?)
-      `);
-
-      const tx = db.transaction(() => {
-        for (const day of availability) {
-          ins.run(
-            id,
-            day.day_of_week,
-            day.is_available ? 1 : 0,
-            day.start_time || '09:00',
-            day.end_time || '18:00',
-          );
-        }
-      });
-      tx();
-
+      await sql`DELETE FROM advocate_availability WHERE advocate_id = ${id}`;
+      for (const day of availability) {
+        await sql`
+          INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available, start_time, end_time)
+          VALUES (${uuidv4()}, ${id}, ${day.day_of_week}, ${day.is_available ? 1 : 0}, ${day.start_time || '09:00'}, ${day.end_time || '18:00'})
+        `;
+      }
       res.json({ message: 'Schedule updated successfully' });
     } catch (err) {
       console.error('Error updating availability:', err);
@@ -251,27 +200,46 @@ module.exports = function (db) {
     }
   });
 
-  // ── GET /:id/earnings ────────────────────────────────────────────────────────
-  router.get('/:id/earnings', (req, res) => {
+  // GET /:id/earnings
+  router.get('/:id/earnings', async (req, res) => {
     const { period = 'month' } = req.query;
     try {
-      const dateFilter = period === 'month'
-        ? "AND cs.scheduled_date >= date('now', '-30 days')"
-        : period === 'year' ? "AND cs.scheduled_date >= date('now', '-1 year')" : '';
-
-      const earnings = db.prepare(`
-        SELECT COALESCE(SUM(ae.amount), 0) as total_earnings,
-               COUNT(cs.session_id) as total_sessions,
-               COALESCE(AVG(cs.duration_minutes), 0) as avg_session_length
-        FROM consultation_sessions cs
-        LEFT JOIN advocate_earnings ae ON ae.session_id = cs.session_id
-        WHERE cs.advocate_id = ? AND cs.status = 'completed' ${dateFilter}
-      `).get(req.params.id);
-
+      let rows;
+      if (period === 'month') {
+        rows = await sql`
+          SELECT COALESCE(SUM(ae.amount), 0) as total_earnings,
+                 COUNT(cs.session_id) as total_sessions,
+                 COALESCE(AVG(cs.duration_minutes), 0) as avg_session_length
+          FROM consultation_sessions cs
+          LEFT JOIN advocate_earnings ae ON ae.session_id = cs.session_id
+          WHERE cs.advocate_id = ${req.params.id} AND cs.status = 'completed'
+            AND cs.scheduled_date >= CURRENT_DATE - INTERVAL '30 days'
+        `;
+      } else if (period === 'year') {
+        rows = await sql`
+          SELECT COALESCE(SUM(ae.amount), 0) as total_earnings,
+                 COUNT(cs.session_id) as total_sessions,
+                 COALESCE(AVG(cs.duration_minutes), 0) as avg_session_length
+          FROM consultation_sessions cs
+          LEFT JOIN advocate_earnings ae ON ae.session_id = cs.session_id
+          WHERE cs.advocate_id = ${req.params.id} AND cs.status = 'completed'
+            AND cs.scheduled_date >= CURRENT_DATE - INTERVAL '1 year'
+        `;
+      } else {
+        rows = await sql`
+          SELECT COALESCE(SUM(ae.amount), 0) as total_earnings,
+                 COUNT(cs.session_id) as total_sessions,
+                 COALESCE(AVG(cs.duration_minutes), 0) as avg_session_length
+          FROM consultation_sessions cs
+          LEFT JOIN advocate_earnings ae ON ae.session_id = cs.session_id
+          WHERE cs.advocate_id = ${req.params.id} AND cs.status = 'completed'
+        `;
+      }
+      const e = rows[0];
       res.json({
-        total_earnings: earnings.total_earnings || 0,
-        total_sessions: earnings.total_sessions || 0,
-        avg_session_length: earnings.avg_session_length || 0,
+        total_earnings:    parseFloat(e.total_earnings)    || 0,
+        total_sessions:    Number(e.total_sessions)        || 0,
+        avg_session_length: parseFloat(e.avg_session_length) || 0,
       });
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch earnings' });

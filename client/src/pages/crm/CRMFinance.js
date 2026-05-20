@@ -87,7 +87,7 @@ export default function CRMFinance() {
               <td>₹{inv.gst_amount?.toLocaleString('en-IN')}</td>
               <td><strong>₹{inv.total_amount?.toLocaleString('en-IN')}</strong></td>
               <td><span className={`badge badge-${inv.status}`}>{inv.status}</span></td>
-              <td>{new Date(inv.due_date).toLocaleDateString('en-IN')}</td>
+              <td>{new Date(String(inv.due_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN')}</td>
               <td>
                 {inv.status === 'draft' && (
                   <button className="btn btn-sm btn-navy" onClick={() => updateStatus(inv.invoice_id, 'sent')}>Send</button>

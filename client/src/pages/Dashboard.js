@@ -23,7 +23,8 @@ function formatTime12h(time24) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const d = String(dateStr).split('T')[0];
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function Dashboard() {
@@ -52,7 +53,7 @@ export default function Dashboard() {
       <div className="greeting">{greeting}, {user?.full_name?.split(' ')[0]} 👋</div>
       <div className="sub-greeting">
         {activeCount} active matter{activeCount !== 1 ? 's' : ''}{pendingConsultations > 0 && ` | ${pendingConsultations} pending consultation${pendingConsultations !== 1 ? 's' : ''}`}
-        {data.upcoming_hearings.length > 0 && ` | Next hearing: ${new Date(data.upcoming_hearings[0].hearing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+        {data.upcoming_hearings.length > 0 && ` | Next hearing: ${new Date(String(data.upcoming_hearings[0].hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
       </div>
 
       {data.pending_invoices.length > 0 && (
@@ -206,7 +207,7 @@ export default function Dashboard() {
           </div>
           {m.lead_advocate && <div className="case-advocate">Advocate: {m.lead_advocate}</div>}
           {m.next_hearing && (
-            <div className="case-next">📅 Next: {m.next_hearing.court_name}, {new Date(m.next_hearing.hearing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+            <div className="case-next">📅 Next: {m.next_hearing.court_name}, {new Date(String(m.next_hearing.hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
           )}
           <span className="view-link">View Details →</span>
         </div>

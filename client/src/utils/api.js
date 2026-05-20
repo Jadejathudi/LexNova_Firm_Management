@@ -44,7 +44,7 @@ export const api = {
   // Documents
   getMyDocuments: () => apiFetch('/documents/my'),
   getMatterDocuments: (matterId) => apiFetch(`/documents/matter/${matterId}`),
-  uploadDocument: async (matterId, file) => {
+  uploadDocument: async (matterId, file, onProgress) => {
     const token = localStorage.getItem('clearcase_token');
     const formData = new FormData();
     formData.append('file', file);
@@ -58,6 +58,7 @@ export const api = {
     if (!res.ok) throw new Error(data.error || 'Upload failed');
     return data;
   },
+  deleteDocument: (id) => apiFetch(`/documents/${id}`, { method: 'DELETE' }),
 
   // Messages
   getMatterMessages: (matterId) => apiFetch(`/messages/matter/${matterId}`),

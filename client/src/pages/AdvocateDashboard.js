@@ -269,7 +269,7 @@ export default function AdvocateDashboard() {
           {data.consultation_sessions.map(session => {
             const modeIcon = session.session_mode === 'video' ? '📹' : session.session_mode === 'phone' ? '📞' : '🏢';
             const dateFormatted = session.scheduled_date
-              ? new Date(session.scheduled_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+              ? new Date(String(session.scheduled_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
               : '—';
             const timeFormatted = (() => {
               if (!session.scheduled_time) return '—';
@@ -305,7 +305,7 @@ export default function AdvocateDashboard() {
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#1D4ED8' }}>📹 Video Meeting Room</div>
                           <div style={{ fontSize: '11px', color: '#3B82F6', marginTop: '3px' }}>
-                            📅 Please join on <strong>{new Date(session.scheduled_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</strong> at <strong>{(() => { const [h, m] = session.scheduled_time.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</strong>
+                            📅 Please join on <strong>{new Date(String(session.scheduled_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</strong> at <strong>{(() => { const [h, m] = session.scheduled_time.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</strong>
                           </div>
                           <div style={{ fontSize: '11px', color: '#3B82F6', marginTop: '2px' }}>
                             Sign in with your Google account to enter the meeting

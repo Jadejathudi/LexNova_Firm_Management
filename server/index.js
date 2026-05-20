@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { sql } = require('./db/client');
 
 const app = express();
@@ -9,23 +8,27 @@ const PORT = process.env.PORT || 5001;
 // Give auth middleware access to sql so it can validate tokens against live users
 require('./middleware/auth').setDb(sql);
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowed = ['http://localhost:3000', process.env.CLIENT_URL].filter(Boolean);
-    if (!origin || allowed.some(o => origin === o) || (origin && origin.endsWith('.vercel.app'))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+// CORS — must be the very first middleware, before everything else
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '';
+  const allowed =
+    !origin ||
+    origin.includes('localhost') ||
+    origin.endsWith('.vercel.app') ||
+    origin === process.env.CLIENT_URL;
 
-// Handle preflight OPTIONS requests across all routes first
-app.options('*', cors(corsOptions));
-app.use(cors(corsOptions));
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  // Respond immediately to preflight
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

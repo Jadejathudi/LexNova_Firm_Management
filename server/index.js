@@ -8,23 +8,11 @@ const PORT = process.env.PORT || 5001;
 // Give auth middleware access to sql so it can validate tokens against live users
 require('./middleware/auth').setDb(sql);
 
-// CORS — must be the very first middleware, before everything else
+// CORS headers on every response (OPTIONS is handled at Vercel routing layer)
 app.use((req, res, next) => {
-  const origin = req.headers.origin || '';
-  const allowed =
-    !origin ||
-    origin.includes('localhost') ||
-    origin.endsWith('.vercel.app') ||
-    origin === process.env.CLIENT_URL;
-
-  if (allowed) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-  // Respond immediately to preflight
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
 });

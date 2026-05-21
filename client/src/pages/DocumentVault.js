@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
-const CAN_UPLOAD_ROLES = ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate'];
+const CAN_MANAGE_ROLES = ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate'];
 
 function formatSize(bytes) {
   if (!bytes) return '—';
@@ -23,12 +23,12 @@ export default function DocumentVault() {
   const [matters, setMatters] = useState([]);
   const [deletingDocId, setDeletingDocId] = useState(null);
 
-  const canUpload = CAN_UPLOAD_ROLES.includes(user?.role);
+  const canManage = CAN_MANAGE_ROLES.includes(user?.role);
 
   useEffect(() => {
     Promise.all([
       api.getMyDocuments(),
-      canUpload ? api.getMatters().catch(() => []) : Promise.resolve([]),
+      canManage ? api.getMatters().catch(() => []) : Promise.resolve([]),
     ])
       .then(([docs, m]) => { setDocuments(docs); setMatters(m); })
       .catch(console.error)
@@ -79,7 +79,7 @@ export default function DocumentVault() {
       </p>
 
       {/* Upload panel — advocates / managing partners only */}
-      {canUpload && (
+      {canManage && (
         <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '20px', marginBottom: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#1B2559', marginBottom: 14 }}>Upload New Document</div>
 
@@ -186,6 +186,7 @@ export default function DocumentVault() {
         const isImg = ['jpg', 'jpeg', 'png'].includes(ext);
         const icon = isPdf ? '📕' : isDoc ? '📘' : isImg ? '🖼️' : '📄';
         const accentColor = isPdf ? '#EF4444' : isDoc ? '#3B82F6' : isImg ? '#10B981' : '#64748B';
+        const hasValidUrl = d.stored_path && d.stored_path.startsWith('http');
 
         return (
           <div
@@ -199,19 +200,26 @@ export default function DocumentVault() {
               </div>
               <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>
                 {d.matter_number && <span style={{ background: '#F1F5F9', padding: '1px 7px', borderRadius: 10, marginRight: 6, color: '#475569', fontWeight: 600 }}>{d.matter_number}</span>}
-                {formatSize(d.file_size_bytes)} · {d.uploader_name} · {new Date(d.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {d.matter_title && <span style={{ marginRight: 6, color: '#64748B' }}>{d.matter_title} ·</span>}
+                {formatSize(d.file_size_bytes)} · {new Date(d.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <a
-                href={d.stored_path}
-                target="_blank"
-                rel="noreferrer"
-                style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
-              >
-                View ↗
-              </a>
-              {(user?.role === 'managing_partner' || user?.role === 'advisor' || user?.user_id === d.uploaded_by) && (
+              {hasValidUrl ? (
+                <a
+                  href={d.stored_path}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  Open ↗
+                </a>
+              ) : (
+                <span style={{ padding: '6px 14px', background: '#F1F5F9', color: '#94A3B8', borderRadius: 7, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  Unavailable
+                </span>
+              )}
+              {canManage && (user?.role === 'managing_partner' || user?.role === 'advisor' || user?.user_id === d.uploaded_by) && (
                 <button
                   onClick={() => handleDelete(d.document_id)}
                   disabled={deletingDocId === d.document_id}
@@ -230,7 +238,7 @@ export default function DocumentVault() {
           <div style={{ fontSize: 44, marginBottom: 10 }}>📂</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: '#475569', marginBottom: 4 }}>No documents found</div>
           <div style={{ fontSize: 12, color: '#94A3B8' }}>
-            {canUpload ? 'Upload documents from a case or use the panel above' : 'Your advocate will upload relevant documents here'}
+            {canManage ? 'Upload documents from a case or use the panel above' : 'Your advocate will upload relevant documents here'}
           </div>
         </div>
       )}

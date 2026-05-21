@@ -37,15 +37,15 @@ module.exports = function (sql) {
 
       const docs = req.user.role === 'client'
         ? await sql`
-            SELECT d.*, u.full_name as uploader_name FROM documents d
-            JOIN users u ON d.uploaded_by = u.user_id
-            WHERE d.matter_id = ${matterId} AND d.is_client_visible = 1
+            SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at, d.is_client_visible
+            FROM documents d
+            WHERE d.matter_id = ${matterId} AND d.is_client_visible = 1 AND d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
           `
         : await sql`
-            SELECT d.*, u.full_name as uploader_name FROM documents d
-            JOIN users u ON d.uploaded_by = u.user_id
-            WHERE d.matter_id = ${matterId}
+            SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at, d.is_client_visible
+            FROM documents d
+            WHERE d.matter_id = ${matterId} AND d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
           `;
 
@@ -60,19 +60,20 @@ module.exports = function (sql) {
     try {
       const docs = req.user.role === 'client'
         ? await sql`
-            SELECT d.*, u.full_name as uploader_name, m.matter_number, m.title as matter_title
+            SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at,
+                   m.matter_number, m.title as matter_title
             FROM documents d
-            JOIN users u ON d.uploaded_by = u.user_id
             JOIN matters m ON d.matter_id = m.matter_id
             JOIN clients c ON m.client_id = c.client_id
-            WHERE c.user_id = ${req.user.user_id} AND d.is_client_visible = 1
+            WHERE c.user_id = ${req.user.user_id} AND d.is_client_visible = 1 AND d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
           `
         : await sql`
-            SELECT d.*, u.full_name as uploader_name, m.matter_number, m.title as matter_title
+            SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at,
+                   m.matter_number, m.title as matter_title
             FROM documents d
-            JOIN users u ON d.uploaded_by = u.user_id
             JOIN matters m ON d.matter_id = m.matter_id
+            WHERE d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
           `;
 

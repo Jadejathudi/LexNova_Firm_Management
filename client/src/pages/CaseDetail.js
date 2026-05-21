@@ -547,6 +547,7 @@ export default function CaseDetail() {
             const accentColor = isPdf ? '#EF4444' : isDoc ? '#3B82F6' : isImg ? '#10B981' : '#64748B';
             const bytes = d.file_size_bytes || 0;
             const sizeLabel = bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(0)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+            const hasValidUrl = d.stored_path && d.stored_path.startsWith('http');
 
             return (
               <div key={d.document_id} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: `4px solid ${accentColor}`, borderRadius: 10, padding: '14px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -556,19 +557,25 @@ export default function CaseDetail() {
                     {d.filename}
                   </div>
                   <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>
-                    {sizeLabel} · Uploaded by {d.uploader_name} · {new Date(d.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {sizeLabel} · {new Date(d.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <a
-                    href={d.stored_path}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
-                  >
-                    View ↗
-                  </a>
-                  {(user?.role === 'managing_partner' || user?.role === 'advisor' || user?.user_id === d.uploaded_by) && (
+                  {hasValidUrl ? (
+                    <a
+                      href={d.stored_path}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                    >
+                      Open ↗
+                    </a>
+                  ) : (
+                    <span style={{ padding: '6px 14px', background: '#F1F5F9', color: '#94A3B8', borderRadius: 7, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      Unavailable
+                    </span>
+                  )}
+                  {canEdit && (user?.role === 'managing_partner' || user?.role === 'advisor' || user?.user_id === d.uploaded_by) && (
                     <button
                       onClick={() => handleDeleteDocument(d.document_id)}
                       disabled={deletingDocId === d.document_id}

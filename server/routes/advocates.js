@@ -28,7 +28,7 @@ module.exports = function (sql) {
       let paramIdx = 1;
 
       if (state && state !== 'all') { query += ` AND a.state = $${paramIdx++}`; params.push(state); }
-      if (spec && spec !== 'all')   { query += ` AND a.specializations LIKE $${paramIdx++}`; params.push(`%${spec}%`); }
+      if (spec && spec !== 'all')   { query += ` AND LOWER(a.specializations) LIKE LOWER($${paramIdx++})`; params.push(`%${spec}%`); }
       if (available === 'true')     { query += ' AND a.is_available = 1'; }
       query += ' ORDER BY a.rating DESC, a.review_count DESC';
 

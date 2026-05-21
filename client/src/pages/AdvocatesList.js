@@ -6,7 +6,23 @@ import PublicNavbar from '../components/PublicNavbar';
 const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B', WHITE = '#FFFFFF';
 const GREEN = '#15803D', GREEN_BG = '#DCFCE7', AMBER = '#92400E', AMBER_BG = '#FFF8E8';
 
-const SPEC_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Family: '#7C3AED', Corporate: '#0F766E', Banking: '#0369A1', 'Real Estate': '#C2410C', Consumer: '#0E7490', Revenue: '#92400E' };
+const SPEC_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Family: '#7C3AED', Corporate: '#0F766E', Banking: '#0369A1', 'Real Estate': '#C2410C', Consumer: '#0E7490', Revenue: '#92400E', Arbitration: '#6D28D9' };
+
+const CANONICAL_SPECS = ['Criminal', 'Civil', 'Family', 'Corporate', 'Banking', 'Real Estate', 'Consumer', 'Revenue', 'Arbitration'];
+
+const SPEC_NORMALIZE = {
+  criminal: 'Criminal', civil: 'Civil', family: 'Family',
+  corporate: 'Corporate', banking: 'Banking',
+  real_estate: 'Real Estate', realestate: 'Real Estate', 'real estate': 'Real Estate',
+  consumer: 'Consumer', revenue: 'Revenue', arbitration: 'Arbitration',
+};
+
+function normalizeSpec(s) {
+  if (!s) return s;
+  return SPEC_NORMALIZE[s.toLowerCase().replace(/\s+/g, '_')] ||
+    SPEC_NORMALIZE[s.toLowerCase()] ||
+    s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 function SpecBadge({ spec }) {
   const c = SPEC_COLORS[spec] || NAVY;
@@ -19,7 +35,7 @@ function AdvocateCard({ advocate, onViewProfile, onBook }) {
   const yrs = advocate.experience_years || 0;
   const barNo = advocate.bar_number || '—';
   const available = Boolean(advocate.is_available);
-  const specs = advocate.specializations || [];
+  const specs = (advocate.specializations || []).map(normalizeSpec);
   const langs = advocate.languages || [];
   const currentYear = new Date().getFullYear();
   const enrolledYear = barNo.match(/\/(\d{4})\//)?.[1] || (currentYear - yrs);
@@ -72,7 +88,8 @@ export default function AdvocatesList() {
     }
   };
 
-  const allSpecs = Array.from(new Set(advocates.flatMap(a => a.specializations || [])));
+  const presentSpecs = new Set(advocates.flatMap(a => (a.specializations || []).map(normalizeSpec)));
+  const allSpecs = CANONICAL_SPECS.filter(s => presentSpecs.has(s));
 
   return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: "'Outfit', 'Inter', sans-serif" }}>

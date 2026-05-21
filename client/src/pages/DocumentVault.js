@@ -33,7 +33,7 @@ export default function DocumentVault() {
       .then(([docs, m]) => { setDocuments(docs); setMatters(m); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [canUpload]);
+  }, [canManage]);
 
   const handleUpload = async (file) => {
     if (!file || !uploadMatter) return;

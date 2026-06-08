@@ -18,6 +18,7 @@ export default function PublicNavbar() {
         </span>
         <div style={{ flex: 1 }} />
         <span onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>Find Advocate</span>
+        <span onClick={() => navigate('/bench/directory')} style={{ color: 'rgba(255,255,255,.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>Consult Judges</span>
         {user && (
           <span onClick={() => navigate(dashPath)} style={{ color: 'rgba(255,255,255,.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>My Case</span>
         )}
@@ -27,6 +28,12 @@ export default function PublicNavbar() {
           style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: '9px', padding: '9px 16px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
         >
           🚨 Urgent Help
+        </button>
+        <button
+          onClick={() => navigate('/judge/login')}
+          style={{ background: 'transparent', color: 'rgba(255,255,255,.8)', border: '1px solid rgba(255,255,255,.3)', borderRadius: '9px', padding: '9px 14px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          Judge Login
         </button>
         {user ? (
           <button onClick={() => navigate(dashPath)} style={{ background: GOLD, color: NAVY, border: 'none', borderRadius: '9px', padding: '9px 18px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>

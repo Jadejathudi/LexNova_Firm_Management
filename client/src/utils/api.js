@@ -117,6 +117,25 @@ export const api = {
   askAI: (question) => apiFetch('/ai-guide/ask', { method: 'POST', body: JSON.stringify({ question }) }),
   getAIQuestions: () => apiFetch('/ai-guide/questions'),
 
+  // The Bench
+  getBenchJudges: ({ tier, area } = {}) => {
+    const p = new URLSearchParams();
+    if (tier && tier !== 'all') p.append('tier', tier);
+    if (area && area !== 'all') p.append('area', area);
+    const q = p.toString() ? `?${p.toString()}` : '';
+    return apiFetch(`/bench/judges${q}`);
+  },
+  getBenchJudge: (id) => apiFetch(`/bench/judges/${id}`),
+  getBenchJudgeSlots: (id, date) => apiFetch(`/bench/judges/${id}/slots${date ? `?date=${date}` : ''}`),
+  getBenchServices: () => apiFetch('/bench/services'),
+  createBenchBooking: (data) => apiFetch('/bench/bookings', { method: 'POST', body: JSON.stringify(data) }),
+  getBenchBookingByRef: (ref) => apiFetch(`/bench/bookings/ref/${ref}`),
+  getMyBenchSessions: () => apiFetch('/bench/my-sessions'),
+  getBenchAdminBookings: (status) => apiFetch(`/bench/admin/bookings${status && status !== 'all' ? `?status=${status}` : ''}`),
+  updateBenchBooking: (id, data) => apiFetch(`/bench/admin/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getBenchAdminStats: () => apiFetch('/bench/admin/stats'),
+  getBenchAdminJudges: () => apiFetch('/bench/admin/judges'),
+
   // Google Calendar admin
   getCalendarStatus: () => apiFetch('/admin/google-status'),
   getGoogleAuthUrl: () => apiFetch('/admin/google-auth'),

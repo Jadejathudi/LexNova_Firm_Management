@@ -35,7 +35,7 @@ async function setup() {
       full_name     TEXT NOT NULL,
       email         TEXT UNIQUE NOT NULL,
       phone         TEXT UNIQUE NOT NULL,
-      role          TEXT NOT NULL CHECK(role IN ('managing_partner','senior_advocate','junior_advocate','billing','reception','client','advisor')),
+      role          TEXT NOT NULL CHECK(role IN ('managing_partner','senior_advocate','junior_advocate','billing','reception','client','advisor','judge')),
       password_hash TEXT NOT NULL,
       mfa_enabled   SMALLINT DEFAULT 0,
       is_active     SMALLINT DEFAULT 1,

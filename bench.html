@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Bench — ClearCase</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Jost:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0C0E15;--parchment:#F4EFE4;--parchment-dark:#E8E0CC;
+  --gold:#C4982A;--gold-light:#E2B94A;--gold-pale:#FBF5E6;
+  --charcoal:#181B28;--charcoal-mid:#22263A;--charcoal-light:#2E324A;
+  --gray:#6E7288;--gray-light:#A8ABBE;--white:#fff;
+  --green:#15803D;--green-bg:#DCFCE7;
+  --red:#DC2626;--amber:#D97706;
+  --border:#2E324A;--border-gold:rgba(196,152,42,.3);
+  --hc:#C4982A;--district:#8B9CB5;--senior:#A0A8C0;--junior:#7A8499;
+}
+body{font-family:'Jost',sans-serif;background:var(--ink);color:var(--parchment);line-height:1.6;overflow-x:hidden}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes gavel{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(4deg) translateY(-4px)}}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(.96)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}70%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+.fu{animation:fadeUp .55s ease forwards}
+.fu2{animation:fadeUp .55s .12s ease forwards;opacity:0}
+.fu3{animation:fadeUp .55s .24s ease forwards;opacity:0}
+.fu4{animation:fadeUp .55s .36s ease forwards;opacity:0}
+
+.btn{border:none;border-radius:3px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:7px;letter-spacing:.02em}
+.btn-gold{background:var(--gold);color:var(--ink)}.btn-gold:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-og{background:transparent;color:var(--gold);border:1.5px solid var(--gold)}.btn-og:hover{background:rgba(196,152,42,.1)}
+.btn-ghost{background:rgba(255,255,255,.07);color:var(--parchment);border:1px solid rgba(255,255,255,.12)}.btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn-dark{background:var(--charcoal-mid);color:var(--gray-light);border:1px solid var(--border)}.btn-dark:hover{background:var(--charcoal-light)}
+.btn-sm{padding:8px 16px;font-size:13px}
+
+input,select,textarea{background:var(--charcoal-mid);border:1px solid var(--border);border-radius:3px;padding:11px 14px;font-size:14px;width:100%;font-family:'Jost',sans-serif;outline:none;color:var(--parchment);transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input::placeholder,textarea::placeholder{color:var(--gray)}
+select option{background:var(--charcoal);color:var(--parchment)}
+
+.card{background:var(--charcoal);border:1px solid var(--border);border-radius:4px}
+.hover{transition:transform .22s,box-shadow .22s;cursor:pointer}
+.hover:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.45)}
+
+h1,h2,h3,h4{font-family:'EB Garamond',serif}
+.serif{font-family:'EB Garamond',serif}
+.gs{background:linear-gradient(90deg,var(--gold) 0%,var(--gold-light) 35%,#F5D060 55%,var(--gold) 80%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite}
+.label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.divider-subtle{height:1px;background:var(--border)}
+.tag{display:inline-flex;align-items:center;font-size:11px;font-weight:700;border-radius:2px;padding:3px 9px;white-space:nowrap;letter-spacing:.04em}
+.scarce{animation:breathe 3s ease-in-out infinite}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+/* Tier colors */
+.tier-hc{color:var(--hc)}
+.tier-district{color:var(--district)}
+.tier-senior{color:var(--senior)}
+.tier-junior{color:var(--junior)}
+
+/* Step indicator */
+.step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+
+// ── Tier config ────────────────────────────────────────────────
+const TIERS = {
+  hc:      {label:"Retired High Court Judge",    color:"#C4982A", bg:"rgba(196,152,42,.1)",  border:"rgba(196,152,42,.3)",  price:19999, rank:1, badge:"High Court"},
+  district:{label:"Retired District Judge",       color:"#8B9CB5", bg:"rgba(139,156,181,.08)",border:"rgba(139,156,181,.25)",price:9999,  rank:2, badge:"District Court"},
+  senior:  {label:"Retired Senior Civil Judge",   color:"#A0A8C0", bg:"rgba(160,168,192,.07)",border:"rgba(160,168,192,.2)", price:5999,  rank:3, badge:"Senior Civil"},
+  junior:  {label:"Retired Junior Civil Judge",   color:"#7A8499", bg:"rgba(122,132,153,.07)",border:"rgba(122,132,153,.18)",price:3999,  rank:4, badge:"Junior Civil"},
+};
+const PLATFORM_FEE = 500; // shown as transparent add-on
+
+// ── Judge data ─────────────────────────────────────────────────
+// NOTE: No Supreme Court judges intentionally
+const JUDGES = [
+  {id:1,name:"Hon. Justice K.V. Ramaswamy Naidu (Retd.)",ini:"RN",tier:"hc",
+   retired:2019,yearsOnBench:22,city:"Hyderabad",state:"Telangana",
+   areas:["Criminal","Civil","Constitutional"],
+   bio:"Former Judge of the Telangana High Court with 22 years on the bench. Deep experience in criminal appeals, bail jurisprudence, and civil appellate matters before the High Court.",
+   education:"LLB — Osmania University · Enrolled 1978 · Elevated to HC Bench 1997",
+   notable:"Criminal appeals, bail, constitutional challenges in HC",
+   langs:["Telugu","English","Hindi"],slotsLeft:3,totalSlots:6,available:true},
+  {id:2,name:"Hon. Justice Padmavathi Subramaniam (Retd.)",ini:"PS",tier:"hc",
+   retired:2021,yearsOnBench:18,city:"Vijayawada",state:"Andhra Pradesh",
+   areas:["Family","Civil","Consumer"],
+   bio:"Former Judge of the Andhra Pradesh High Court. 18 years presiding over family law appeals, civil appellate matters, and consumer protection cases at the High Court level.",
+   education:"LLB — Andhra University · Enrolled 1980 · Elevated to HC Bench 2003",
+   notable:"Matrimonial appeals, civil appellate, consumer law",
+   langs:["Telugu","English"],slotsLeft:4,totalSlots:6,available:true},
+  {id:3,name:"Shri. B. Venkateswara Rao (Retd.)",ini:"VR",tier:"district",
+   retired:2022,yearsOnBench:16,city:"Hyderabad",state:"Telangana",
+   areas:["Criminal","Revenue","Civil"],
+   bio:"Retired District & Sessions Judge with 16 years presiding over criminal sessions, revenue matters, and civil trials in Hyderabad district courts. Extensive first-hand knowledge of ground-level court procedure.",
+   education:"LLB — Osmania University · Enrolled 1986 · District Judge 2006",
+   notable:"Sessions trials, bail, revenue disputes, civil execution",
+   langs:["Telugu","English","Urdu"],slotsLeft:5,totalSlots:8,available:true},
+  {id:4,name:"Shri. G. Nagabhushanam (Retd.)",ini:"GN",tier:"district",
+   retired:2023,yearsOnBench:14,city:"Vijayawada",state:"Andhra Pradesh",
+   areas:["Civil","Family","Revenue"],
+   bio:"Retired District Judge with 14 years across AP district courts. Particularly experienced in land and property disputes, family matters, and revenue tribunal appeals.",
+   education:"LLB — Andhra University · Enrolled 1989 · District Judge 2009",
+   notable:"Land disputes, property litigation, family matters",
+   langs:["Telugu","English"],slotsLeft:6,totalSlots:8,available:true},
+  {id:5,name:"Smt. Lakshmi Devi Prasanna (Retd.)",ini:"LP",tier:"senior",
+   retired:2023,yearsOnBench:14,city:"Warangal",state:"Telangana",
+   areas:["Family","Civil","Consumer"],
+   bio:"Retired Principal Judge, Family Court. 14 years presiding over matrimonial matters, child custody disputes, maintenance proceedings, and domestic violence cases across Telangana.",
+   education:"LLB — Kakatiya University · Enrolled 1989 · Principal Family Judge 2009",
+   notable:"Matrimonial law, child custody, domestic violence, maintenance",
+   langs:["Telugu","English"],slotsLeft:0,totalSlots:8,available:false},
+  {id:6,name:"Shri. T. Srinivasulu (Retd.)",ini:"TS",tier:"senior",
+   retired:2022,yearsOnBench:12,city:"Hyderabad",state:"Telangana",
+   areas:["Civil","Consumer","Revenue"],
+   bio:"Retired Senior Civil Judge with 12 years handling civil suits, consumer disputes, and revenue matters in Hyderabad. Known for clear and thorough written orders.",
+   education:"LLB — Osmania University · Enrolled 1990 · Civil Judge 2010",
+   notable:"Civil suits, consumer protection, small causes",
+   langs:["Telugu","English"],slotsLeft:7,totalSlots:10,available:true},
+  {id:7,name:"Smt. M. Anuradha (Retd.)",ini:"MA",tier:"junior",
+   retired:2024,yearsOnBench:10,city:"Visakhapatnam",state:"Andhra Pradesh",
+   areas:["Civil","Family","Consumer"],
+   bio:"Recently retired Junior Civil Judge with 10 years in Visakhapatnam civil courts. Fresh judicial perspective combined with knowledge of evolving court practice and procedure.",
+   education:"LLB — Andhra University · Enrolled 1994 · Civil Judge 2014",
+   notable:"Civil suits, consumer cases, family matters",
+   langs:["Telugu","English"],slotsLeft:8,totalSlots:10,available:true},
+];
+
+// ── Services ───────────────────────────────────────────────────
+const SERVICES = [
+  {id:"review",  icon:"📋", name:"Case Review",           dur:"60 min call",  desc:"The judge reviews the structured notes from your intake call and gives a frank judicial assessment of where your case stands."},
+  {id:"second",  icon:"🔍", name:"Second Opinion",         dur:"45 min call",  desc:"Share your advocate's strategy. The judge gives an independent view on whether the approach is sound — and what they would do differently."},
+  {id:"prehear", icon:"⚖️", name:"Pre-Hearing Readiness",  dur:"45 min call",  desc:"Is your case actually ready to go before court? The judge does a structured readiness check — same rigour they applied from the bench."},
+  {id:"settle",  icon:"🤝", name:"Settlement Assessment",  dur:"30 min call",  desc:"Has the other side made an offer? The judge tells you what courts actually award in comparable cases — so you can decide with full information."},
+];
+
+// ── How it works steps ─────────────────────────────────────────
+const STEPS = [
+  {n:"01", t:"Choose a judge & pay", d:"Browse the directory by court tier and area of practice. Select a service, pay the session fee online. Your slot is reserved immediately."},
+  {n:"02", t:"20-minute intake call", d:"A ClearCase legal team member calls you within 24 hours. They take structured notes on your matter — facts, documents, questions, what you need the judge to address."},
+  {n:"03", t:"Notes submitted to the judge", d:"Your case notes are prepared and sent to the judge before the session. The judge reviews them fully — so they arrive prepared, not cold."},
+  {n:"04", t:"Your session with the judge", d:"A video or phone call with the retired judge. They share their judicial perspective on your matter — candid, experienced, and grounded in real courtroom decisions."},
+  {n:"05", t:"Session notes to you", d:"A summary of the judge's key points is sent to your ClearCase account. Share with your advocate, use it to prepare, or keep it for reference."},
+];
+
+const PLATFORM_DISCLAIMER = `ClearCase is a technology platform. Retired judges on The Bench are not practicing advocates. Sessions are knowledge consultations, not legal advice, and do not create any legal relationship. Judges set their own consultation rates; ClearCase adds a platform facilitation fee.`;
+
+let state = {
+  screen:"landing",
+  tierFilter:"all", areaFilter:"all",
+  selJudge:JUDGES[0],
+  selDate:14, selSlot:"", meetType:"video",
+  bookingService:"review",
+  sessionSecs:2700, sessionPhase:"active",
+  consentShown:false, recordConsent:false,
+};
+let sessionTimer=null;
+
+function ss(p){Object.assign(state,p);render();}
+function go(s){ss({screen:s});window.scrollTo(0,0);}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function selectJudge(id){
+  ss({selJudge:JUDGES.find(j=>j.id===id),consentShown:false,sessionSecs:2700,sessionPhase:"active"});
+  go('profile');
+}
+function startSession(){
+  if(sessionTimer)return;
+  sessionTimer=setInterval(()=>{
+    const s=state.sessionSecs-1;
+    if(s<=0){clearInterval(sessionTimer);sessionTimer=null;ss({sessionSecs:0,sessionPhase:"ended"});}
+    else ss({sessionSecs:s});
+  },1000);
+}
+window.ss=ss; window.go=go; window.selectJudge=selectJudge;
+
+// ── Helpers ────────────────────────────────────────────────────
+function Avatar(j,sz=64){
+  const t=TIERS[j.tier];
+  return `<div style="position:relative;flex-shrink:0;display:inline-block">
+    <div style="width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(135deg,${t.color}22,${t.color}44);border:2px solid ${t.color};display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+      <svg width="${sz}" height="${sz}" viewBox="0 0 64 64" fill="none" style="position:absolute;inset:0">
+        <circle cx="32" cy="23" r="10" fill="${t.color}" opacity=".22"/>
+        <ellipse cx="32" cy="50" rx="18" ry="11" fill="${t.color}" opacity=".16"/>
+      </svg>
+      <span style="position:relative;z-index:1;font-family:'EB Garamond',serif;font-size:${Math.round(sz*.3)}px;font-weight:700;color:${t.color}">${j.ini}</span>
+    </div>
+    <div style="position:absolute;bottom:-3px;right:-3px;background:${t.color};width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid var(--charcoal)">⚖</div>
+  </div>`;
+}
+
+function TierBadge(tier){
+  const t=TIERS[tier];
+  return `<span class="tag" style="background:${t.bg};color:${t.color};border:1px solid ${t.border}">${t.badge}</span>`;
+}
+
+function SlotBar(left,total){
+  const full=left===0, scarce=left<=2&&left>0;
+  const pct=total===0?0:(left/total)*100;
+  return `<div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:${full?'var(--gray)':scarce?'#FCA5A5':'var(--gold)'}">
+        ${full?'Fully Booked This Month':scarce?`⚡ ${left} session${left!==1?'s':''} left`:`${left} of ${total} sessions available`}
+      </span>
+    </div>
+    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:${full?'rgba(255,255,255,.06)':scarce?'var(--red)':'var(--gold)'};border-radius:2px"></div>
+    </div>
+  </div>`;
+}
+
+function JudgeCard(j){
+  const t=TIERS[j.tier];
+  const isFull=j.slotsLeft===0, isScarce=j.slotsLeft<=2&&j.slotsLeft>0;
+  return `<div class="card hover" onclick="selectJudge(${j.id})" style="padding:28px;border-color:${t.border};background:linear-gradient(135deg,var(--charcoal),${t.bg})">
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
+      ${Avatar(j,60)}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <h3 style="font-size:17px;font-weight:600;color:var(--parchment);line-height:1.3">${j.name}</h3>
+          ${isScarce?`<span class="tag scarce" style="background:rgba(220,38,38,.15);color:#FCA5A5;border:1px solid rgba(220,38,38,.3)">⚡ ${j.slotsLeft} left</span>`:''}
+          ${isFull?`<span class="tag" style="background:rgba(255,255,255,.05);color:var(--gray)">Fully Booked</span>`:''}
+        </div>
+        ${TierBadge(j.tier)}
+        <div style="font-size:12px;color:var(--gray);margin-top:6px">${j.yearsOnBench} yrs on bench · ${j.city} · Retired ${j.retired}</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--gray-light);line-height:1.7;margin-bottom:14px;font-family:'EB Garamond',serif">${j.bio.split('.').slice(0,2).join('.')}.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">
+      ${j.areas.map(a=>`<span class="tag" style="background:rgba(255,255,255,.04);color:var(--gray-light);border:1px solid var(--border)">${a}</span>`).join('')}
+    </div>
+    ${SlotBar(j.slotsLeft,j.totalSlots)}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+      <div>
+        <div style="font-size:11px;color:var(--gray);margin-bottom:2px">Judge's consultation rate</div>
+        <div style="font-family:'EB Garamond',serif;font-size:22px;font-weight:700;color:${t.color}">₹${t.price.toLocaleString()}</div>
+      </div>
+      <button class="btn ${isFull?'btn-dark':'btn-gold'} btn-sm" onclick="selectJudge(${j.id})">${isFull?'Join Waitlist':'View & Book →'}</button>
+    </div>
+  </div>`;
+}
+
+// ── NAV ────────────────────────────────────────────────────────
+function Nav(){
+  return `<nav style="background:var(--charcoal);border-bottom:1px solid var(--border);padding:0 48px;height:62px;display:flex;align-items:center;position:sticky;top:0;z-index:100;gap:24px;box-shadow:0 2px 20px rgba(0,0,0,.3)">
+    <span onclick="go('landing')" style="cursor:pointer;display:flex;align-items:center;gap:10px">
+      <span style="color:var(--gold);font-size:20px">⚖</span>
+      <div>
+        <div style="font-family:'EB Garamond',serif;font-size:17px;font-weight:600;color:var(--parchment);line-height:1">The Bench</div>
+        <div style="font-size:9px;color:var(--gray);letter-spacing:.14em;text-transform:uppercase">by ClearCase</div>
+      </div>
+    </span>
+    <div style="width:1px;height:26px;background:var(--border)"></div>
+    ${["Directory","How It Works","Services"].map(t=>`<span onclick="go('${t.toLowerCase().replace(/ /g,'-')}')" style="color:var(--gray-light);font-size:14px;cursor:pointer;font-weight:500;transition:color .15s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray-light)'">${t}</span>`).join('')}
+    <div style="flex:1"></div>
+    <button onclick="go('directory')" class="btn btn-og btn-sm">Browse Judges</button>
+    <button onclick="history.back?history.back():go('landing')" class="btn btn-ghost btn-sm">← Back to ClearCase</button>
+  </nav>`;
+}
+
+// ── Disclaimer strip ───────────────────────────────────────────
+function Disc(){
+  return `<div style="background:rgba(196,152,42,.06);border-bottom:1px solid var(--border-gold);padding:8px 48px">
+    <p style="font-size:12px;color:var(--gray);max-width:1100px;margin:0 auto;line-height:1.5">⚖ ${PLATFORM_DISCLAIMER}</p>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LANDING
+// ══════════════════════════════════════════════════════════════
+function renderLanding(){
+  const featured=JUDGES.filter(j=>j.tier==='hc');
+  return `${Nav()}${Disc()}
+  <!-- Hero -->
+  <section style="position:relative;overflow:hidden;padding:110px 80px 90px;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(196,152,42,.1) 0%,transparent 65%),var(--ink)">
+    <div style="position:absolute;inset:0;opacity:.025" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><rect width=%2240%22 height=%2240%22 fill=%22none%22/><path d=%22M0 20h40M20 0v40%22 stroke=%22white%22 stroke-width=%22.4%22 opacity=%22.5%22/></svg>');background-size:40px 40px"></div>
+    <div style="max-width:820px;margin:0 auto">
+      <div style="font-size:52px;margin-bottom:24px;display:inline-block;animation:gavel 7s ease-in-out infinite" class="fu">⚖️</div>
+      <div class="label fu2" style="color:var(--gold);margin-bottom:18px">Exclusive to ClearCase · Telangana &amp; Andhra Pradesh</div>
+      <h1 class="fu2" style="font-size:58px;font-weight:700;line-height:1.1;margin-bottom:22px">
+        Decades on the Bench.<br>
+        <span class="gs">Now Answering Your Questions.</span>
+      </h1>
+      <p class="fu3" style="font-size:17px;color:var(--gray-light);line-height:1.82;max-width:600px;margin:0 auto 14px;font-family:'EB Garamond',serif;font-style:italic">
+        Retired judges from the High Courts and subordinate courts of Telangana and Andhra Pradesh — offering their judicial perspective on your legal matter. Available exclusively through ClearCase.
+      </p>
+      <p class="fu3" style="font-size:13px;color:var(--gray);margin-bottom:44px">Sessions are knowledge consultations. Not legal advice.</p>
+      <div class="fu4" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="go('directory')" style="padding:15px 40px;font-size:15px">Meet the Judges →</button>
+        <button class="btn btn-ghost" onclick="go('how-it-works')" style="padding:15px 40px;font-size:15px">How It Works</button>
+      </div>
+    </div>
+
+    <!-- Platform stats -->
+    <div class="fu4" style="display:grid;grid-template-columns:repeat(4,1fr);max-width:680px;margin:64px auto 0;border:1px solid var(--border);border-radius:4px;overflow:hidden;background:var(--charcoal)">
+      ${[
+        [`${JUDGES.length}`, "Judges", "on The Bench"],
+        ["HC to Civil", "Four tiers", "of judicial experience"],
+        ["24 hrs", "Intake call", "within one day"],
+        ["Only here", "Exclusive", "to ClearCase"],
+      ].map(([v,l,s],i)=>`<div style="padding:22px 12px;text-align:center;${i<3?'border-right:1px solid var(--border);':''}">
+        <div style="font-family:'EB Garamond',serif;font-size:24px;font-weight:700;color:var(--gold)">${v}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--parchment);margin-top:3px">${l}</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px">${s}</div>
+      </div>`).join('')}
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- What The Bench is -->
+  <section style="padding:90px 80px;background:var(--charcoal)">
+    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+      <div>
+        <div class="label" style="color:var(--gold);margin-bottom:14px">A resource that didn't exist before</div>
+        <h2 style="font-size:42px;font-weight:700;line-height:1.2;margin-bottom:22px">The knowledge that sits inside a judge's mind.</h2>
+        <p style="font-size:15px;color:var(--gray-light);line-height:1.85;font-family:'EB Garamond',serif;margin-bottom:16px">A retired judge has presided over thousands of cases. They have heard every argument, watched every strategy succeed or fail, and made the decisions that determined people's lives — from the most powerful seat in the room.</p>
+        <p style="font-size:15px;color:var(--gray-light);line-height:1.85;font-family:'EB Garamond',serif;margin-bottom:32px">That accumulated knowledge does not disappear when they retire. The Bench makes it accessible — so you can understand how a judge would see your matter before it ever reaches the court.</p>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          ${[
+            ["Not legal advice","A judicial perspective — candid, experienced, based on real courtroom decisions."],
+            ["Not a referral","No advocate is recommended. This is independent judicial knowledge."],
+            ["Not available elsewhere","The Bench is exclusive to ClearCase."],
+          ].map(([t,d])=>`<div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:9px"></div>
+            <div><span style="font-size:14px;font-weight:700;color:var(--parchment)">${t} — </span><span style="font-size:14px;color:var(--gray-light)">${d}</span></div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Featured judges -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="label" style="color:var(--gray);margin-bottom:4px">High Court Judges on The Bench</div>
+        ${featured.map(j=>`<div class="card hover" onclick="selectJudge(${j.id})" style="padding:20px;border-color:${TIERS[j.tier].border};background:linear-gradient(135deg,var(--charcoal),${TIERS[j.tier].bg})">
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px">
+            ${Avatar(j,52)}
+            <div style="flex:1">
+              <div style="font-family:'EB Garamond',serif;font-size:16px;font-weight:600;color:var(--parchment);line-height:1.3;margin-bottom:4px">${j.name}</div>
+              <div style="font-size:12px;color:var(--gray)">${j.yearsOnBench} yrs · ${j.city} · Retired ${j.retired}</div>
+            </div>
+            <div style="font-family:'EB Garamond',serif;font-size:20px;font-weight:700;color:var(--gold)">₹${TIERS[j.tier].price.toLocaleString()}</div>
+          </div>
+          ${SlotBar(j.slotsLeft,j.totalSlots)}
+        </div>`).join('')}
+        <button class="btn btn-og" onclick="go('directory')" style="justify-content:center;padding:11px">View All Judges →</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- How it works — concise -->
+  <section style="padding:90px 80px;background:var(--ink)">
+    <div style="max-width:900px;margin:0 auto;text-align:center">
+      <div class="label" style="color:var(--gold);margin-bottom:14px">The process</div>
+      <h2 style="font-size:44px;font-weight:700;margin-bottom:14px">Simple. Structured. Thorough.</h2>
+      <p style="color:var(--gray-light);font-size:16px;max-width:500px;margin:0 auto 52px;font-family:'EB Garamond',serif">You never arrive cold. The judge never arrives cold. The intake call makes sure of both.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative">
+        <div style="position:absolute;top:20px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,var(--gold),rgba(196,152,42,.2));z-index:0"></div>
+        ${STEPS.map((s,i)=>`<div style="position:relative;z-index:1;text-align:center;padding:0 10px">
+          <div style="width:40px;height:40px;border-radius:50%;background:${i===0?'var(--gold)':'var(--charcoal-mid)'};border:2px solid ${i===0?'var(--gold)':'var(--border)'};color:${i===0?'var(--ink)':'var(--gold)'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;margin:0 auto 14px">0${i+1}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--parchment);margin-bottom:6px;line-height:1.3">${s.t}</div>
+          <div style="font-size:11px;color:var(--gray);line-height:1.6">${s.d.split('.')[0]}.</div>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-gold" onclick="go('how-it-works')" style="margin-top:44px;padding:13px 36px">Read the Full Process →</button>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Tiers -->
+  <section style="padding:90px 80px;background:var(--charcoal)">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:52px">
+        <div class="label" style="color:var(--gold);margin-bottom:14px">Four tiers of judicial experience</div>
+        <h2 style="font-size:44px;font-weight:700;margin-bottom:12px">Choose the perspective that fits.</h2>
+        <p style="color:var(--gray-light);font-size:15px;max-width:520px;margin:0 auto;font-family:'EB Garamond',serif">Every judge on The Bench has spent years on the bench. The difference is the level of court — and therefore the scope of cases they presided over.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        ${Object.entries(TIERS).map(([key,t])=>{
+          const jCount=JUDGES.filter(j=>j.tier===key).length;
+          const descriptions={
+            hc:"Presided over High Court appeals — the broadest appellate view, including constitutional matters and appeals from all lower courts.",
+            district:"Handled full criminal sessions, civil suits of high value, and appeals from subordinate courts. The workhorse of serious litigation.",
+            senior:"Senior Civil Judge with 10–15+ years, having handled a high volume of civil trials, consumer matters, and family law.",
+            junior:"Recently retired civil judge — fresh knowledge of evolving procedure and court practice, accessible rate."
+          };
+          const bestFor={
+            hc:"High-stakes matters, HC appeals, complex civil/criminal disputes, constitutional questions.",
+            district:"Criminal sessions, major civil suits, land disputes, family matters at the district level.",
+            senior:"Everyday civil disputes, consumer complaints, matrimonial matters, smaller civil suits.",
+            junior:"Straightforward civil matters, consumer cases, first-time court situations."
+          };
+          return `<div class="card" style="padding:22px;border-color:${t.border};background:${t.bg}">
+            <div style="font-family:'EB Garamond',serif;font-size:26px;font-weight:700;color:${t.color};margin-bottom:4px">₹${t.price.toLocaleString()}</div>
+            <div class="label" style="color:${t.color};margin-bottom:12px;font-size:10px">${t.badge}</div>
+            <p style="font-size:12px;color:var(--gray-light);line-height:1.7;margin-bottom:12px">${descriptions[key]}</p>
+            <div class="divider-subtle" style="margin-bottom:12px"></div>
+            <div style="font-size:11px;color:var(--gray);margin-bottom:12px;font-style:italic;font-family:'EB Garamond',serif">Best for: ${bestFor[key]}</div>
+            <div style="font-size:11px;color:${t.color}">${jCount} judge${jCount!==1?'s':''} available</div>
+            <button class="btn btn-og btn-sm" onclick="ss({tierFilter:'${key}'});go('directory')" style="width:100%;margin-top:14px;justify-content:center">Browse →</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </section>
+
+  <!-- Scarcity -->
+  <section style="padding:72px 80px;background:var(--ink);text-align:center">
+    <div style="max-width:580px;margin:0 auto">
+      <div style="font-size:40px;margin-bottom:18px;display:inline-block;animation:breathe 4s ease-in-out infinite">⚡</div>
+      <h2 style="font-size:38px;font-weight:700;margin-bottom:14px">Monthly slots fill quickly.</h2>
+      <p style="font-family:'EB Garamond',serif;font-size:16px;color:var(--gray-light);line-height:1.85;margin-bottom:10px">Each judge on The Bench accepts a fixed number of sessions per month — by design. This ensures every client receives their full, undivided attention.</p>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:32px;font-style:italic">Sessions do not roll over. Unfilled slots expire at month-end.</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px;text-align:left">
+        ${JUDGES.filter(j=>j.available).slice(0,4).map(j=>`<div class="card" onclick="selectJudge(${j.id})" style="padding:14px;cursor:pointer;${j.slotsLeft<=2?'border-color:rgba(220,38,38,.3);':''}">
+          <div style="font-family:'EB Garamond',serif;font-size:13px;color:var(--parchment);margin-bottom:7px;line-height:1.3">${j.name.split('(')[0].trim()}</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:7px">${TIERS[j.tier].badge}</div>
+          ${SlotBar(j.slotsLeft,j.totalSlots)}
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-gold" onclick="go('directory')" style="padding:14px 44px;font-size:15px">Reserve Your Session →</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:var(--charcoal);border-top:1px solid var(--border);padding:36px 80px">
+    <div style="max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:24px">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:var(--gold);font-size:16px">⚖</span><span style="font-family:'EB Garamond',serif;font-size:18px;font-weight:600;color:var(--parchment)">The Bench</span><span style="font-size:11px;color:var(--gray)">by ClearCase</span></div>
+        <p style="font-size:12px;color:var(--gray);line-height:1.65;max-width:340px">${PLATFORM_DISCLAIMER}</p>
+      </div>
+      <div style="font-size:12px;color:var(--gray);text-align:right">
+        <div>© 2025 ClearCase Technology Pvt. Ltd.</div>
+        <div style="margin-top:4px">clearcase.in · Hyderabad</div>
+      </div>
+    </div>
+  </footer>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOW IT WORKS
+// ══════════════════════════════════════════════════════════════
+function renderHow(){
+  return `${Nav()}${Disc()}
+  <div style="background:linear-gradient(180deg,var(--charcoal),var(--ink));padding:72px 80px 56px;text-align:center;border-bottom:1px solid var(--border)">
+    <div class="label" style="color:var(--gold);margin-bottom:12px">The full process</div>
+    <h1 style="font-size:48px;font-weight:700;margin-bottom:10px">From payment to perspective.</h1>
+    <p style="font-size:16px;color:var(--gray-light);max-width:520px;margin:0 auto;font-family:'EB Garamond',serif">Five steps. Designed so you and the judge arrive prepared — not cold.</p>
+  </div>
+  <div style="background:var(--ink);padding:60px 80px;min-height:80vh">
+    <div style="max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:0">
+      ${STEPS.map((s,i)=>{
+        const isLast=i===STEPS.length-1;
+        const details=[
+          ["You browse the directory by court tier and area.","Choose a service — Case Review, Second Opinion, Pre-Hearing Check, or Settlement Assessment.","Pay online via Razorpay. GST invoice generated automatically.","Your session slot is reserved immediately and confirmed by SMS + email."],
+          ["A member of the ClearCase legal team calls you within 24 hours.","They take structured notes covering: what happened, where the case stands, what documents exist, what you want the judge to address.","This call is not with the judge — it is your intake and preparation call.","The notes are formatted into a structured case brief."],
+          ["Your case brief is reviewed internally for completeness.","Sent to the judge at least 24 hours before your session.","The judge reviews your matter in full before the session begins.","You are notified when the judge has confirmed receipt."],
+          ["A video or phone call with the retired judge — your choice.","The judge shares their candid judicial perspective on your matter.","Ask questions. Explore scenarios. Get the honest view.","Sessions are typically 30–60 minutes depending on the service."],
+          ["A structured summary of the key points from the session is sent to your ClearCase account.","Share the summary with your advocate if you wish.","Use it to make better decisions about your case.","The summary is stored permanently in your case vault."],
+        ];
+        return `<div style="display:flex;gap:24px;${!isLast?'padding-bottom:0;':''}">
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+            <div class="step-dot" style="background:${i===0?'var(--gold)':'var(--charcoal-mid)'};border:2px solid ${i===0?'var(--gold)':'var(--border)'};color:${i===0?'var(--ink)':'var(--gold)'}">0${i+1}</div>
+            ${!isLast?`<div style="width:2px;flex:1;background:linear-gradient(180deg,var(--gold),rgba(196,152,42,.15));min-height:60px;margin:8px 0"></div>`:''}
+          </div>
+          <div style="padding-bottom:${!isLast?'44':'0'}px;flex:1">
+            <h3 style="font-size:22px;font-weight:600;color:var(--parchment);margin-bottom:10px;margin-top:4px">${s.t}</h3>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              ${details[i].map(d=>`<div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></div>
+                <p style="font-size:14px;color:var(--gray-light);line-height:1.65;font-family:'EB Garamond',serif">${d}</p>
+              </div>`).join('')}
+            </div>
+            ${i===0?`<div class="card" style="padding:14px;margin-top:16px;background:rgba(196,152,42,.06);border-color:var(--border-gold)">
+              <p style="font-size:12px;color:var(--gold);line-height:1.6">Important: The session fee covers the full process described above — the intake call, note preparation, judge review, and the session itself. No additional charges.</p>
+            </div>`:''}
+            ${i===1?`<div class="card" style="padding:14px;margin-top:16px;background:var(--charcoal-mid)">
+              <p style="font-size:13px;color:var(--gray-light);line-height:1.65;font-family:'EB Garamond',serif;font-style:italic">The intake call is what sets The Bench apart. The judge is never handed a disorganised pile of information. They receive a structured, prepared case brief — and that makes every minute of your session count.</p>
+            </div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="max-width:780px;margin:48px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <button class="btn btn-gold" onclick="go('directory')" style="padding:14px;justify-content:center;font-size:15px">Browse Judges →</button>
+      <button class="btn btn-og" onclick="go('services')" style="padding:14px;justify-content:center;font-size:15px">Explore Services</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DIRECTORY
+// ══════════════════════════════════════════════════════════════
+function renderDirectory(){
+  const areas=[...new Set(JUDGES.flatMap(j=>j.areas))];
+  const filtered=JUDGES.filter(j=>{
+    const tOk=state.tierFilter==='all'||j.tier===state.tierFilter;
+    const aOk=state.areaFilter==='all'||j.areas.includes(state.areaFilter);
+    return tOk&&aOk;
+  }).sort((a,b)=>TIERS[a.tier].rank-TIERS[b.tier].rank);
+  return `${Nav()}${Disc()}
+  <div style="background:var(--charcoal);padding:36px 80px 28px;border-bottom:1px solid var(--border)">
+    <div class="label" style="color:var(--gold);margin-bottom:8px">Exclusive to The Bench</div>
+    <h1 style="font-size:36px;font-weight:700;margin-bottom:6px">Judicial Directory</h1>
+    <p style="color:var(--gray-light);font-size:14px;margin-bottom:24px;font-family:'EB Garamond',serif">Each judge is individually listed. Sessions limited by design.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      ${['all',...Object.keys(TIERS)].map(k=>{
+        const t=k==='all'?null:TIERS[k];
+        return `<div onclick="ss({tierFilter:'${k}'})" style="padding:7px 16px;border-radius:2px;border:1.5px solid ${state.tierFilter===k?'var(--gold)':'var(--border)'};background:${state.tierFilter===k?'rgba(196,152,42,.12)':'transparent'};cursor:pointer;font-size:13px;font-weight:600;color:${state.tierFilter===k?'var(--gold)':'var(--gray-light)'};transition:all .15s">${k==='all'?'All Courts':t.badge}</div>`;
+      }).join('')}
+      <div style="width:1px;height:22px;background:var(--border)"></div>
+      ${['all',...areas].map(a=>`<div onclick="ss({areaFilter:'${a}'})" style="padding:7px 14px;border-radius:2px;border:1px solid ${state.areaFilter===a?'rgba(196,152,42,.4)':'var(--border)'};background:${state.areaFilter===a?'rgba(196,152,42,.08)':'transparent'};cursor:pointer;font-size:12px;font-weight:600;color:${state.areaFilter===a?'var(--gold)':'var(--gray)'};transition:all .15s">${a==='all'?'All Areas':a}</div>`).join('')}
+    </div>
+  </div>
+  <div style="background:var(--ink);padding:36px 80px;min-height:80vh">
+    <p style="color:var(--gray);font-size:13px;margin-bottom:24px">${filtered.length} judge${filtered.length!==1?'s':''} · Sorted by court seniority</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px">
+      ${filtered.length?filtered.map(j=>JudgeCard(j)).join(''):`<div style="text-align:center;padding:80px;color:var(--gray);grid-column:1/-1">No judges listed for this combination.</div>`}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SERVICES
+// ══════════════════════════════════════════════════════════════
+function renderServices(){
+  return `${Nav()}${Disc()}
+  <div style="background:linear-gradient(180deg,var(--charcoal),var(--ink));padding:72px 80px 56px;text-align:center;border-bottom:1px solid var(--border)">
+    <div class="label" style="color:var(--gold);margin-bottom:12px">What you can ask for</div>
+    <h1 style="font-size:48px;font-weight:700;margin-bottom:10px">Four services. One source.</h1>
+    <p style="font-size:15px;color:var(--gray-light);max-width:520px;margin:0 auto;font-family:'EB Garamond',serif">Every service is a different lens. All powered by decades of real judicial experience. Choose the one that fits your situation.</p>
+  </div>
+  <div style="background:var(--ink);padding:56px 80px;min-height:80vh">
+    <div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      ${SERVICES.map((s,i)=>`<div class="card" style="padding:32px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;${i===0?'border-color:var(--gold);background:linear-gradient(135deg,var(--charcoal),rgba(196,152,42,.05));':''}">
+        <div style="font-size:40px">${s.icon}</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+            <h3 style="font-size:24px;font-weight:600;color:var(--parchment)">${s.name}</h3>
+            ${i===0?`<span class="tag" style="background:rgba(196,152,42,.15);color:var(--gold);border:1px solid var(--border-gold)">Most chosen</span>`:''}
+          </div>
+          <p style="font-size:14px;color:var(--gray-light);line-height:1.75;margin-bottom:12px;font-family:'EB Garamond',serif">${s.desc}</p>
+          <span style="font-size:12px;color:var(--gray)">⏱ ${s.dur}</span>
+        </div>
+        <button class="btn btn-og btn-sm" onclick="ss({bookingService:'${s.id}'});go('directory')" style="white-space:nowrap;flex-shrink:0">Choose &amp; Book →</button>
+      </div>`).join('')}
+    </div>
+    <div style="max-width:900px;margin:32px auto 0">
+      <div class="card" style="padding:20px;background:rgba(196,152,42,.05);border-color:var(--border-gold)">
+        <p style="font-size:13px;color:var(--gray-light);line-height:1.7;font-family:'EB Garamond',serif;text-align:center;font-style:italic">Not sure which service to choose? Select Case Review — the judge will guide the session in the direction most useful for your matter. You may also leave the service open when booking and the intake team will help you decide.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// JUDGE PROFILE
+// ══════════════════════════════════════════════════════════════
+function renderProfile(){
+  const j=state.selJudge;
+  const t=TIERS[j.tier];
+  const isFull=j.slotsLeft===0, isScarce=j.slotsLeft<=2&&j.slotsLeft>0;
+  const total=t.price+PLATFORM_FEE;
+  const BLOCKED_SLOTS=["10:00 AM","3:00 PM"];
+  const SLOTS=["9:00 AM","10:00 AM","11:00 AM","2:00 PM","3:00 PM","4:00 PM"];
+  const DATES=[{d:13,day:"Mon"},{d:14,day:"Tue"},{d:15,day:"Wed"},{d:20,day:"Mon"},{d:21,day:"Tue"},{d:22,day:"Wed"},{d:27,day:"Mon"},{d:28,day:"Tue"}];
+  return `${Nav()}${Disc()}
+  <!-- Profile header -->
+  <div style="background:linear-gradient(135deg,var(--charcoal),${t.bg});border-bottom:1px solid ${t.border};padding:44px 80px">
+    <div onclick="go('directory')" style="color:var(--gray);font-size:13px;cursor:pointer;margin-bottom:22px;display:flex;align-items:center;gap:5px">← Judicial Directory</div>
+    <div style="max-width:1100px;margin:0 auto;display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap">
+      ${Avatar(j,88)}
+      <div style="flex:1;min-width:220px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+          ${TierBadge(j.tier)}
+          ${isScarce?`<span class="tag scarce" style="background:rgba(220,38,38,.15);color:#FCA5A5;border:1px solid rgba(220,38,38,.3)">⚡ Only ${j.slotsLeft} session${j.slotsLeft!==1?'s':''} left this month</span>`:''}
+        </div>
+        <h1 style="font-size:30px;font-weight:700;line-height:1.2;margin-bottom:8px">${j.name}</h1>
+        <div style="font-size:14px;color:var(--gray-light);margin-bottom:4px">${j.city}, ${j.state} · Retired ${j.retired}</div>
+        <div style="font-size:13px;color:var(--gray)">${j.yearsOnBench} years on the bench · ${j.langs.join(' · ')}</div>
+      </div>
+    </div>
+  </div>
+  <!-- Content grid -->
+  <div style="max-width:1100px;margin:0 auto;padding:36px 80px;display:grid;grid-template-columns:2fr 1fr;gap:28px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <!-- Profile -->
+      <div class="card" style="padding:26px">
+        <h3 style="font-size:20px;font-weight:600;color:var(--parchment);margin-bottom:12px">Judicial Profile</h3>
+        <p style="font-size:14px;color:var(--gray-light);line-height:1.85;font-family:'EB Garamond',serif;margin-bottom:18px">${j.bio}</p>
+        <div class="divider-subtle" style="margin-bottom:18px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[["🏛","Court served",j.tier==='hc'?`Telangana / AP High Court`:`${j.state} District Courts`],["📅","Years on bench",j.yearsOnBench+" years"],["🎓","Education",j.education],["⚖","Notable areas",j.notable]].map(([ic,l,v])=>`<div style="background:var(--charcoal-mid);border-radius:3px;padding:13px">
+            <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">${ic} ${l}</div>
+            <div style="font-size:12px;color:var(--parchment);line-height:1.5">${v}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <!-- Services -->
+      <div class="card" style="padding:26px">
+        <h3 style="font-size:20px;font-weight:600;color:var(--parchment);margin-bottom:6px">Available Services</h3>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:18px">All services follow the same two-step process: intake call first, then the judge session.</p>
+        ${SERVICES.map(s=>`<div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:22px;flex-shrink:0">${s.icon}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:var(--parchment);margin-bottom:3px">${s.name} <span style="font-size:11px;color:var(--gray);font-weight:400">· ${s.dur}</span></div>
+            <div style="font-size:12px;color:var(--gray-light);line-height:1.6">${s.desc}</div>
+          </div>
+          <div onclick="ss({bookingService:'${s.id}'});go('booking')" style="font-size:12px;color:var(--gold);cursor:pointer;font-weight:600;white-space:nowrap;padding-top:2px;flex-shrink:0">Book this →</div>
+        </div>`).join('')}
+      </div>
+      <!-- Areas -->
+      <div class="card" style="padding:26px">
+        <h3 style="font-size:20px;font-weight:600;color:var(--parchment);margin-bottom:14px">Areas of Judicial Experience</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${j.areas.map(a=>`<div style="background:var(--charcoal-mid);border:1px solid var(--border);border-radius:3px;padding:9px 16px;font-size:13px;font-weight:600;color:var(--parchment)">${a}</div>`).join('')}</div>
+      </div>
+      <!-- Conduct note -->
+      <div class="card" style="padding:20px;background:rgba(196,152,42,.05);border-color:var(--border-gold)">
+        <div style="display:flex;gap:11px;align-items:flex-start">
+          <span style="font-size:20px">🙏</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:5px">Conduct &amp; Etiquette</div>
+            <div style="font-size:13px;color:var(--gray-light);line-height:1.7;font-family:'EB Garamond',serif">Sessions are conducted with the dignity befitting the judge's office. We ask clients to prepare their questions thoughtfully, arrive on time, and address the judge respectfully. The Bench may decline future sessions if conduct standards are not met.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Booking sidebar -->
+    <div style="position:sticky;top:76px;display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="padding:22px;border-color:${t.border};background:linear-gradient(135deg,var(--charcoal),${t.bg})">
+        <div style="font-family:'EB Garamond',serif;font-size:17px;font-weight:600;color:var(--parchment);margin-bottom:4px">Book a Session</div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:16px">${t.badge} · ${j.city}</div>
+        <div class="divider-subtle" style="margin-bottom:14px"></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:var(--gray)">Judge's consultation rate</span><span style="font-family:'EB Garamond',serif;font-size:18px;font-weight:700;color:${t.color}">₹${t.price.toLocaleString()}</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px"><span style="font-size:13px;color:var(--gray)">Platform fee</span><span style="font-size:13px;color:var(--gray-light)">₹${PLATFORM_FEE.toLocaleString()}</span></div>
+        <div style="background:var(--charcoal-mid);border-radius:3px;padding:11px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:700;color:var(--parchment)">Total (excl. GST)</span>
+            <span style="font-family:'EB Garamond',serif;font-size:20px;font-weight:700;color:${t.color}">₹${total.toLocaleString()}</span>
+          </div>
+        </div>
+        ${SlotBar(j.slotsLeft,j.totalSlots)}
+        <button onclick="go('booking')" class="btn ${isFull?'btn-dark':'btn-gold'}" style="width:100%;margin-top:14px;padding:13px;justify-content:center;font-size:14px">${isFull?'Join Waitlist →':'Book Session →'}</button>
+        <p style="font-size:11px;color:var(--gray);text-align:center;margin-top:9px;line-height:1.5">Intake call scheduled within 24 hours of payment.</p>
+      </div>
+      <!-- Availability -->
+      <div class="card" style="padding:18px">
+        <div style="font-size:13px;font-weight:700;color:var(--parchment);margin-bottom:12px">Monthly availability</div>
+        <div style="display:flex;gap:4px">
+          ${["W1","W2","W3","W4"].map((w,i)=>{const a=[true,true,false,false][i];return `<div style="flex:1;text-align:center;padding:8px 3px;border-radius:2px;background:${a?'rgba(21,128,61,.12)':'rgba(255,255,255,.03)'}"><div style="font-size:10px;color:var(--gray)">${w}</div><div style="font-size:10px;font-weight:700;color:${a?'var(--green)':'var(--border)'};margin-top:2px">${a?'Open':'Full'}</div></div>`;}).join('')}
+        </div>
+        <p style="font-size:11px;color:var(--gray);margin-top:9px;line-height:1.5">Max ${j.totalSlots} sessions/month. Slots reset on the 1st.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// BOOKING
+// ══════════════════════════════════════════════════════════════
+function renderBooking(){
+  const j=state.selJudge;
+  const t=TIERS[j.tier];
+  const total=t.price+PLATFORM_FEE;
+  const DATES=[{d:13,day:"Mon"},{d:14,day:"Tue"},{d:15,day:"Wed"},{d:20,day:"Mon"},{d:21,day:"Tue"},{d:22,day:"Wed"},{d:27,day:"Mon"},{d:28,day:"Tue"}];
+  const SLOTS=["9:00 AM","10:00 AM","11:00 AM","2:00 PM","3:00 PM","4:00 PM"];
+  const BLOCKED=["10:00 AM","3:00 PM"];
+  return `${Nav()}${Disc()}
+  <div style="background:var(--ink);min-height:100vh;padding:36px 80px 80px">
+    <div onclick="go('profile')" style="color:var(--gray);font-size:13px;cursor:pointer;margin-bottom:24px">← Back to Profile</div>
+    <div style="max-width:820px;margin:0 auto">
+      <!-- Judge strip -->
+      <div class="card" style="padding:18px;margin-bottom:22px;border-color:${t.border}">
+        <div style="display:flex;gap:14px;align-items:center">
+          ${Avatar(j,48)}
+          <div style="flex:1"><div style="font-family:'EB Garamond',serif;font-size:17px;font-weight:600;color:var(--parchment)">${j.name}</div><div style="font-size:12px;color:var(--gray);margin-top:2px">${t.badge} · ${j.city}</div></div>
+          <div style="text-align:right"><div style="font-family:'EB Garamond',serif;font-size:20px;font-weight:700;color:${t.color}">₹${t.price.toLocaleString()}</div><div style="font-size:11px;color:var(--gray)">+ ₹${PLATFORM_FEE} platform fee</div></div>
+        </div>
+      </div>
+
+      <!-- What happens when you pay -->
+      <div class="card" style="padding:20px;margin-bottom:22px;background:rgba(196,152,42,.06);border-color:var(--border-gold)">
+        <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px">What happens after you pay</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          ${[["📞","Within 24 hrs","Our team calls you for the intake session — structured notes taken."],["📋","Notes prepared","Your case brief is sent to the judge ahead of the session."],["📹","Your session","Video or phone call with the retired judge at the time you choose."]].map(([i,t,d])=>`<div style="text-align:center"><div style="font-size:24px;margin-bottom:6px">${i}</div><div style="font-size:12px;font-weight:700;color:var(--parchment);margin-bottom:4px">${t}</div><div style="font-size:11px;color:var(--gray);line-height:1.55">${d}</div></div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Service -->
+      <div class="card" style="padding:22px;margin-bottom:16px">
+        <h3 style="font-family:'EB Garamond',serif;font-size:17px;color:var(--parchment);margin-bottom:14px">1. Choose a service</h3>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          ${SERVICES.map(s=>`<div onclick="ss({bookingService:'${s.id}'})" style="display:flex;gap:13px;align-items:center;padding:12px;border-radius:3px;border:1.5px solid ${state.bookingService===s.id?'var(--gold)':'var(--border)'};background:${state.bookingService===s.id?'rgba(196,152,42,.07)':'transparent'};cursor:pointer;transition:all .15s">
+            <span style="font-size:20px">${s.icon}</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--parchment)">${s.name}</div><div style="font-size:11px;color:var(--gray);margin-top:1px">${s.dur}</div></div>
+            <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${state.bookingService===s.id?'var(--gold)':'var(--border)'};background:${state.bookingService===s.id?'var(--gold)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${state.bookingService===s.id?'<div style="width:7px;height:7px;border-radius:50%;background:var(--ink)"></div>':''}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Calendar + slots -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="card" style="padding:20px">
+          <h3 style="font-family:'EB Garamond',serif;font-size:15px;color:var(--parchment);margin-bottom:12px">2. Preferred session date</h3>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+            ${DATES.map(({d,day})=>`<div onclick="ss({selDate:${d},selSlot:''})" style="padding:8px 3px;border-radius:2px;border:1px solid ${state.selDate===d?'var(--gold)':'var(--border)'};background:${state.selDate===d?'rgba(196,152,42,.14)':'transparent'};cursor:pointer;text-align:center;transition:all .15s"><div style="font-size:9px;color:var(--gray)">${day}</div><div style="font-size:14px;font-weight:700;color:${state.selDate===d?'var(--gold)':'var(--parchment)'};margin-top:1px">${d}</div></div>`).join('')}
+          </div>
+          <div style="margin-top:10px;padding:8px;background:var(--charcoal-mid);border-radius:2px;font-size:11px;color:var(--gray)">📅 May ${state.selDate}, 2025 selected</div>
+        </div>
+        <div class="card" style="padding:20px">
+          <h3 style="font-family:'EB Garamond',serif;font-size:15px;color:var(--parchment);margin-bottom:12px">3. Preferred time</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            ${SLOTS.map(t2=>{
+              const isBk=BLOCKED.includes(t2),isSel=state.selSlot===t2;
+              return `<div onclick="${isBk?'':` ss({selSlot:'${t2}'})`}" style="padding:9px;border-radius:2px;border:1px solid ${isBk?'rgba(255,255,255,.05)':isSel?'var(--gold)':'var(--border)'};background:${isBk?'rgba(255,255,255,.02)':isSel?'rgba(196,152,42,.14)':'transparent'};cursor:${isBk?'not-allowed':'pointer'};text-align:center;font-size:12px;font-weight:600;color:${isBk?'var(--border)':isSel?'var(--gold)':'var(--gray-light)'};transition:all .15s">${isBk?`<s>${t2}</s>`:isSel?`✓ ${t2}`:t2}</div>`;
+            }).join('')}
+          </div>
+          <p style="font-size:10px;color:var(--gray);margin-top:8px">Preference — final time confirmed after intake call.</p>
+        </div>
+      </div>
+
+      <!-- Format -->
+      <div class="card" style="padding:20px;margin-bottom:14px">
+        <h3 style="font-family:'EB Garamond',serif;font-size:15px;color:var(--parchment);margin-bottom:12px">4. Session format</h3>
+        <div style="display:flex;gap:10px">
+          ${[{t:"video",i:"📹",l:"Video Call"},{t:"phone",i:"📞",l:"Phone Call"}].map(o=>`<div onclick="ss({meetType:'${o.t}'})" style="flex:1;padding:14px;border-radius:2px;border:1px solid ${state.meetType===o.t?'var(--gold)':'var(--border)'};background:${state.meetType===o.t?'rgba(196,152,42,.09)':'transparent'};cursor:pointer;text-align:center;transition:all .15s"><div style="font-size:22px;margin-bottom:5px">${o.i}</div><div style="font-size:13px;font-weight:600;color:${state.meetType===o.t?'var(--gold)':'var(--gray-light)'}">${o.l}</div></div>`).join('')}
+        </div>
+        <p style="font-size:11px;color:var(--gray);margin-top:10px;line-height:1.5">Note: You do not upload documents at this stage. The intake team collects all information from you on the call and prepares the case brief for the judge.</p>
+      </div>
+
+      <!-- Your name -->
+      <div class="card" style="padding:20px;margin-bottom:14px">
+        <h3 style="font-family:'EB Garamond',serif;font-size:15px;color:var(--parchment);margin-bottom:12px">5. Your details</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Full Name *</label><input placeholder="Your full name"/></div>
+          <div><label style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Mobile Number *</label><input placeholder="+91 XXXXX XXXXX"/></div>
+        </div>
+        <p style="font-size:11px;color:var(--gray);margin-top:10px;line-height:1.5">Your mobile number is how the intake team will reach you to schedule the call.</p>
+      </div>
+
+      <!-- Payment -->
+      <div class="card" style="padding:20px;border-color:${t.border};margin-bottom:14px">
+        <h3 style="font-family:'EB Garamond',serif;font-size:15px;color:var(--parchment);margin-bottom:14px">Payment Summary</h3>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray);margin-bottom:7px"><span>Judge's consultation rate (${t.badge})</span><span style="color:var(--parchment)">₹${t.price.toLocaleString()}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray);margin-bottom:7px"><span>ClearCase platform fee</span><span style="color:var(--parchment)">₹${PLATFORM_FEE.toLocaleString()}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray);margin-bottom:12px"><span>GST (18%)</span><span style="color:var(--parchment)">₹${Math.round(total*.18).toLocaleString()}</span></div>
+        <div class="divider-subtle" style="margin-bottom:12px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;font-weight:700;color:var(--parchment)">Total payable</span>
+          <span style="font-family:'EB Garamond',serif;font-size:24px;font-weight:700;color:${t.color}">₹${Math.round(total*1.18).toLocaleString()}</span>
+        </div>
+        <p style="font-size:11px;color:var(--gray);margin-top:6px">GST invoice emailed automatically. Judge sets their own rate; ClearCase adds a platform fee.</p>
+      </div>
+
+      <!-- Consent -->
+      <div style="background:rgba(196,152,42,.06);border:1px solid var(--border-gold);border-radius:3px;padding:14px;margin-bottom:16px">
+        <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" style="width:15px;height:15px;accent-color:var(--gold);flex-shrink:0;margin-top:2px"/>
+          <span style="font-size:13px;color:var(--gray-light);line-height:1.65;font-family:'EB Garamond',serif">I understand this is a knowledge consultation with a retired judge, not legal advice. I will conduct the session with respect befitting the judge's office.</span>
+        </label>
+      </div>
+      <button class="btn btn-gold" onclick="go('session')" style="width:100%;padding:15px;font-size:15px;justify-content:center;border-radius:3px">Pay ₹${Math.round(total*1.18).toLocaleString()} &amp; Confirm Session →</button>
+      <p style="font-size:12px;color:var(--gray);text-align:center;margin-top:10px">Secured by Razorpay · Our team will call you within 24 hours to schedule the intake call.</p>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════════════════════
+function renderSession(){
+  const j=state.selJudge;
+  const t=TIERS[j.tier];
+  const secs=state.sessionSecs, urgent=secs<600;
+  const pct=Math.round(((3600-secs)/3600)*100);
+
+  if(!state.consentShown) return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="background:var(--charcoal);border-radius:4px;padding:44px;max-width:480px;width:100%;border:1px solid ${t.border}">
+      <div style="font-size:44px;text-align:center;margin-bottom:18px">⚖️</div>
+      <h2 style="font-family:'EB Garamond',serif;font-size:26px;font-weight:600;color:var(--parchment);text-align:center;margin-bottom:6px">Your session is about to begin.</h2>
+      <p style="color:var(--gray-light);font-size:14px;text-align:center;margin-bottom:26px;font-family:'EB Garamond',serif;font-style:italic">A moment before you enter.</p>
+      <div class="divider-subtle" style="margin-bottom:22px"></div>
+      ${[
+        "Address the judge as 'Your Honour' or 'Sir / Ma'am' throughout.",
+        "The judge has read your case brief. Begin with a brief summary, not a full re-narration.",
+        "Expect candid, direct feedback. That is the value of this session.",
+        "Conduct the session with the dignity befitting the judge's former office.",
+      ].map((t2,i)=>`<div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
+        <div style="width:20px;height:20px;border-radius:50%;background:rgba(196,152,42,.15);border:1px solid rgba(196,152,42,.3);color:var(--gold);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div>
+        <p style="font-size:13px;color:var(--gray-light);line-height:1.6;font-family:'EB Garamond',serif">${t2}</p>
+      </div>`).join('')}
+      <div class="divider-subtle" style="margin:18px 0"></div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:3px;padding:14px;margin-bottom:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:13px;font-weight:600;color:var(--parchment)">Record this session</div><div style="font-size:11px;color:var(--gray);margin-top:2px">Stored in your ClearCase vault</div></div>
+          <div onclick="ss({recordConsent:!state.recordConsent})" style="width:48px;height:26px;border-radius:13px;background:${state.recordConsent?'var(--green)':'rgba(255,255,255,.1)'};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+            <div style="position:absolute;top:3px;left:${state.recordConsent?23:3}px;width:20px;height:20px;border-radius:10px;background:white;transition:left .2s"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="ss({consentShown:true});startSession()" style="width:100%;padding:14px;justify-content:center;font-size:15px">Enter the Session →</button>
+    </div>
+  </div>`;
+
+  return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink);display:grid;grid-template-columns:1fr 300px">
+    <!-- Main -->
+    <div style="padding:28px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        ${Avatar(j,44)}
+        <div><div style="font-family:'EB Garamond',serif;font-weight:600;font-size:15px;color:var(--parchment)">${j.name}</div><div style="display:flex;align-items:center;gap:5px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div><span style="color:var(--green);font-size:11px;font-weight:600">Session active</span></div></div>
+        <div style="margin-left:auto;background:var(--charcoal);border-radius:3px;padding:10px 16px;text-align:center;border:1px solid ${urgent?'var(--red)':'rgba(196,152,42,.3)'}">
+          <div style="color:${urgent?'var(--red)':'var(--gold)'};font-size:26px;font-weight:700;font-family:monospace;line-height:1">${fmt(secs)}</div>
+          <div style="color:var(--gray);font-size:9px;margin-top:2px;letter-spacing:.1em;text-transform:uppercase">${urgent?'ENDING SOON':'remaining'}</div>
+        </div>
+      </div>
+      <div style="height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-bottom:18px;overflow:hidden"><div style="height:100%;background:${urgent?'var(--red)':'var(--gold)'};width:${pct}%;transition:width 1s linear;border-radius:2px"></div></div>
+      <!-- Video -->
+      <div style="background:var(--charcoal);border-radius:4px;border:1px solid ${t.border};aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin-bottom:12px;position:relative;overflow:hidden">
+        <div style="text-align:center">${Avatar(j,72)}<div style="color:var(--gray);font-size:12px;margin-top:10px;font-family:'EB Garamond',serif">${j.name.split('(')[0].trim()}</div><div style="color:var(--gray);font-size:10px;margin-top:2px">${t.badge}</div></div>
+        ${state.recordConsent?`<div style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,.8);border-radius:2px;padding:3px 8px;display:flex;align-items:center;gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:white"></div><span style="color:white;font-size:9px;font-weight:700;letter-spacing:.08em">REC</span></div>`:''}
+        <div style="position:absolute;bottom:10px;left:10px;font-family:'EB Garamond',serif;font-size:11px;color:rgba(196,152,42,.35);letter-spacing:.08em">THE BENCH · CLEARCASE</div>
+      </div>
+      <!-- Chat -->
+      <div style="flex:1;background:var(--charcoal);border-radius:4px;padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;min-height:140px">
+        <div style="display:flex;gap:8px">${Avatar(j,30)}<div style="background:rgba(255,255,255,.06);border-radius:8px 8px 8px 0;padding:9px 13px;max-width:72%"><div style="color:var(--parchment);font-size:13px;line-height:1.65;font-family:'EB Garamond',serif">I have reviewed the brief your team prepared. The matter presents an interesting question on the admissibility of the documentary evidence. Let me share how I would approach it...</div><div style="color:var(--gray);font-size:10px;margin-top:4px">10:04 AM</div></div></div>
+        <div style="margin-top:auto;display:flex;gap:7px"><input placeholder="Ask the judge..." style="flex:1;border-radius:2px;padding:10px 12px;font-size:13px"/><button class="btn btn-gold btn-sm">Send</button></div>
+      </div>
+      <div style="margin-top:8px"><button onclick="ss({sessionSecs:0,sessionPhase:'ended'})" style="background:rgba(255,255,255,.03);color:var(--gray);border:1px solid var(--border);border-radius:2px;padding:6px 11px;font-size:10px;cursor:pointer;font-family:'Jost',sans-serif">⏩ Demo: End Session</button></div>
+    </div>
+    <!-- Sidebar -->
+    <div style="background:var(--charcoal);border-left:1px solid var(--border);padding:22px 16px;display:flex;flex-direction:column;gap:14px">
+      <h3 style="font-family:'EB Garamond',serif;font-size:16px;font-weight:600;color:var(--parchment)">Session Notes</h3>
+      <textarea placeholder="Key points from the judge's perspective..." style="flex:1;border-radius:2px;padding:11px;font-size:12px;resize:none;min-height:200px;line-height:1.7;font-family:'EB Garamond',serif" rows="10"></textarea>
+      <div class="divider-subtle"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Service booked</div><div style="font-size:13px;color:var(--gray-light);font-family:'EB Garamond',serif">${SERVICES.find(s=>s.id===state.bookingService)?.name||'Case Review'}</div></div>
+      <div class="divider-subtle"></div>
+      <div style="background:rgba(196,152,42,.06);border:1px solid rgba(196,152,42,.15);border-radius:3px;padding:13px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:7px;letter-spacing:.06em;text-transform:uppercase">After this session</div>
+        <div style="font-size:12px;color:var(--gray-light);line-height:1.8">• Session summary saved to your ClearCase vault<br>• Share the summary with your advocate<br>• Return to The Bench for follow-up sessions<br>• Continued access to ClearCase tools</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Router ─────────────────────────────────────────────────────
+function render(){
+  const screens={
+    landing:renderLanding, directory:renderDirectory,
+    services:renderServices, profile:renderProfile,
+    booking:renderBooking, session:renderSession,
+    'how-it-works':renderHow,
+  };
+  document.getElementById('app').innerHTML=(screens[state.screen]||renderLanding)();
+}
+render();
+</script>
+</body>
+</html>

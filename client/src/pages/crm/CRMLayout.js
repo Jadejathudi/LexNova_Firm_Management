@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { path: '/crm/team', label: '👔 Team', roles: ['managing_partner', 'advisor'] },
   { path: '/crm/finance', label: '💰 Finance', roles: ['managing_partner', 'billing'] },
   { path: '/crm/consultations', label: '📅 Bookings', roles: ['managing_partner', 'reception', 'advisor'] },
+  { path: '/crm/bench', label: '⚖ The Bench', roles: ['managing_partner', 'advisor', 'reception'] },
 ];
 
 export default function CRMLayout() {

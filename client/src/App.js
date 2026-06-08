@@ -32,6 +32,18 @@ import CaseIntelligence from './pages/CaseIntelligence';
 import CaseLibrary from './pages/CaseLibrary';
 import CaseStrategy from './pages/CaseStrategy';
 import CaseMonitoring from './pages/CaseMonitoring';
+import BenchLanding from './pages/bench/BenchLanding';
+import BenchDirectory from './pages/bench/BenchDirectory';
+import BenchJudgeProfile from './pages/bench/BenchJudgeProfile';
+import BenchSchedule from './pages/bench/BenchSchedule';
+import BenchConfirmed from './pages/bench/BenchConfirmed';
+import BenchHowItWorks from './pages/bench/BenchHowItWorks';
+import BenchServices from './pages/bench/BenchServices';
+import BenchMySessions from './pages/bench/BenchMySessions';
+import JudgeLogin from './pages/bench/JudgeLogin';
+import JudgeDashboard from './pages/bench/JudgeDashboard';
+import JudgeSessionDetails from './pages/bench/JudgeSessionDetails';
+import CRMBench from './pages/crm/CRMBench';
 import './App.css';
 
 function PrivateRoute({ children }) {
@@ -95,6 +107,21 @@ function AppRoutes() {
       <Route path="/case-strategy" element={<CaseStrategy />} />
       <Route path="/case-monitoring" element={<CaseMonitoring />} />
 
+      {/* The Bench — standalone feature, own nav, no existing layout */}
+      <Route path="/bench" element={<BenchLanding />} />
+      <Route path="/bench/directory" element={<BenchDirectory />} />
+      <Route path="/bench/how-it-works" element={<BenchHowItWorks />} />
+      <Route path="/bench/services" element={<BenchServices />} />
+      <Route path="/bench/judges/:id" element={<BenchJudgeProfile />} />
+      <Route path="/bench/schedule/:judgeId" element={<BenchSchedule />} />
+      <Route path="/bench/confirmed" element={<BenchConfirmed />} />
+      <Route path="/bench/my-sessions" element={<BenchMySessions />} />
+
+      {/* Judge Portal Routes */}
+      <Route path="/judge/login" element={<JudgeLogin />} />
+      <Route path="/judge/dashboard" element={<JudgeDashboard />} />
+      <Route path="/judge/session/:bookingId" element={<JudgeSessionDetails />} />
+
       {/* Client routes */}
       <Route path="/dashboard" element={
         <ClientRoute><ClientLayout><Dashboard /></ClientLayout></ClientRoute>
@@ -131,6 +158,7 @@ function AppRoutes() {
         <Route path="team" element={<CRMTeam />} />
         <Route path="finance" element={<CRMFinance />} />
         <Route path="consultations" element={<CRMConsultations />} />
+        <Route path="bench" element={<CRMBench />} />
       </Route>
 
       {/* Fallback */}

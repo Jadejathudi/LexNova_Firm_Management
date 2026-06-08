@@ -46,6 +46,7 @@ export default function Navbar() {
         <div className="navbar-links">
           <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
           <Link to="/advocates" className={location.pathname.startsWith('/advocates') ? 'active' : ''}>Find Advocate</Link>
+          <Link to="/bench" className={location.pathname.startsWith('/bench') ? 'active' : ''}>⚖ The Bench</Link>
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Dashboard</Link>
         </div>
       )}

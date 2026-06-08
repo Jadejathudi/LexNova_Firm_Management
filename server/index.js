@@ -33,6 +33,7 @@ app.use('/api/dashboard',     require('./routes/dashboard')(sql));
 app.use('/api/ai-guide',      require('./routes/aiGuide')(sql));
 app.use('/api/consultations', require('./routes/consultations')(sql));
 app.use('/api/advocates',     require('./routes/advocates')(sql));
+app.use('/api/bench',         require('./routes/bench')(sql));
 
 // Health check
 app.get('/api/health', async (req, res) => {

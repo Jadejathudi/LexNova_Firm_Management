@@ -73,6 +73,7 @@ export default function Landing() {
 
   const features = [
     { icon: '🔍', col: NAVY, t: 'Find & Connect', d: 'Browse Bar Council enrolled advocates by area of practice and location. Schedule appointments directly — video, phone, or in-person at chambers.', path: '/advocates', cta: 'Browse Advocates' },
+    { icon: '⚖️', col: '#7C3AED', t: 'Ask a Judge', d: 'Get candid judicial perspective from retired judges on your case. Case review, second opinion, pre-hearing readiness, settlement assessment — from the bench.', path: '/bench/landing', cta: 'Explore The Bench' },
     { icon: '🤖', col: '#0D9488', t: 'AI Case Intelligence', d: 'Get insights from thousands of similar public court judgements. Understand what arguments work, what judges look for, and what evidence matters most.', path: '/intelligence', cta: 'Explore Intelligence' },
     { icon: '🔔', col: '#7C3AED', t: 'Case Monitoring & Nudges', d: 'ClearCase sends automated reminders to you and your advocate before every hearing. We follow up on your behalf — so nothing falls through the cracks.', path: '/dashboard', cta: 'See Dashboard' },
     { icon: '📁', col: '#C2410C', t: 'Evidence Vault', d: 'Upload, annotate, and organise all your case documents in one secure place. Control exactly what your advocate can see — you decide what to share.', path: '/documents', cta: 'View Vault' },
@@ -110,6 +111,7 @@ export default function Landing() {
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '52px' }}>
             <button onClick={() => navigate('/advocates')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: GOLD, color: NAVY, border: 'none', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Find an Advocate →</button>
             <button onClick={() => navigate('/intelligence')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.12)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Explore Case Intelligence</button>
+            <button onClick={() => navigate('/bench')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Ask a Judge <span style={{fontSize: '0.7em', opacity: 0.8}}>rtrd</span></button>
           </div>
 
           {/* Story dots */}

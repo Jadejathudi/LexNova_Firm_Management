@@ -59,6 +59,7 @@ export default function BenchLanding() {
           <h1 style={{ fontFamily: "'EB Garamond',serif", fontSize: 58, fontWeight: 700, lineHeight: 1.1, marginBottom: 22 }}>
             Decades on the Bench.<br />
             <span style={{
+              color: C.gold,
               background: `linear-gradient(90deg,${C.gold} 0%,${C.goldLight} 35%,#F5D060 55%,${C.gold} 80%)`,
               backgroundSize: '200% auto',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',

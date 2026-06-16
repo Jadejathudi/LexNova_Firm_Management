@@ -1,16 +1,19 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { C } from '../../pages/bench/benchConstants';
 
 const NAV_LINKS = [
   { label: 'Directory',    path: '/bench/directory' },
   { label: 'How It Works', path: '/bench/how-it-works' },
   { label: 'Services',     path: '/bench/services' },
+  { label: 'My Sessions',  path: '/bench/my-sessions', clientOnly: true },
 ];
 
 export default function BenchNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   // Inject Google Fonts for bench pages
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function BenchNav() {
 
       <div style={{ width: 1, height: 26, background: C.border }} />
 
-      {NAV_LINKS.map(({ label, path }) => (
+      {NAV_LINKS.filter(({ clientOnly }) => !clientOnly || (user && user.role !== 'judge')).map(({ label, path }) => (
         <span
           key={path}
           onClick={() => navigate(path)}
@@ -68,15 +71,6 @@ export default function BenchNav() {
       <div style={{ flex: 1 }} />
 
       <button
-        onClick={() => navigate('/judge/login')}
-        style={{
-          background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`,
-          borderRadius: 3, padding: '8px 14px', fontSize: 12, fontWeight: 600,
-          cursor: 'pointer', fontFamily: "'Jost',sans-serif", letterSpacing: '.02em',
-        }}
-      >Judge Portal</button>
-
-      <button
         onClick={() => navigate('/bench/directory')}
         style={{
           background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`,
@@ -86,7 +80,7 @@ export default function BenchNav() {
       >Browse Judges</button>
 
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate(user ? (user.role === 'judge' ? '/judge/dashboard' : '/dashboard') : '/')}
         style={{
           background: 'rgba(255,255,255,.07)', color: C.parchment,
           border: '1px solid rgba(255,255,255,.12)',

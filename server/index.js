@@ -22,7 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.use('/api/auth',          require('./routes/auth')(sql));
-app.use('/api/matters',       require('./routes/matters')(sql));
+app.use('/api/cases',         require('./routes/cases')(sql));
+app.use('/api/matters',       require('./routes/client-matters')(sql));
 app.use('/api/documents',     require('./routes/documents')(sql));
 app.use('/api/messages',      require('./routes/messages')(sql));
 app.use('/api/hearings',      require('./routes/hearings')(sql));

@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, BenchAvatar } from './benchConstants';
+import { C, TIERS, SERVICES, BenchAvatar, benchFetch } from './benchConstants';
+import { useAuth } from '../../context/AuthContext';
 
 function fmt(dateStr) {
   if (!dateStr) return '';
@@ -12,11 +13,29 @@ function fmt(dateStr) {
 export default function BenchConfirmed() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { booking, judge } = location.state || {};
+  const { ref } = useParams();
+  const { user } = useAuth();
+  const [fallback, setFallback] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+  const { booking: stateBooking, judge: stateJudge } = location.state || {};
+
+  // Refreshing the page loses location.state — fall back to fetching by booking ref
+  useEffect(() => {
+    if (stateBooking || !ref) return;
+    benchFetch(`/bookings/ref/${ref}`)
+      .then(row => setFallback({
+        booking: row,
+        judge: { name: row.judge_name, tier: row.tier, city: row.city, initials: row.initials },
+      }))
+      .catch(() => setNotFound(true));
+  }, [stateBooking, ref]);
+
+  const booking = stateBooking || fallback?.booking;
+  const judge = stateJudge || fallback?.judge;
 
   useEffect(() => {
-    if (!booking) navigate('/bench');
-  }, [booking, navigate]);
+    if (notFound) navigate('/bench');
+  }, [notFound, navigate]);
 
   if (!booking || !judge) return null;
 
@@ -96,17 +115,40 @@ export default function BenchConfirmed() {
           </p>
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <button onClick={() => navigate('/bench/directory')}
-            style={{ background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-            Browse More Judges →
-          </button>
-          <button onClick={() => navigate('/')}
-            style={{ background: 'rgba(255,255,255,.07)', color: C.parchment, border: '1px solid rgba(255,255,255,.12)', borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-            Back to ClearCase
-          </button>
-        </div>
+        {/* Primary CTA — logged-in users see My Sessions */}
+        {user ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button onClick={() => navigate('/bench/my-sessions')}
+              style={{ width: '100%', background: C.gold, color: C.ink, border: 'none', borderRadius: 3, padding: '14px 0', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+              View My Sessions →
+            </button>
+            <button onClick={() => navigate('/matters')}
+              style={{ width: '100%', background: 'rgba(196,152,42,.12)', color: C.gold, border: `1px solid ${C.borderGold}`, borderRadius: 3, padding: '12px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+              📁 View in My Matters
+            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button onClick={() => navigate('/bench/directory')}
+                style={{ background: 'transparent', color: C.grayLight, border: `1px solid ${C.border}`, borderRadius: 3, padding: '11px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                Browse More Judges
+              </button>
+              <button onClick={() => navigate('/dashboard')}
+                style={{ background: 'transparent', color: C.grayLight, border: `1px solid ${C.border}`, borderRadius: 3, padding: '11px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <button onClick={() => navigate('/bench/directory')}
+              style={{ background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+              Browse More Judges →
+            </button>
+            <button onClick={() => navigate('/')}
+              style={{ background: 'rgba(255,255,255,.07)', color: C.parchment, border: '1px solid rgba(255,255,255,.12)', borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+              Back to ClearCase
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

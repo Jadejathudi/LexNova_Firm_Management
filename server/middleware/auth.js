@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'clearcase-dev-secret-key-change-in-production';
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required and not set. Refusing to start.');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = '24h';
 
 // Injected by index.js after the DB is ready

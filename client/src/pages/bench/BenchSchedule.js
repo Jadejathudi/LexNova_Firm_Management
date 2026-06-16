@@ -38,7 +38,6 @@ export default function BenchSchedule() {
     selected_date: '',
     selected_slot: '',
     session_format: 'video',
-    record_session: false,
     consent: false,
   });
 
@@ -47,7 +46,7 @@ export default function BenchSchedule() {
   useEffect(() => {
     // Enforce login requirement
     if (!token) {
-      navigate('/login', { state: { redirectTo: `/bench/schedule/${judgeId}` } });
+      navigate('/login', { state: { from: `/bench/schedule/${judgeId}` } });
       return;
     }
 
@@ -69,6 +68,7 @@ export default function BenchSchedule() {
   }, [form.selected_date, judgeId]);
 
   async function handleSubmit() {
+    if (isFull) return setError('This judge is fully booked for the month. Please choose another judge.');
     if (!form.selected_date) return setError('Please select a preferred date.');
     if (!form.selected_slot) return setError('Please select a preferred time slot.');
     if (!form.consent) return setError('Please confirm the session conditions before proceeding.');
@@ -82,7 +82,6 @@ export default function BenchSchedule() {
         preferred_date: form.selected_date,
         preferred_slot: form.selected_slot,
         session_format: form.session_format,
-        record_session: form.record_session,
       };
       const headers = { 'Content-Type': 'application/json' };
       if (token) {
@@ -102,7 +101,9 @@ export default function BenchSchedule() {
       }
       
       const result = await res.json();
-      navigate('/bench/confirmed', { state: { booking: result, judge } });
+      // Merge server response with local form so BenchConfirmed has service_type + session_format
+      // replace:true so the filled-out form isn't reachable via the browser back button after submit
+      navigate(`/bench/confirmed/${result.booking_ref}`, { state: { booking: { ...result, service_type: form.service_type, session_format: form.session_format }, judge }, replace: true });
     } catch (err) {
       setError(err.message || 'Booking failed. Please try again.');
     } finally {
@@ -181,7 +182,7 @@ export default function BenchSchedule() {
           {isFull && (
             <div style={{ background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.3)', borderRadius: 4, padding: 16, marginBottom: 22, textAlign: 'center' }}>
               <div style={{ color: '#FCA5A5', fontSize: 14, fontWeight: 600 }}>This judge is fully booked for the month.</div>
-              <div style={{ color: C.gray, fontSize: 12, marginTop: 4 }}>You can still submit your details and we'll notify you when a slot opens.</div>
+              <div style={{ color: C.gray, fontSize: 12, marginTop: 4 }}>Please check back next month or choose another judge from the directory.</div>
             </div>
           )}
 
@@ -289,20 +290,6 @@ export default function BenchSchedule() {
               <p style={{ fontSize: 11, color: C.gray, marginTop: 10, lineHeight: 1.5 }}>Your mobile number is how the intake team will reach you to schedule the call.</p>
             </div>
           )}
-
-          {/* Record consent toggle */}
-          <div style={{ background: C.charcoal, border: `1px solid ${C.border}`, borderRadius: 4, padding: 16, marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.parchment }}>Record this session</div>
-                <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>Stored in your ClearCase vault</div>
-              </div>
-              <div onClick={() => setF({ record_session: !form.record_session })}
-                style={{ width: 48, height: 26, borderRadius: 13, background: form.record_session ? '#15803D' : 'rgba(255,255,255,.1)', cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
-                <div style={{ position: 'absolute', top: 3, left: form.record_session ? 23 : 3, width: 20, height: 20, borderRadius: 10, background: 'white', transition: 'left .2s' }} />
-              </div>
-            </div>
-          </div>
 
           {/* Consent */}
           <div style={{ background: 'rgba(196,152,42,.06)', border: `1px solid ${C.borderGold}`, borderRadius: 3, padding: 14, marginBottom: 16 }}>

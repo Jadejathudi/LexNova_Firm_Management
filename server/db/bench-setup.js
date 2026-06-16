@@ -82,6 +82,18 @@ async function setupBench() {
     )
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS bench_case_details (
+      detail_id          TEXT PRIMARY KEY,
+      booking_id         TEXT UNIQUE NOT NULL REFERENCES bench_bookings(booking_id) ON DELETE CASCADE,
+      case_summary       TEXT,
+      linked_matter_id   TEXT REFERENCES matters(matter_id),
+      linked_matter_ref  TEXT,
+      created_at         TIMESTAMPTZ DEFAULT NOW(),
+      updated_at         TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   console.log('Seeding bench judges...');
 
   const judges = [
@@ -158,7 +170,7 @@ async function setupBench() {
     const userId = uuidv4();
     const email = `judge.${j.initials.toLowerCase()}@clearcase.legal`;
     const phone = `+91${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-    const defaultPassword = 'Judge@2024'; // Default password - should be changed on first login
+    const defaultPassword = 'password123'; // Dev default — consistent with other seeded accounts
     const passwordHash = bcrypt.hashSync(defaultPassword, 10);
 
     await sql`

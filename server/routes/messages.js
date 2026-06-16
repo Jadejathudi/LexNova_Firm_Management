@@ -13,7 +13,7 @@ module.exports = function (sql) {
       if (req.user.role === 'client') {
         rows = await sql`
           SELECT COUNT(*) as c FROM messages msg
-          JOIN matters m ON msg.matter_id = m.matter_id
+          JOIN cases m ON msg.matter_id = m.matter_id
           JOIN clients c ON m.client_id = c.client_id
           WHERE c.user_id = ${req.user.user_id} AND msg.sender_id != ${req.user.user_id} AND msg.is_read = 0
         `;
@@ -74,7 +74,7 @@ module.exports = function (sql) {
       const message_id = uuidv4();
       await sql`INSERT INTO messages (message_id, matter_id, sender_id, content) VALUES (${message_id}, ${matter_id}, ${req.user.user_id}, ${content})`;
 
-      const matterRows = await sql`SELECT * FROM matters WHERE matter_id = ${matter_id}`;
+      const matterRows = await sql`SELECT * FROM cases WHERE matter_id = ${matter_id}`;
       const matter = matterRows[0];
       const clientRows = matter ? await sql`SELECT * FROM clients WHERE client_id = ${matter.client_id}` : [];
       const client = clientRows[0];

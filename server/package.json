@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "seed": "node db/setup.js",
-    "seed:bench": "node db/bench-setup.js"
+    "seed": "node db/setup.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

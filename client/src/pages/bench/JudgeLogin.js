@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { C } from './benchConstants';
-
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 export default function JudgeLogin() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,18 +17,11 @@ export default function JudgeLogin() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/bench/judge/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const user = await login(email, password);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
-
-      // Store token and judge info
-      localStorage.setItem('clearcase_token', data.token);
-      localStorage.setItem('judge_info', JSON.stringify(data.judge));
+      if (user.role !== 'judge') {
+        throw new Error('Access denied — judge credentials required');
+      }
 
       navigate('/judge/dashboard');
     } catch (err) {
@@ -62,15 +55,10 @@ export default function JudgeLogin() {
               onChange={e => setEmail(e.target.value)}
               placeholder="judge.initials@clearcase.legal"
               style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: C.charcoalMid,
-                border: `1px solid ${C.border}`,
-                borderRadius: 4,
-                color: C.parchment,
-                fontSize: 13,
-                fontFamily: "'Jost',sans-serif",
-                boxSizing: 'border-box',
+                width: '100%', padding: '12px 14px',
+                background: C.charcoalMid, border: `1px solid ${C.border}`,
+                borderRadius: 4, color: C.parchment, fontSize: 13,
+                fontFamily: "'Jost',sans-serif", boxSizing: 'border-box',
               }}
               disabled={loading}
             />
@@ -84,15 +72,10 @@ export default function JudgeLogin() {
               onChange={e => setPassword(e.target.value)}
               placeholder="Enter your password"
               style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: C.charcoalMid,
-                border: `1px solid ${C.border}`,
-                borderRadius: 4,
-                color: C.parchment,
-                fontSize: 13,
-                fontFamily: "'Jost',sans-serif",
-                boxSizing: 'border-box',
+                width: '100%', padding: '12px 14px',
+                background: C.charcoalMid, border: `1px solid ${C.border}`,
+                borderRadius: 4, color: C.parchment, fontSize: 13,
+                fontFamily: "'Jost',sans-serif", boxSizing: 'border-box',
               }}
               disabled={loading}
             />
@@ -102,20 +85,14 @@ export default function JudgeLogin() {
             type="submit"
             disabled={loading}
             style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: C.gold,
-              color: C.ink,
-              border: 'none',
-              borderRadius: 4,
-              fontSize: 14,
-              fontWeight: 700,
+              width: '100%', padding: '12px 16px',
+              background: C.gold, color: C.ink, border: 'none',
+              borderRadius: 4, fontSize: 14, fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-              fontFamily: "'Jost',sans-serif",
+              opacity: loading ? 0.6 : 1, fontFamily: "'Jost',sans-serif",
             }}
           >
-            {loading ? 'Logging in…' : 'Sign In →'}
+            {loading ? 'Signing in…' : 'Sign In →'}
           </button>
         </form>
 

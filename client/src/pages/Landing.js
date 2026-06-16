@@ -10,7 +10,7 @@ const STORIES = [
   { stat: '50M+', sub: 'cases actively before Indian courts' },
   { stat: '24×7', sub: 'case monitoring and follow-up, always on' },
   { stat: '100%', sub: 'advocates enrolled with Bar Council, verified' },
-  { stat: 'AI', sub: 'powered case intelligence from public court records' },
+  { stat: '⚖', sub: 'consult retired judges for real judicial perspective' },
 ];
 
 const SPEC_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Family: '#7C3AED', Corporate: '#0F766E', Banking: '#0369A1', 'Real Estate': '#C2410C', Consumer: '#0E7490', Revenue: '#92400E' };
@@ -73,8 +73,7 @@ export default function Landing() {
 
   const features = [
     { icon: '🔍', col: NAVY, t: 'Find & Connect', d: 'Browse Bar Council enrolled advocates by area of practice and location. Schedule appointments directly — video, phone, or in-person at chambers.', path: '/advocates', cta: 'Browse Advocates' },
-    { icon: '⚖️', col: '#7C3AED', t: 'Ask a Judge', d: 'Get candid judicial perspective from retired judges on your case. Case review, second opinion, pre-hearing readiness, settlement assessment — from the bench.', path: '/bench/landing', cta: 'Explore The Bench' },
-    { icon: '🤖', col: '#0D9488', t: 'AI Case Intelligence', d: 'Get insights from thousands of similar public court judgements. Understand what arguments work, what judges look for, and what evidence matters most.', path: '/intelligence', cta: 'Explore Intelligence' },
+    { icon: '⚖️', col: '#7C3AED', t: 'Ask a Judge', d: 'Get candid judicial perspective from retired judges on your case. Case review, second opinion, pre-hearing readiness, settlement assessment — from the bench.', path: '/bench/directory', cta: 'Explore The Bench' },
     { icon: '🔔', col: '#7C3AED', t: 'Case Monitoring & Nudges', d: 'ClearCase sends automated reminders to you and your advocate before every hearing. We follow up on your behalf — so nothing falls through the cracks.', path: '/dashboard', cta: 'See Dashboard' },
     { icon: '📁', col: '#C2410C', t: 'Evidence Vault', d: 'Upload, annotate, and organise all your case documents in one secure place. Control exactly what your advocate can see — you decide what to share.', path: '/documents', cta: 'View Vault' },
     { icon: '✏️', col: GOLD, t: 'Build Your Case Strategy', d: 'Submit questions for cross-examination, note argument gaps, and flag missing points — directly to your advocate through the platform.', path: '/case-strategy', cta: 'Open Case Tools' },
@@ -110,8 +109,7 @@ export default function Landing() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '52px' }}>
             <button onClick={() => navigate('/advocates')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: GOLD, color: NAVY, border: 'none', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Find an Advocate →</button>
-            <button onClick={() => navigate('/intelligence')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.12)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Explore Case Intelligence</button>
-            <button onClick={() => navigate('/bench')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Ask a Judge <span style={{fontSize: '0.7em', opacity: 0.8}}>rtrd</span></button>
+            <button onClick={() => navigate('/bench/directory')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>⚖ Ask a Judge</button>
           </div>
 
           {/* Story dots */}
@@ -130,7 +128,7 @@ export default function Landing() {
       {/* Trust bar */}
       <div style={{ background: GOLD, padding: '14px 48px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 0 }}>
-          {[['⚖', 'BCI Rule 36 Compliant'], ['🏛', 'Bar Council Verified Enrollment'], ['🛡', 'DPDP Act 2023'], ['🤖', 'AI Case Intelligence'], ['🔔', '24×7 Case Monitoring']].map(([icon, text], idx) => (
+          {[['⚖', 'BCI Rule 36 Compliant'], ['🏛', 'Bar Council Verified Enrollment'], ['🛡', 'DPDP Act 2023'], ['⚖️', 'The Bench — Retired Judges'], ['🔔', '24×7 Case Monitoring']].map(([icon, text], idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px' }}>
               {idx > 0 && <div style={{ width: '1px', height: '20px', background: 'rgba(27,37,89,.2)', marginRight: '24px' }} />}
               <span style={{ fontSize: '15px' }}>{icon}</span>
@@ -155,6 +153,30 @@ export default function Landing() {
                 <h3 style={{ fontFamily: 'Georgia, serif', color: NAVY, fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>{f.t}</h3>
                 <p style={{ color: GRAY, fontSize: '14px', lineHeight: 1.75, marginBottom: '18px' }}>{f.d}</p>
                 <button onClick={() => navigate(f.path)} style={{ fontSize: '13px', padding: '9px 16px', background: 'transparent', border: `1.5px solid ${NAVY}`, borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{f.cta} →</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Practice Area Verticals */}
+      <div style={{ background: BG, padding: '80px 48px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: GOLD, marginBottom: '10px' }}>Practice Areas</div>
+            <h2 style={{ fontSize: '38px', color: NAVY, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Specialised legal guidance for every situation.</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '22px' }}>
+            {[
+              { icon: '🏢', col: '#0E7490', title: 'Corporate Law', desc: 'Company formation, shareholder disputes, M&A, NCLT proceedings, and employment contracts handled by verified corporate advocates.', path: '/corporate', cta: 'Explore Corporate →' },
+              { icon: '₹', col: '#7C3AED', title: 'Income Tax', desc: 'Scrutiny notices, reassessments, TDS defaults, ITAT appeals — income tax advocates who know the AO, CIT(A), and tribunal process.', path: '/income-tax', cta: 'Explore Income Tax →' },
+              { icon: '✈', col: '#0369A1', title: 'Immigration', desc: 'Visa refusals, OCI applications, passport matters, FRRO registration, and citizenship — immigration law handled with precision.', path: '/immigration', cta: 'Explore Immigration →' },
+            ].map(v => (
+              <div key={v.title} style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '28px', borderTop: `3px solid ${v.col}` }}>
+                <div style={{ fontSize: '36px', marginBottom: '14px' }}>{v.icon}</div>
+                <h3 style={{ fontFamily: 'Georgia, serif', color: NAVY, fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>{v.title}</h3>
+                <p style={{ color: GRAY, fontSize: '14px', lineHeight: 1.75, marginBottom: '18px' }}>{v.desc}</p>
+                <button onClick={() => navigate(v.path)} style={{ fontSize: '13px', padding: '9px 16px', background: v.col, border: 'none', borderRadius: '9px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{v.cta}</button>
               </div>
             ))}
           </div>
@@ -243,7 +265,7 @@ export default function Landing() {
           </div>
           <div>
             <div style={{ color: 'rgba(255,255,255,.5)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '10px' }}>Links</div>
-            {[['Full Disclaimer', '/compliance'], ['Case Intelligence', '/intelligence'], ['Find Advocate', '/advocates']].map(([label, path]) => (
+            {[['Full Disclaimer', '/compliance'], ['The Bench', '/bench/directory'], ['Find Advocate', '/advocates'], ['Corporate Law', '/corporate'], ['Income Tax', '/income-tax'], ['Immigration', '/immigration']].map(([label, path]) => (
               <div key={path} onClick={() => navigate(path)} style={{ color: 'rgba(255,255,255,.38)', fontSize: '13px', marginBottom: '5px', cursor: 'pointer', textDecoration: 'underline' }}>{label}</div>
             ))}
           </div>

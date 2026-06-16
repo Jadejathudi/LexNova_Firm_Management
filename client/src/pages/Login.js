@@ -23,8 +23,10 @@ export default function Login() {
     try {
       const user = await login(email, password);
       const isInternal = INTERNAL_ROLES.includes(user.role);
-      // Redirect back to the page they came from, or role-based default
-      const destination = from || (isInternal ? '/crm' : '/dashboard');
+      const destination = from || (
+        user.role === 'judge' ? '/judge/dashboard' :
+        isInternal ? '/crm' : '/dashboard'
+      );
       navigate(destination, { replace: true });
     } catch (err) {
       setError(err.message);

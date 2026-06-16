@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
 import { C, TIERS, SERVICES, BenchAvatar, benchFetch } from './benchConstants';
 
@@ -25,6 +25,7 @@ export default function BenchMySessions() {
   const [expandedSession, setExpandedSession] = useState(null);
   const [clientNotes, setClientNotes] = useState({});
   const [savingNotes, setSavingNotes] = useState({});
+  const [cancelling, setCancelling] = useState({});
 
   const token = localStorage.getItem('clearcase_token');
 
@@ -68,6 +69,27 @@ export default function BenchMySessions() {
     }
   };
 
+  const cancelSession = async (bookingId) => {
+    if (!window.confirm('Cancel this session request?')) return;
+    setCancelling(prev => ({ ...prev, [bookingId]: true }));
+    try {
+      const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+      const res = await fetch(`${API_BASE}/bench/bookings/${bookingId}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to cancel session');
+      }
+      setSessions(prev => prev.map(s => s.booking_id === bookingId ? { ...s, status: 'cancelled' } : s));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCancelling(prev => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
   return (
     <div style={{ fontFamily: "'Jost',sans-serif", background: C.ink, color: C.parchment, minHeight: '100vh' }}>
       <BenchNav />
@@ -90,9 +112,14 @@ export default function BenchMySessions() {
             <div style={{ fontSize: 48, marginBottom: 20 }}>⚖️</div>
             <h3 style={{ fontFamily: "'EB Garamond',serif", fontSize: 24, fontWeight: 600, color: C.parchment, marginBottom: 10 }}>No sessions yet</h3>
             <p style={{ color: C.gray, fontSize: 14, marginBottom: 28 }}>You haven't booked a session with any judge on The Bench.</p>
-            <button onClick={() => navigate('/bench/directory')} style={{ background: C.gold, color: C.ink, border: 'none', borderRadius: 3, padding: '13px 32px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-              Browse Judges →
-            </button>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => navigate('/bench/directory')} style={{ background: C.gold, color: C.ink, border: 'none', borderRadius: 3, padding: '13px 32px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                Browse Judges →
+              </button>
+              <button onClick={() => navigate('/matters')} style={{ background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 3, padding: '13px 32px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                Check My Matters →
+              </button>
+            </div>
           </div>
         )}
         {!loading && sessions.length > 0 && (
@@ -150,7 +177,14 @@ export default function BenchMySessions() {
                     </div>
                   )}
 
-                  {s.judge_notes && (
+                  {s.status === 'completed' && s.case_summary && (
+                    <div style={{ background: C.charcoalMid, border: `1px solid ${C.border}`, borderRadius: 3, padding: '10px 14px', marginBottom: 10 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4 }}>📋 Case Summary</div>
+                      <div style={{ fontSize: 13, color: C.grayLight, lineHeight: 1.65, fontFamily: "'EB Garamond',serif" }}>{s.case_summary}</div>
+                    </div>
+                  )}
+
+                  {s.status === 'completed' && s.judge_notes && (
                     <div style={{ background: 'rgba(212,212,16,.06)', border: '1px solid rgba(212,212,16,.3)', borderRadius: 3, padding: '10px 14px', marginBottom: 10 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: '#D4D410', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4 }}>🔍 Judge's Observations</div>
                       <div style={{ fontSize: 13, color: C.grayLight, lineHeight: 1.65, fontFamily: "'EB Garamond',serif" }}>{s.judge_notes}</div>
@@ -199,16 +233,41 @@ export default function BenchMySessions() {
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
                     <button onClick={() => navigate(`/bench/judges/${s.judge_id}`)}
                       style={{ background: 'transparent', color: C.gold, border: `1px solid ${C.borderGold}`, borderRadius: 3, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
                       View Judge Profile →
                     </button>
+                    {s.matter_id && (
+                      <Link
+                        to={`/matters/${s.matter_id}`}
+                        style={{
+                          background: 'rgba(196,152,42,.12)', color: C.gold,
+                          border: `1px solid ${C.borderGold}`, borderRadius: 3,
+                          padding: '7px 14px', fontSize: 12, fontWeight: 600,
+                          textDecoration: 'none', fontFamily: "'Jost',sans-serif", display: 'inline-block',
+                        }}
+                      >
+                        📁 {s.matter_ref || 'View Matter Record'}
+                      </Link>
+                    )}
                     {s.status === 'completed' && (
                       <button onClick={() => navigate(`/bench/schedule/${s.judge_id}`)}
                         style={{ background: C.gold, color: C.ink, border: 'none', borderRadius: 3, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
                         Book Another Session →
                       </button>
+                    )}
+                    {(s.status === 'pending' || s.status === 'intake_scheduled') && (
+                      <>
+                        <button onClick={() => navigate(`/bench/schedule/${s.judge_id}`)}
+                          style={{ background: 'transparent', color: C.grayLight, border: `1px solid ${C.border}`, borderRadius: 3, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                          Reschedule
+                        </button>
+                        <button onClick={() => cancelSession(s.booking_id)} disabled={cancelling[s.booking_id]}
+                          style={{ background: 'transparent', color: '#FCA5A5', border: '1px solid rgba(220,38,38,.4)', borderRadius: 3, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: cancelling[s.booking_id] ? 'not-allowed' : 'pointer', opacity: cancelling[s.booking_id] ? 0.6 : 1, fontFamily: "'Jost',sans-serif" }}>
+                          {cancelling[s.booking_id] ? 'Cancelling…' : 'Cancel Session'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

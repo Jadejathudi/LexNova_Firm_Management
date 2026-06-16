@@ -9,7 +9,7 @@ module.exports = function (sql) {
   router.get('/', authenticateToken, requireRole('managing_partner', 'advisor', 'senior_advocate', 'junior_advocate'), async (req, res) => {
     try {
       const [amRows, hwRows, oiRows, rmRows, trRows, tcRows, tconRows] = await Promise.all([
-        sql`SELECT COUNT(*) as c FROM matters WHERE status != 'closed'`,
+        sql`SELECT COUNT(*) as c FROM cases WHERE status != 'closed'`,
         sql`SELECT COUNT(*) as c FROM hearings WHERE hearing_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'`,
         sql`SELECT COUNT(*) as c FROM invoices WHERE status = 'overdue'`,
         sql`SELECT COALESCE(SUM(total_amount), 0) as total FROM invoices WHERE status = 'paid' AND paid_at >= DATE_TRUNC('month', NOW())`,
@@ -21,7 +21,7 @@ module.exports = function (sql) {
       const advocates = await sql`
         SELECT u.user_id, u.full_name, u.role,
           (SELECT COUNT(*) FROM matter_assignments ma
-           JOIN matters m ON ma.matter_id = m.matter_id
+           JOIN cases m ON ma.matter_id = m.matter_id
            WHERE ma.advocate_id = u.user_id AND ma.is_active = 1 AND m.status != 'closed') as active_cases
         FROM users u
         WHERE u.role IN ('senior_advocate', 'junior_advocate') AND u.is_active = 1
@@ -36,7 +36,7 @@ module.exports = function (sql) {
 
       const staleMatters = await sql`
         SELECT matter_id, matter_number, title, status, created_at
-        FROM matters WHERE status NOT IN ('closed', 'judgment')
+        FROM cases WHERE status NOT IN ('closed', 'judgment')
         ORDER BY created_at ASC LIMIT 5
       `;
 
@@ -72,7 +72,7 @@ module.exports = function (sql) {
         SELECT m.*,
           (SELECT u.full_name FROM matter_assignments ma JOIN users u ON ma.advocate_id = u.user_id
            WHERE ma.matter_id = m.matter_id AND ma.role_on_matter = 'lead_senior' AND ma.is_active = 1 LIMIT 1) as lead_advocate
-        FROM matters m WHERE m.client_id = ${client.client_id}
+        FROM cases m WHERE m.client_id = ${client.client_id}
         ORDER BY m.urgency DESC, m.created_at DESC
       `;
 
@@ -85,10 +85,10 @@ module.exports = function (sql) {
         return { ...m, next_hearing: nh[0] || null };
       }));
 
-      const [upcomingHearings, consultationRequests, consultationSessions, unreadRows, pendingInvoices] = await Promise.all([
+      const [upcomingHearings, consultationRequests, consultationSessions, unreadRows, pendingInvoices, lightMatters] = await Promise.all([
         sql`
           SELECT h.*, m.matter_number, m.title FROM hearings h
-          JOIN matters m ON h.matter_id = m.matter_id
+          JOIN cases m ON h.matter_id = m.matter_id
           WHERE m.client_id = ${client.client_id} AND h.hearing_date >= CURRENT_DATE
           ORDER BY h.hearing_date ASC LIMIT 5
         `,
@@ -114,10 +114,19 @@ module.exports = function (sql) {
         `,
         sql`
           SELECT COUNT(*) as c FROM messages msg
-          JOIN matters m ON msg.matter_id = m.matter_id
+          JOIN cases m ON msg.matter_id = m.matter_id
           WHERE m.client_id = ${client.client_id} AND msg.sender_id != ${req.user.user_id} AND msg.is_read = 0
         `,
         sql`SELECT * FROM invoices WHERE client_id = ${client.client_id} AND status IN ('sent', 'overdue') ORDER BY due_date ASC`,
+        sql`
+          SELECT m.matter_id, m.matter_ref, m.matter_type, m.title, m.status, m.created_at,
+                 u.full_name as advocate_name
+          FROM matters m
+          LEFT JOIN matter_advocates ma ON m.matter_id = ma.matter_id
+          LEFT JOIN users u ON ma.advocate_id = u.user_id
+          WHERE m.user_id = ${req.user.user_id} AND m.status NOT IN ('closed')
+          ORDER BY m.created_at DESC LIMIT 5
+        `,
       ]);
 
       res.json({
@@ -128,6 +137,7 @@ module.exports = function (sql) {
         consultation_sessions: consultationSessions,
         unread_messages: Number(unreadRows[0].c),
         pending_invoices: pendingInvoices,
+        light_matters: lightMatters,
       });
     } catch (err) {
       console.error('Error fetching client dashboard:', err);
@@ -160,7 +170,7 @@ module.exports = function (sql) {
         sql`
           SELECT m.*, ma.role_on_matter,
             (SELECT COUNT(*) FROM hearings h WHERE h.matter_id = m.matter_id AND h.hearing_date >= CURRENT_DATE) as upcoming_hearings
-          FROM matters m
+          FROM cases m
           JOIN matter_assignments ma ON m.matter_id = ma.matter_id
           WHERE ma.advocate_id = ${req.user.user_id} AND ma.is_active = 1 AND m.status != 'closed'
           ORDER BY m.urgency DESC, m.created_at DESC
@@ -187,7 +197,7 @@ module.exports = function (sql) {
         sql`
           SELECT h.*, m.matter_number, m.title, ma.role_on_matter
           FROM hearings h
-          JOIN matters m ON h.matter_id = m.matter_id
+          JOIN cases m ON h.matter_id = m.matter_id
           JOIN matter_assignments ma ON m.matter_id = ma.matter_id
           WHERE ma.advocate_id = ${req.user.user_id} AND ma.is_active = 1 AND h.hearing_date >= CURRENT_DATE
           ORDER BY h.hearing_date ASC, h.hearing_time ASC

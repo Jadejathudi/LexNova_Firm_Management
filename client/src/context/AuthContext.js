@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const isInternal = user && !['client'].includes(user.role);
+  const isInternal = user && !['client', 'judge'].includes(user.role);
   const isPartner = user && user.role === 'managing_partner';
 
   return (

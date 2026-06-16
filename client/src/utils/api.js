@@ -32,23 +32,55 @@ export const api = {
   getAdvocateDashboard: () => apiFetch('/dashboard/advocate'),
   getConsultations: () => apiFetch('/dashboard/consultations'),
 
-  // Matters
+  // Cases (court-filed, formerly "Matters" in CRM)
+  getCases: () => apiFetch('/cases'),
+  getCase: (id) => apiFetch(`/cases/${id}`),
+  createCase: (data) => apiFetch('/cases', { method: 'POST', body: JSON.stringify(data) }),
+  updateCaseStatus: (id, status) => apiFetch(`/cases/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateCase: (id, data) => apiFetch(`/cases/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getCaseTimeline: (id) => apiFetch(`/cases/${id}/timeline`),
+  assignAdvocate: (id, data) => apiFetch(`/cases/${id}/assign`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Lightweight Matters (consultation records, bench sessions, verticals)
   getMatters: () => apiFetch('/matters'),
   getMatter: (id) => apiFetch(`/matters/${id}`),
   createMatter: (data) => apiFetch('/matters', { method: 'POST', body: JSON.stringify(data) }),
-  updateMatterStatus: (id, status) => apiFetch(`/matters/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   updateMatter: (id, data) => apiFetch(`/matters/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  getMatterTimeline: (id) => apiFetch(`/matters/${id}/timeline`),
-  assignAdvocate: (id, data) => apiFetch(`/matters/${id}/assign`, { method: 'POST', body: JSON.stringify(data) }),
+  convertMatterToCase: (id, data) => apiFetch(`/matters/${id}/convert-to-case`, { method: 'POST', body: JSON.stringify(data) }),
+  getMatterNotes: (id) => apiFetch(`/matters/${id}/notes`),
+  addMatterNote: (id, data) => apiFetch(`/matters/${id}/notes`, { method: 'POST', body: JSON.stringify(data) }),
+  updateMatterNote: (id, noteId, data) => apiFetch(`/matters/${id}/notes/${noteId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteMatterNote: (id, noteId) => apiFetch(`/matters/${id}/notes/${noteId}`, { method: 'DELETE' }),
+  getMatterDocumentsList: (id) => apiFetch(`/matters/${id}/documents`),
+  uploadMatterDocument: async (matterId, file) => {
+    const token = localStorage.getItem('clearcase_token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/matters/${matterId}/documents`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  },
+  deleteMatterDocument: (id, docId) => apiFetch(`/matters/${id}/documents/${docId}`, { method: 'DELETE' }),
+  addMatterAdvocate: (id, advocate_id) => apiFetch(`/matters/${id}/advocates`, { method: 'POST', body: JSON.stringify({ advocate_id }) }),
+  removeMatterAdvocate: (id, advocateId) => apiFetch(`/matters/${id}/advocates/${advocateId}`, { method: 'DELETE' }),
+  getInternalAdvocates: () => apiFetch('/users/advocates'),
+  getMatterChat: (id) => apiFetch(`/matters/${id}/messages`),
+  sendMatterMessage: (id, data) => apiFetch(`/matters/${id}/messages`, { method: 'POST', body: JSON.stringify(data) }),
 
   // Documents
   getMyDocuments: () => apiFetch('/documents/my'),
   getMatterDocuments: (matterId) => apiFetch(`/documents/matter/${matterId}`),
-  uploadDocument: async (matterId, file, onProgress) => {
+  uploadDocument: async (matterId, file, onProgress, isClientVisible = true) => {
     const token = localStorage.getItem('clearcase_token');
     const formData = new FormData();
     formData.append('file', file);
     formData.append('matter_id', matterId);
+    formData.append('is_client_visible', isClientVisible ? '1' : '0');
     const res = await fetch(`${API_BASE}/documents/upload`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
@@ -116,6 +148,25 @@ export const api = {
   // AI Guide
   askAI: (question) => apiFetch('/ai-guide/ask', { method: 'POST', body: JSON.stringify({ question }) }),
   getAIQuestions: () => apiFetch('/ai-guide/questions'),
+
+  // The Bench
+  getBenchJudges: ({ tier, area } = {}) => {
+    const p = new URLSearchParams();
+    if (tier && tier !== 'all') p.append('tier', tier);
+    if (area && area !== 'all') p.append('area', area);
+    const q = p.toString() ? `?${p.toString()}` : '';
+    return apiFetch(`/bench/judges${q}`);
+  },
+  getBenchJudge: (id) => apiFetch(`/bench/judges/${id}`),
+  getBenchJudgeSlots: (id, date) => apiFetch(`/bench/judges/${id}/slots${date ? `?date=${date}` : ''}`),
+  getBenchServices: () => apiFetch('/bench/services'),
+  createBenchBooking: (data) => apiFetch('/bench/bookings', { method: 'POST', body: JSON.stringify(data) }),
+  getBenchBookingByRef: (ref) => apiFetch(`/bench/bookings/ref/${ref}`),
+  getMyBenchSessions: () => apiFetch('/bench/my-sessions'),
+  getBenchAdminBookings: (status) => apiFetch(`/bench/admin/bookings${status && status !== 'all' ? `?status=${status}` : ''}`),
+  updateBenchBooking: (id, data) => apiFetch(`/bench/admin/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getBenchAdminStats: () => apiFetch('/bench/admin/stats'),
+  getBenchAdminJudges: () => apiFetch('/bench/admin/judges'),
 
   // Google Calendar admin
   getCalendarStatus: () => apiFetch('/admin/google-status'),

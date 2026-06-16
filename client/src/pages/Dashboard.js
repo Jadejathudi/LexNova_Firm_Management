@@ -40,33 +40,41 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="loading">Loading your dashboard...</div>;
+  if (loading) return <div className="loading">Loading your dashboard…</div>;
   if (!data) return <div className="loading">Unable to load dashboard</div>;
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const activeCount = data.matters.filter(m => m.status !== 'closed').length;
-  const pendingConsultations = data.consultation_requests?.filter(r => r.status === 'pending').length || 0;
+  const matters = data.matters || [];
+  const consultationRequests = data.consultation_requests || [];
+  const consultationSessions = data.consultation_sessions || [];
+  const upcomingHearings = data.upcoming_hearings || [];
+  const pendingInvoices = data.pending_invoices || [];
+  const lightMatters = data.light_matters || [];
+
+  const activeCount = matters.filter(m => m.status !== 'closed').length;
+  const pendingConsultations = consultationRequests.filter(r => r.status === 'pending').length;
 
   return (
     <div className="dashboard page-with-nav">
       <div className="greeting">{greeting}, {user?.full_name?.split(' ')[0]} 👋</div>
       <div className="sub-greeting">
-        {activeCount} active matter{activeCount !== 1 ? 's' : ''}{pendingConsultations > 0 && ` | ${pendingConsultations} pending consultation${pendingConsultations !== 1 ? 's' : ''}`}
-        {data.upcoming_hearings.length > 0 && ` | Next hearing: ${new Date(String(data.upcoming_hearings[0].hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+        {activeCount > 0 ? `${activeCount} active case${activeCount !== 1 ? 's' : ''}` : 'No active cases'}
+        {pendingConsultations > 0 && ` · ${pendingConsultations} pending consultation${pendingConsultations !== 1 ? 's' : ''}`}
+        {upcomingHearings.length > 0 && ` · Next hearing: ${new Date(String(upcomingHearings[0].hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
       </div>
 
-      {data.pending_invoices.length > 0 && (
-        <div style={{ background: '#fef3c7', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: 14 }}>
-          💰 You have {data.pending_invoices.length} pending invoice{data.pending_invoices.length > 1 ? 's' : ''} totalling ₹{data.pending_invoices.reduce((s, i) => s + i.total_amount, 0).toLocaleString('en-IN')}
+      {pendingInvoices.length > 0 && (
+        <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', padding: '12px 16px', borderRadius: 10, marginBottom: 20, fontSize: 14, color: '#92400E', fontWeight: 500 }}>
+          💰 You have {pendingInvoices.length} pending invoice{pendingInvoices.length > 1 ? 's' : ''} totalling ₹{pendingInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0).toLocaleString('en-IN')}
         </div>
       )}
 
       {/* ── Confirmed Sessions ─────────────────────────────────────────────── */}
-      {data.consultation_sessions && data.consultation_sessions.length > 0 && (
+      {consultationSessions.length > 0 && (
         <>
-          <h3 style={{ marginTop: '24px', marginBottom: '12px', fontSize: '16px', fontWeight: 700 }}>📅 Your Confirmed Appointments</h3>
-          {data.consultation_sessions.map(session => {
+          <h3>📅 Confirmed Appointments</h3>
+          {consultationSessions.map(session => {
             const modeIcon = session.session_mode === 'video' ? '📹' : session.session_mode === 'phone' ? '📞' : '🏢';
             const statusColors = {
               scheduled: { bg: '#DCFCE7', color: '#166534' },
@@ -172,10 +180,10 @@ export default function Dashboard() {
       )}
 
       {/* ── Pending Consultation Requests ────────────────────────────────── */}
-      {data.consultation_requests && data.consultation_requests.filter(r => r.status === 'pending').length > 0 && (
+      {consultationRequests.filter(r => r.status === 'pending').length > 0 && (
         <>
-          <h3 style={{ marginTop: '24px', marginBottom: '12px', fontSize: '16px', fontWeight: 700 }}>⏳ Pending Requests</h3>
-          {data.consultation_requests.filter(r => r.status === 'pending').map(cr => (
+          <h3>⏳ Pending Requests</h3>
+          {consultationRequests.filter(r => r.status === 'pending').map(cr => (
             <div key={cr.request_id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '16px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div>
@@ -196,16 +204,49 @@ export default function Dashboard() {
         </>
       )}
 
-      <h3 style={{ marginTop: '24px', marginBottom: '12px', fontSize: '16px', fontWeight: 700 }}>📋 Your Cases</h3>
-
-      {data.matters.map(m => (
-        <div key={m.matter_id} className="case-card" onClick={() => navigate(`/cases/${m.matter_id}`)}>
-          <div className="case-number">📁 MATTER #{m.matter_number}</div>
-          <div className="case-title">{m.title}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-            <span className={`badge ${STATUS_BADGE[m.status] || 'badge-draft'}`}>● {STATUS_LABEL[m.status] || m.status}</span>
+      {/* ── My Matters ──────────────────────────────────────────────── */}
+      {lightMatters.length > 0 && (
+        <>
+          <h3>📁 My Matters</h3>
+          {lightMatters.map(m => {
+            const typeColors = { bench: '#1B2559', corporate: '#0E7490', tax: '#7C3AED', immigration: '#0369A1', criminal: '#DC2626', civil: '#16A34A', family: '#D97706', real_estate: '#78716C' };
+            const typeLabels = { bench: 'Bench Session', corporate: 'Corporate', tax: 'Income Tax', immigration: 'Immigration', criminal: 'Criminal', civil: 'Civil', family: 'Family', real_estate: 'Real Estate' };
+            const col = typeColors[m.matter_type] || '#64748B';
+            return (
+              <div key={m.matter_id} onClick={() => navigate(`/matters/${m.matter_id}`)}
+                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: `4px solid ${col}`, borderRadius: '12px', padding: '14px 18px', marginBottom: '10px', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1B2559', marginBottom: '3px' }}>{m.title}</div>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>
+                      <span style={{ background: col + '18', color: col, padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600, marginRight: 8 }}>{typeLabels[m.matter_type] || m.matter_type}</span>
+                      {m.advocate_name && `Advocate: ${m.advocate_name} · `}
+                      <span style={{ fontFamily: 'monospace' }}>{m.matter_ref}</span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '13px', color: '#94A3B8' }}>›</span>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ marginBottom: '8px' }}>
+            <button onClick={() => navigate('/matters')} style={{ background: 'transparent', border: '1.5px solid #1B2559', borderRadius: '8px', color: '#1B2559', padding: '7px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+              View All Matters →
+            </button>
           </div>
-          {m.lead_advocate && <div className="case-advocate">Advocate: {m.lead_advocate}</div>}
+        </>
+      )}
+
+      <h3>⚖ Filed Cases</h3>
+
+      {matters.map(m => (
+        <div key={m.matter_id} className="case-card" onClick={() => navigate(`/cases/${m.matter_id}`)}>
+          <div className="case-number">⚖ {m.matter_number || 'CC-—'}</div>
+          <div className="case-title">{m.title}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+            <span className={`badge ${STATUS_BADGE[m.status] || 'badge-draft'}`}>{STATUS_LABEL[m.status] || m.status}</span>
+          </div>
+          {m.lead_advocate && <div className="case-advocate">👤 Advocate: {m.lead_advocate}</div>}
           {m.next_hearing && (
             <div className="case-next">📅 Next: {m.next_hearing.court_name}, {new Date(String(m.next_hearing.hearing_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
           )}
@@ -213,10 +254,15 @@ export default function Dashboard() {
         </div>
       ))}
 
-      {data.matters.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: 40 }}>
-          <p style={{ fontSize: 16, color: '#64748B', marginBottom: 16 }}>No active matters yet.</p>
-          <button className="btn btn-gold" onClick={() => navigate('/book')}>Book a Consultation</button>
+      {matters.length === 0 && lightMatters.length === 0 && consultationSessions.length === 0 && (
+        <div className="empty-state" style={{ marginTop: 8 }}>
+          <div className="empty-icon">⚖️</div>
+          <div className="empty-title">No legal matters yet</div>
+          <div className="empty-sub">Book a consultation with a verified advocate or explore The Bench to get started.</div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-gold" onClick={() => navigate('/book')}>Book a Consultation</button>
+            <button className="btn btn-outline" onClick={() => navigate('/bench/directory')}>⚖ The Bench</button>
+          </div>
         </div>
       )}
 

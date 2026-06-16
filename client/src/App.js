@@ -21,10 +21,16 @@ import AdvocateDashboard from './pages/AdvocateDashboard';
 import CRMLayout from './pages/crm/CRMLayout';
 import CRMDashboardPage from './pages/crm/CRMDashboardPage';
 import CRMMatters from './pages/crm/CRMMatters';
+import CRMCases from './pages/crm/CRMCases';
 import CRMClients from './pages/crm/CRMClients';
 import CRMTeam from './pages/crm/CRMTeam';
 import CRMFinance from './pages/crm/CRMFinance';
 import CRMConsultations from './pages/crm/CRMConsultations';
+import MattersList from './pages/matters/MattersList';
+import MatterDetail from './pages/matters/MatterDetail';
+import CorporateLanding from './pages/verticals/CorporateLanding';
+import IncomeTaxLanding from './pages/verticals/IncomeTaxLanding';
+import ImmigrationLanding from './pages/verticals/ImmigrationLanding';
 import BCIDisclaimer from './components/BCIDisclaimer';
 import UrgentHelp from './pages/UrgentHelp';
 import CompliancePage from './pages/CompliancePage';
@@ -32,6 +38,18 @@ import CaseIntelligence from './pages/CaseIntelligence';
 import CaseLibrary from './pages/CaseLibrary';
 import CaseStrategy from './pages/CaseStrategy';
 import CaseMonitoring from './pages/CaseMonitoring';
+import BenchLanding from './pages/bench/BenchLanding';
+import BenchDirectory from './pages/bench/BenchDirectory';
+import BenchJudgeProfile from './pages/bench/BenchJudgeProfile';
+import BenchSchedule from './pages/bench/BenchSchedule';
+import BenchConfirmed from './pages/bench/BenchConfirmed';
+import BenchHowItWorks from './pages/bench/BenchHowItWorks';
+import BenchServices from './pages/bench/BenchServices';
+import BenchMySessions from './pages/bench/BenchMySessions';
+import JudgeLogin from './pages/bench/JudgeLogin';
+import JudgeDashboard from './pages/bench/JudgeDashboard';
+import JudgeSessionDetails from './pages/bench/JudgeSessionDetails';
+import CRMBench from './pages/crm/CRMBench';
 import './App.css';
 
 function PrivateRoute({ children }) {
@@ -44,6 +62,7 @@ function ClientRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading">Loading...</div>;
   if (!user) return <Navigate to="/login" />;
+  if (user.role === 'judge') return <Navigate to="/judge/dashboard" />;
   if (user.role !== 'client') return <Navigate to="/crm" />;
   return children;
 }
@@ -53,6 +72,15 @@ function InternalRoute({ children }) {
   if (loading) return <div className="loading">Loading...</div>;
   if (!user) return <Navigate to="/login" />;
   if (user.role === 'client') return <Navigate to="/dashboard" />;
+  if (user.role === 'judge') return <Navigate to="/judge/dashboard" />;
+  return children;
+}
+
+function JudgeRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading">Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role !== 'judge') return <Navigate to="/login" />;
   return children;
 }
 
@@ -90,10 +118,28 @@ function AppRoutes() {
       <Route path="/ai-guide" element={<><Navbar /><AILegalGuide /><BottomNav /></>} />
       <Route path="/urgent" element={<UrgentHelp />} />
       <Route path="/compliance" element={<CompliancePage />} />
+      <Route path="/corporate" element={<CorporateLanding />} />
+      <Route path="/income-tax" element={<IncomeTaxLanding />} />
+      <Route path="/immigration" element={<ImmigrationLanding />} />
       <Route path="/intelligence" element={<CaseIntelligence />} />
       <Route path="/case-library" element={<CaseLibrary />} />
       <Route path="/case-strategy" element={<CaseStrategy />} />
       <Route path="/case-monitoring" element={<CaseMonitoring />} />
+
+      {/* The Bench — standalone feature, own nav, no existing layout */}
+      <Route path="/bench" element={<BenchLanding />} />
+      <Route path="/bench/directory" element={<BenchDirectory />} />
+      <Route path="/bench/how-it-works" element={<BenchHowItWorks />} />
+      <Route path="/bench/services" element={<BenchServices />} />
+      <Route path="/bench/judges/:id" element={<BenchJudgeProfile />} />
+      <Route path="/bench/schedule/:judgeId" element={<BenchSchedule />} />
+      <Route path="/bench/confirmed/:ref" element={<BenchConfirmed />} />
+      <Route path="/bench/my-sessions" element={<BenchMySessions />} />
+
+      {/* Judge Portal Routes */}
+      <Route path="/judge/login" element={<JudgeLogin />} />
+      <Route path="/judge/dashboard" element={<JudgeRoute><JudgeDashboard /></JudgeRoute>} />
+      <Route path="/judge/session/:bookingId" element={<JudgeRoute><JudgeSessionDetails /></JudgeRoute>} />
 
       {/* Client routes */}
       <Route path="/dashboard" element={
@@ -120,6 +166,12 @@ function AppRoutes() {
       <Route path="/profile" element={
         <PrivateRoute><ClientLayout><Profile /></ClientLayout></PrivateRoute>
       } />
+      <Route path="/matters" element={
+        <PrivateRoute><ClientLayout><MattersList /></ClientLayout></PrivateRoute>
+      } />
+      <Route path="/matters/:id" element={
+        <PrivateRoute><ClientLayout><MatterDetail /></ClientLayout></PrivateRoute>
+      } />
 
       {/* CRM (internal) routes */}
       <Route path="/crm" element={
@@ -127,10 +179,12 @@ function AppRoutes() {
       }>
         <Route index element={<CRMDashboardPage />} />
         <Route path="matters" element={<CRMMatters />} />
+        <Route path="cases" element={<CRMCases />} />
         <Route path="clients" element={<CRMClients />} />
         <Route path="team" element={<CRMTeam />} />
         <Route path="finance" element={<CRMFinance />} />
         <Route path="consultations" element={<CRMConsultations />} />
+        <Route path="bench" element={<CRMBench />} />
       </Route>
 
       {/* Fallback */}

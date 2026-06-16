@@ -20,7 +20,7 @@ module.exports = function (sql) {
         const clients = await sql`
           SELECT DISTINCT c.client_id, c.full_name, c.email, c.phone, c.client_type, c.created_at
           FROM clients c
-          JOIN matters m ON c.client_id = m.client_id
+          JOIN cases m ON c.client_id = m.client_id
           JOIN matter_assignments ma ON m.matter_id = ma.matter_id
           WHERE ma.advocate_id = ${user_id} AND ma.is_active = 1
         `;

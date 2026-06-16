@@ -24,7 +24,7 @@ module.exports = function (sql) {
         hearings = await sql`
           SELECT h.*, m.matter_number, m.title as matter_title, c.full_name as client_name
           FROM hearings h
-          JOIN matters m ON h.matter_id = m.matter_id
+          JOIN cases m ON h.matter_id = m.matter_id
           JOIN clients c ON m.client_id = c.client_id
           WHERE h.hearing_date >= CURRENT_DATE
           ORDER BY h.hearing_date ASC
@@ -33,7 +33,7 @@ module.exports = function (sql) {
         hearings = await sql`
           SELECT h.*, m.matter_number, m.title as matter_title, c.full_name as client_name
           FROM hearings h
-          JOIN matters m ON h.matter_id = m.matter_id
+          JOIN cases m ON h.matter_id = m.matter_id
           JOIN clients c ON m.client_id = c.client_id
           JOIN matter_assignments ma ON m.matter_id = ma.matter_id
           WHERE ma.advocate_id = ${req.user.user_id} AND ma.is_active = 1 AND h.hearing_date >= CURRENT_DATE
@@ -43,7 +43,7 @@ module.exports = function (sql) {
         hearings = await sql`
           SELECT h.*, m.matter_number, m.title as matter_title
           FROM hearings h
-          JOIN matters m ON h.matter_id = m.matter_id
+          JOIN cases m ON h.matter_id = m.matter_id
           JOIN clients c ON m.client_id = c.client_id
           WHERE c.user_id = ${req.user.user_id} AND h.hearing_date >= CURRENT_DATE
           ORDER BY h.hearing_date ASC
@@ -51,7 +51,7 @@ module.exports = function (sql) {
       } else {
         hearings = await sql`
           SELECT h.hearing_id, h.hearing_date, h.hearing_time, h.court_name, m.matter_number
-          FROM hearings h JOIN matters m ON h.matter_id = m.matter_id
+          FROM hearings h JOIN cases m ON h.matter_id = m.matter_id
           WHERE h.hearing_date >= CURRENT_DATE
           ORDER BY h.hearing_date ASC
         `;
@@ -77,7 +77,7 @@ module.exports = function (sql) {
         VALUES (${hearing_id}, ${matter_id}, ${hearing_date}, ${hearing_time || null}, ${court_name}, ${courtroom_number || null}, ${purpose || null})
       `;
 
-      const matterRows = await sql`SELECT * FROM matters WHERE matter_id = ${matter_id}`;
+      const matterRows = await sql`SELECT * FROM cases WHERE matter_id = ${matter_id}`;
       const matter = matterRows[0];
       if (matter) {
         const clientRows = await sql`SELECT * FROM clients WHERE client_id = ${matter.client_id}`;

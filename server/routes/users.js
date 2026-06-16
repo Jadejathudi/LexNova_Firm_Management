@@ -31,7 +31,7 @@ module.exports = function (sql) {
       const result = await Promise.all(advocates.map(async a => {
         const wl = await sql`
           SELECT COUNT(*) as active_cases FROM matter_assignments ma
-          JOIN matters m ON ma.matter_id = m.matter_id
+          JOIN cases m ON ma.matter_id = m.matter_id
           WHERE ma.advocate_id = ${a.user_id} AND ma.is_active = 1 AND m.status != 'closed'
         `;
         return { ...a, active_cases: Number(wl[0].active_cases) };

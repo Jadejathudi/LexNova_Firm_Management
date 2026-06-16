@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
@@ -22,7 +22,15 @@ export default function CaseDetail() {
   const { user } = useAuth();
 
   const [matter, setMatter] = useState(null);
-  const [tab, setTab] = useState('details');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const VALID_TABS = ['details', 'timeline', 'documents', 'messages', 'billing'];
+  const tabParam = searchParams.get('tab');
+  const tab = VALID_TABS.includes(tabParam) ? tabParam : 'details';
+  const setTab = (key) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev);
+    next.set('tab', key);
+    return next;
+  });
   const [timeline, setTimeline] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -51,13 +59,18 @@ export default function CaseDetail() {
   const [uploadError, setUploadError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingDocId, setDeletingDocId] = useState(null);
+  const [uploadVisibleToClient, setUploadVisibleToClient] = useState(true);
+
+  // Conflict check state
+  const [savingConflict, setSavingConflict] = useState(false);
 
   const canEdit = CAN_EDIT_ROLES.includes(user?.role);
+  const canManageConflict = ['managing_partner', 'advisor'].includes(user?.role);
 
   const loadAll = useCallback(() => {
     return Promise.all([
-      api.getMatter(id),
-      api.getMatterTimeline(id),
+      api.getCase(id),
+      api.getCaseTimeline(id),
       api.getMatterDocuments(id).catch(() => []),
       api.getMatterMessages(id).catch(() => []),
       api.getInvoices().catch(() => []),
@@ -78,6 +91,18 @@ export default function CaseDetail() {
     });
   }, [id]);
 
+  const toggleConflictChecked = async () => {
+    setSavingConflict(true);
+    try {
+      await api.updateCase(id, { conflict_checked: matter.conflict_checked ? 0 : 1 });
+      await loadAll();
+    } catch (err) {
+      alert(err.message || 'Failed to update conflict check status');
+    } finally {
+      setSavingConflict(false);
+    }
+  };
+
   useEffect(() => {
     loadAll().catch(console.error).finally(() => setLoading(false));
   }, [loadAll]);
@@ -96,7 +121,7 @@ export default function CaseDetail() {
     setSaving(true);
     setSaveMsg(null);
     try {
-      await api.updateMatter(id, editForm);
+      await api.updateCase(id, editForm);
       await loadAll();
       setEditing(false);
       setSaveMsg({ type: 'success', text: 'Case updated successfully.' });
@@ -113,7 +138,7 @@ export default function CaseDetail() {
     setAddingHearing(true);
     try {
       await api.createHearing({ ...hearingForm, matter_id: id });
-      const t = await api.getMatterTimeline(id);
+      const t = await api.getCaseTimeline(id);
       setTimeline(t);
       setShowAddHearing(false);
       setHearingForm({ hearing_date: '', hearing_time: '', court_name: '', purpose: '', outcome: '' });
@@ -140,7 +165,7 @@ export default function CaseDetail() {
     setSavingHearing(true);
     try {
       await api.updateHearing(editingHearingId, editHearingForm);
-      const t = await api.getMatterTimeline(id);
+      const t = await api.getCaseTimeline(id);
       setTimeline(t);
       setEditingHearingId(null);
     } catch (err) {
@@ -155,7 +180,7 @@ export default function CaseDetail() {
     setUploading(true);
     setUploadError(null);
     try {
-      await api.uploadDocument(id, file);
+      await api.uploadDocument(id, file, null, uploadVisibleToClient);
       const docs = await api.getMatterDocuments(id);
       setDocuments(docs);
     } catch (err) {
@@ -233,7 +258,7 @@ export default function CaseDetail() {
 
       {/* ── DETAILS TAB ──────────────────────────────────────────────────────── */}
       {tab === 'details' && (
-        <div>
+        <div style={{ minHeight: 340 }}>
           {/* Advocate edit toolbar */}
           {canEdit && !editing && (
             <button
@@ -308,6 +333,18 @@ export default function CaseDetail() {
                   <InfoRow label="Opposing Party" value={matter.opposing_party || '—'} />
                   <InfoRow label="Filed On" value={new Date(matter.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} />
                   {matter.closed_at && <InfoRow label="Closed On" value={new Date(matter.closed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} />}
+                  <InfoRow label="Conflict Check" value={
+                    canManageConflict ? (
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: savingConflict ? 'not-allowed' : 'pointer', fontWeight: 500 }}>
+                        <input type="checkbox" checked={!!matter.conflict_checked} disabled={savingConflict} onChange={toggleConflictChecked} />
+                        {matter.conflict_checked ? 'Checked — no conflict' : 'Not yet checked'}
+                      </label>
+                    ) : (
+                      <span style={{ fontWeight: 700, color: matter.conflict_checked ? '#15803D' : '#B91C1C' }}>
+                        {matter.conflict_checked ? '✅ Checked' : '⚠️ Pending'}
+                      </span>
+                    )
+                  } />
                 </div>
               </div>
 
@@ -348,7 +385,7 @@ export default function CaseDetail() {
 
       {/* ── TIMELINE TAB ──────────────────────────────────────────────────────── */}
       {tab === 'timeline' && (
-        <div>
+        <div style={{ minHeight: 340 }}>
           {canEdit && (
             <div style={{ marginBottom: 16 }}>
               <button className="btn btn-navy btn-sm" onClick={() => setShowAddHearing(v => !v)}>
@@ -475,8 +512,14 @@ export default function CaseDetail() {
 
       {/* ── DOCUMENTS TAB ─────────────────────────────────────────────────────── */}
       {tab === 'documents' && (
-        <div>
+        <div style={{ minHeight: 340 }}>
           {/* Upload zone — advocates and managing partners only */}
+          {canEdit && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 13, color: '#475569', cursor: 'pointer' }}>
+              <input type="checkbox" checked={uploadVisibleToClient} onChange={e => setUploadVisibleToClient(e.target.checked)} />
+              Visible to client
+            </label>
+          )}
           {canEdit && (
             <div
               style={{
@@ -603,7 +646,7 @@ export default function CaseDetail() {
 
       {/* ── MESSAGES TAB ──────────────────────────────────────────────────────── */}
       {tab === 'messages' && (
-        <div>
+        <div style={{ minHeight: 340 }}>
           <div style={{ maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16, padding: '10px 0' }}>
             {messages.map(m => (
               <div key={m.message_id} className={`chat-msg ${m.sender_id === user?.user_id ? 'sent' : 'received'}`}>
@@ -628,7 +671,7 @@ export default function CaseDetail() {
 
       {/* ── BILLING TAB ───────────────────────────────────────────────────────── */}
       {tab === 'billing' && (
-        <div>
+        <div style={{ minHeight: 340 }}>
           {invoices.map(inv => (
             <div key={inv.invoice_id} className="card" style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

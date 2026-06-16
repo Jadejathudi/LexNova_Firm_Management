@@ -14,7 +14,7 @@ module.exports = function (sql) {
         invoices = await sql`
           SELECT i.*, m.matter_number, m.title as matter_title, c.full_name as client_name
           FROM invoices i
-          JOIN matters m ON i.matter_id = m.matter_id
+          JOIN cases m ON i.matter_id = m.matter_id
           JOIN clients c ON i.client_id = c.client_id
           ORDER BY i.created_at DESC
         `;
@@ -22,7 +22,7 @@ module.exports = function (sql) {
         invoices = await sql`
           SELECT i.*, m.matter_number, m.title as matter_title
           FROM invoices i
-          JOIN matters m ON i.matter_id = m.matter_id
+          JOIN cases m ON i.matter_id = m.matter_id
           JOIN matter_assignments ma ON m.matter_id = ma.matter_id
           WHERE ma.advocate_id = ${req.user.user_id} AND ma.is_active = 1
           ORDER BY i.created_at DESC
@@ -31,7 +31,7 @@ module.exports = function (sql) {
         invoices = await sql`
           SELECT i.*, m.matter_number, m.title as matter_title
           FROM invoices i
-          JOIN matters m ON i.matter_id = m.matter_id
+          JOIN cases m ON i.matter_id = m.matter_id
           JOIN clients c ON i.client_id = c.client_id
           WHERE c.user_id = ${req.user.user_id}
           ORDER BY i.created_at DESC

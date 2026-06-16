@@ -63,7 +63,7 @@ module.exports = function (sql) {
             SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at,
                    m.matter_number, m.title as matter_title
             FROM documents d
-            JOIN matters m ON d.matter_id = m.matter_id
+            JOIN cases m ON d.matter_id = m.matter_id
             JOIN clients c ON m.client_id = c.client_id
             WHERE c.user_id = ${req.user.user_id} AND d.is_client_visible = 1 AND d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
@@ -72,7 +72,7 @@ module.exports = function (sql) {
             SELECT d.document_id, d.matter_id, d.filename, d.stored_path, d.file_type, d.file_size_bytes, d.uploaded_at,
                    m.matter_number, m.title as matter_title
             FROM documents d
-            JOIN matters m ON d.matter_id = m.matter_id
+            JOIN cases m ON d.matter_id = m.matter_id
             WHERE d.stored_path LIKE 'http%'
             ORDER BY d.uploaded_at DESC
           `;
@@ -91,7 +91,7 @@ module.exports = function (sql) {
       return res.status(403).json({ error: 'Only advocates and managing partners can upload documents' });
     }
 
-    const { matter_id } = req.body;
+    const { matter_id, is_client_visible } = req.body;
     if (!matter_id) return res.status(400).json({ error: 'matter_id is required' });
 
     try {
@@ -108,10 +108,11 @@ module.exports = function (sql) {
       });
 
       const ext = req.file.originalname.split('.').pop().toLowerCase();
+      const clientVisible = is_client_visible === '0' || is_client_visible === 'false' ? 0 : 1;
 
       await sql`
-        INSERT INTO documents (document_id, matter_id, uploaded_by, filename, stored_path, file_type, file_size_bytes)
-        VALUES (${document_id}, ${matter_id}, ${req.user.user_id}, ${req.file.originalname}, ${blob.url}, ${ext}, ${req.file.size})
+        INSERT INTO documents (document_id, matter_id, uploaded_by, filename, stored_path, file_type, file_size_bytes, is_client_visible)
+        VALUES (${document_id}, ${matter_id}, ${req.user.user_id}, ${req.file.originalname}, ${blob.url}, ${ext}, ${req.file.size}, ${clientVisible})
       `;
 
       await sql`

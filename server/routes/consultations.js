@@ -128,6 +128,34 @@ module.exports = function (sql) {
         duration_minutes: 30, session_mode, notes: brief || null,
       });
 
+      // Auto-create a lightweight matter linked to this consultation
+      try {
+        const year = new Date().getFullYear();
+        const countRows = await sql`SELECT COUNT(*) as c FROM matters`;
+        const matterRef = `M-${year}-${String(Number(countRows[0].c) + 1).padStart(4, '0')}`;
+        const matterId = uuidv4();
+
+        let clientId = null;
+        if (req.user?.user_id) {
+          const clientRows = await sql`SELECT client_id FROM clients WHERE user_id = ${req.user.user_id}`;
+          if (clientRows.length > 0) clientId = clientRows[0].client_id;
+        }
+
+        if (clientId) {
+          await sql`
+            INSERT INTO matters (matter_id, matter_ref, client_id, user_id, matter_type, title, status, brief, consultation_id, created_by)
+            VALUES (${matterId}, ${matterRef}, ${clientId}, ${req.user.user_id}, ${matter_type}, ${'Consultation: ' + (brief?.slice(0, 80) || matter_type)}, 'open', ${brief || null}, ${requestId}, ${req.user.user_id})
+          `;
+
+          const advUserRows = await sql`SELECT user_id FROM advocates WHERE advocate_id = ${advocate_id}`;
+          if (advUserRows.length > 0) {
+            await sql`INSERT INTO matter_advocates (id, matter_id, advocate_id) VALUES (${uuidv4()}, ${matterId}, ${advUserRows[0].user_id})`;
+          }
+        }
+      } catch (mErr) {
+        console.error('[Matter auto-create] skipped:', mErr.message);
+      }
+
       res.status(201).json({ request_id: requestId, session_id: session.session_id, meeting_link: session.meeting_link, scheduled_date: session.scheduled_date, scheduled_time: session.scheduled_time, session_mode: session.session_mode, message: 'Consultation scheduled successfully.' });
     } catch (err) {
       console.error('Error creating consultation request:', err);

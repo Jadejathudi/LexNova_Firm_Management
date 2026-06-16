@@ -5,6 +5,7 @@ const ROLE_HIERARCHY = {
   junior_advocate: 50,
   billing: 30,
   reception: 20,
+  judge: 15,
   client: 10,
 };
 
@@ -36,7 +37,7 @@ async function isAssignedToMatter(sql, userId, matterId) {
 
 async function isClientOfMatter(sql, userId, matterId) {
   const rows = await sql`
-    SELECT m.matter_id FROM matters m
+    SELECT m.matter_id FROM cases m
     JOIN clients c ON m.client_id = c.client_id
     WHERE m.matter_id = ${matterId} AND c.user_id = ${userId}
   `;
@@ -52,4 +53,18 @@ async function canAccessMatter(sql, user, matterId) {
   return false;
 }
 
-module.exports = { requireRole, requireMinRole, isAssignedToMatter, isClientOfMatter, canAccessMatter, ROLE_HIERARCHY };
+async function canAccessLightMatter(sql, user, matterId) {
+  const { role, user_id } = user;
+  if (role === 'managing_partner' || role === 'advisor') return true;
+  if (role === 'senior_advocate' || role === 'junior_advocate' || role === 'judge') {
+    const rows = await sql`SELECT id FROM matter_advocates WHERE matter_id = ${matterId} AND advocate_id = ${user_id}`;
+    return rows.length > 0;
+  }
+  if (role === 'client') {
+    const rows = await sql`SELECT matter_id FROM matters WHERE matter_id = ${matterId} AND user_id = ${user_id}`;
+    return rows.length > 0;
+  }
+  return false;
+}
+
+module.exports = { requireRole, requireMinRole, isAssignedToMatter, isClientOfMatter, canAccessMatter, canAccessLightMatter, ROLE_HIERARCHY };

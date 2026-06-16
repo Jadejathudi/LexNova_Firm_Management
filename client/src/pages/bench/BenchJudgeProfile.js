@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, benchFetch } from './benchConstants';
+import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
   return (
@@ -71,7 +71,7 @@ export default function BenchJudgeProfile() {
                 </span>
               )}
             </div>
-            <h1 style={{ fontFamily: "'EB Garamond',serif", fontSize: 30, fontWeight: 700, lineHeight: 1.2, marginBottom: 8 }}>{judge.name}</h1>
+            <h1 style={{ fontFamily: "'EB Garamond',serif", fontSize: 30, fontWeight: 700, lineHeight: 1.2, marginBottom: 8 }}><JudgeName name={judge.name} /></h1>
             <div style={{ fontSize: 14, color: C.grayLight, marginBottom: 4 }}>{judge.city}, {judge.state} · Retired {judge.retired_year}</div>
             <div style={{ fontSize: 13, color: C.gray }}>{judge.years_on_bench} years on the bench · {(judge.languages || []).join(' · ')}</div>
           </div>

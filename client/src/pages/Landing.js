@@ -73,7 +73,7 @@ export default function Landing() {
 
   const features = [
     { icon: '🔍', col: NAVY, t: 'Find & Connect', d: 'Browse Bar Council enrolled advocates by area of practice and location. Schedule appointments directly — video, phone, or in-person at chambers.', path: '/advocates', cta: 'Browse Advocates' },
-    { icon: '⚖️', col: '#7C3AED', t: 'Ask a Judge', d: 'Get candid judicial perspective from retired judges on your case. Case review, second opinion, pre-hearing readiness, settlement assessment — from the bench.', path: '/bench/directory', cta: 'Explore The Bench' },
+    { icon: '⚖️', col: '#7C3AED', t: 'Ask a Judge', suffix: 'Retd.', d: 'Get candid judicial perspective from retired judges on your case. Case review, second opinion, pre-hearing readiness, settlement assessment — from the bench.', path: '/bench/directory', cta: 'Explore The Bench' },
     { icon: '🔔', col: '#7C3AED', t: 'Case Monitoring & Nudges', d: 'ClearCase sends automated reminders to you and your advocate before every hearing. We follow up on your behalf — so nothing falls through the cracks.', path: '/dashboard', cta: 'See Dashboard' },
     { icon: '📁', col: '#C2410C', t: 'Evidence Vault', d: 'Upload, annotate, and organise all your case documents in one secure place. Control exactly what your advocate can see — you decide what to share.', path: '/documents', cta: 'View Vault' },
     { icon: '✏️', col: GOLD, t: 'Build Your Case Strategy', d: 'Submit questions for cross-examination, note argument gaps, and flag missing points — directly to your advocate through the platform.', path: '/case-strategy', cta: 'Open Case Tools' },
@@ -109,7 +109,7 @@ export default function Landing() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '52px' }}>
             <button onClick={() => navigate('/advocates')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: GOLD, color: NAVY, border: 'none', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Find an Advocate →</button>
-            <button onClick={() => navigate('/bench/directory')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>⚖ Ask a Judge</button>
+            <button onClick={() => navigate('/bench/directory')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>⚖ Ask a Judge <span style={{ fontSize: '0.6em', opacity: .75 }}>Retd.</span></button>
           </div>
 
           {/* Story dots */}
@@ -150,7 +150,9 @@ export default function Landing() {
             {features.map(f => (
               <div key={f.t} style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '28px', borderTop: `3px solid ${f.col}` }}>
                 <div style={{ fontSize: '32px', marginBottom: '14px' }}>{f.icon}</div>
-                <h3 style={{ fontFamily: 'Georgia, serif', color: NAVY, fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>{f.t}</h3>
+                <h3 style={{ fontFamily: 'Georgia, serif', color: NAVY, fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>
+                  {f.t}{f.suffix && <span style={{ fontSize: '0.5em', fontWeight: 700, color: GRAY, marginLeft: '4px' }}>{f.suffix}</span>}
+                </h3>
                 <p style={{ color: GRAY, fontSize: '14px', lineHeight: 1.75, marginBottom: '18px' }}>{f.d}</p>
                 <button onClick={() => navigate(f.path)} style={{ fontSize: '13px', padding: '9px 16px', background: 'transparent', border: `1.5px solid ${NAVY}`, borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{f.cta} →</button>
               </div>

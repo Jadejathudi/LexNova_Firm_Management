@@ -107,7 +107,7 @@ export default function BenchHowItWorks() {
         {/* CTA */}
         <div style={{ maxWidth: 780, margin: '48px auto 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <button onClick={() => navigate('/bench/directory')} style={{ background: C.gold, color: C.ink, border: 'none', borderRadius: 3, padding: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-            Browse Judges →
+            Browse Judges <span style={{ fontSize: '0.7em', opacity: .75 }}>Retd.</span> →
           </button>
           <button onClick={() => navigate('/bench/services')} style={{ background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 3, padding: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
             Explore Services

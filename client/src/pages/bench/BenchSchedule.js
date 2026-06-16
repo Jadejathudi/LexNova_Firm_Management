@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, benchFetch } from './benchConstants';
+import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
   return (
@@ -154,7 +154,7 @@ export default function BenchSchedule() {
             <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
               <BenchAvatar judge={judge} size={48} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment }}>{judge.name}</div>
+                <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment }}><JudgeName name={judge.name} /></div>
                 <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>{t.badge} · {judge.city}</div>
               </div>
               <TierBadge tier={judge.tier} />

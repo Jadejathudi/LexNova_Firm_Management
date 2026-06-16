@@ -78,6 +78,20 @@ export function BenchAvatar({ judge, size = 64 }) {
   );
 }
 
+// ── Helper: judge name with the "(Retd.)" compliance suffix rendered
+// small — judge.name already includes "(Retd.)" as data (e.g. "Hon.
+// Justice X (Retd.)"); this just shrinks that suffix instead of letting
+// it print at full size like the rest of the name.
+export function JudgeName({ name }) {
+  const match = /^(.*?)(\s*\(Retd\.?\))\s*$/i.exec(name || '');
+  if (!match) return <>{name}</>;
+  return (
+    <>
+      {match[1]} <span style={{ fontSize: '0.55em', fontWeight: 600, opacity: 0.7 }}>{match[2].trim()}</span>
+    </>
+  );
+}
+
 // ── Helper: tier badge ────────────────────────────────────────────
 export function TierBadge({ tier }) {
   const t = TIERS[tier] || TIERS.junior;

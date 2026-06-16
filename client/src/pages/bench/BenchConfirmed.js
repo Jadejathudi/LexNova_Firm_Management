@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, BenchAvatar, benchFetch } from './benchConstants';
+import { C, TIERS, SERVICES, BenchAvatar, JudgeName, benchFetch } from './benchConstants';
 import { useAuth } from '../../context/AuthContext';
 
 function fmt(dateStr) {
@@ -68,7 +68,7 @@ export default function BenchConfirmed() {
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 16 }}>
             <BenchAvatar judge={judge} size={52} />
             <div>
-              <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 16, fontWeight: 600, color: C.parchment }}>{judge.name}</div>
+              <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 16, fontWeight: 600, color: C.parchment }}><JudgeName name={judge.name} /></div>
               <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>{t.badge} · {judge.city}</div>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function BenchConfirmed() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <button onClick={() => navigate('/bench/directory')}
                 style={{ background: 'transparent', color: C.grayLight, border: `1px solid ${C.border}`, borderRadius: 3, padding: '11px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-                Browse More Judges
+                Browse More Judges <span style={{ fontSize: '0.7em', opacity: .75 }}>Retd.</span>
               </button>
               <button onClick={() => navigate('/dashboard')}
                 style={{ background: 'transparent', color: C.grayLight, border: `1px solid ${C.border}`, borderRadius: 3, padding: '11px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
@@ -141,7 +141,7 @@ export default function BenchConfirmed() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <button onClick={() => navigate('/bench/directory')}
               style={{ background: 'transparent', color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-              Browse More Judges →
+              Browse More Judges <span style={{ fontSize: '0.7em', opacity: .75 }}>Retd.</span> →
             </button>
             <button onClick={() => navigate('/')}
               style={{ background: 'rgba(255,255,255,.07)', color: C.parchment, border: '1px solid rgba(255,255,255,.12)', borderRadius: 3, padding: '13px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>

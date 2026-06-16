@@ -77,7 +77,7 @@ export default function BenchNav() {
           borderRadius: 3, padding: '8px 16px', fontSize: 13, fontWeight: 600,
           cursor: 'pointer', fontFamily: "'Jost',sans-serif", letterSpacing: '.02em',
         }}
-      >Browse Judges</button>
+      >Browse Judges <span style={{ fontSize: '0.7em', opacity: .75 }}>Retd.</span></button>
 
       <button
         onClick={() => navigate(user ? (user.role === 'judge' ? '/judge/dashboard' : '/dashboard') : '/')}

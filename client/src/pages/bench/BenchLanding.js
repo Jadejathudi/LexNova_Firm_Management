@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, STEPS, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, benchFetch } from './benchConstants';
+import { C, TIERS, STEPS, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
   return (
@@ -82,7 +82,7 @@ export default function BenchLanding() {
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', maxWidth: 680, margin: '64px auto 0', border: `1px solid ${C.border}`, borderRadius: 4, overflow: 'hidden', background: C.charcoal }}>
           {[
-            [loading ? '…' : String(judges.length), 'Judges', 'on The Bench'],
+            [loading ? '…' : String(judges.length), 'Judges Retd.', 'on The Bench'],
             ['HC to Civil', 'Four tiers', 'of judicial experience'],
             ['24 hrs', 'Intake call', 'within one day'],
             ['Only here', 'Exclusive', 'to ClearCase'],
@@ -131,7 +131,7 @@ export default function BenchLanding() {
 
           {/* Featured HC judges */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: C.gray, marginBottom: 4 }}>High Court Judges on The Bench</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: C.gray, marginBottom: 4 }}>High Court Judges Retd. on The Bench</div>
             {loading ? (
               <div style={{ color: C.gray, fontSize: 14 }}>Loading judges…</div>
             ) : featured.map(j => (
@@ -140,7 +140,7 @@ export default function BenchLanding() {
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 12 }}>
                   <BenchAvatar judge={j} size={52} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 16, fontWeight: 600, color: C.parchment, lineHeight: 1.3, marginBottom: 4 }}>{j.name}</div>
+                    <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 16, fontWeight: 600, color: C.parchment, lineHeight: 1.3, marginBottom: 4 }}><JudgeName name={j.name} /></div>
                     <div style={{ fontSize: 12, color: C.gray }}>{j.years_on_bench} yrs · {j.city} · Retired {j.retired_year}</div>
                   </div>
                 </div>

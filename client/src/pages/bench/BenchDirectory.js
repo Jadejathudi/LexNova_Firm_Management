@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, benchFetch } from './benchConstants';
+import { C, TIERS, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
   return (
@@ -28,7 +28,7 @@ function JudgeCard({ judge, onClick }) {
         <BenchAvatar judge={judge} size={60} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-            <h3 style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, lineHeight: 1.3 }}>{judge.name}</h3>
+            <h3 style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, lineHeight: 1.3 }}><JudgeName name={judge.name} /></h3>
             {isScarce && <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 2, padding: '3px 9px', background: 'rgba(220,38,38,.15)', color: '#FCA5A5', border: '1px solid rgba(220,38,38,.3)' }}>⚡ {judge.slots_left} left</span>}
             {isFull && <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 2, padding: '3px 9px', background: 'rgba(255,255,255,.05)', color: C.gray }}>Fully Booked</span>}
           </div>

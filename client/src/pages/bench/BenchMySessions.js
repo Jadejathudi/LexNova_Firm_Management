@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, BenchAvatar, benchFetch } from './benchConstants';
+import { C, TIERS, SERVICES, BenchAvatar, JudgeName, benchFetch } from './benchConstants';
 
 const STATUS_META = {
   pending:            { label: 'Awaiting Intake Call', color: C.gold,    bg: 'rgba(196,152,42,.1)'  },
@@ -137,7 +137,7 @@ export default function BenchMySessions() {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
                         <div>
-                          <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, lineHeight: 1.3 }}>{s.judge_name}</div>
+                          <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, lineHeight: 1.3 }}><JudgeName name={s.judge_name} /></div>
                           <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>{t.badge} · {s.city}</div>
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 2, padding: '4px 10px', background: statusMeta.bg, color: statusMeta.color, whiteSpace: 'nowrap' }}>

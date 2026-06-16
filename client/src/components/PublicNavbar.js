@@ -73,7 +73,7 @@ export default function PublicNavbar() {
             background: '#DC2626', color: '#fff', border: 'none', borderRadius: '8px',
             padding: '8px 14px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
-            🚨 Urgent
+            🚨 Urgent Help
           </button>
           {user ? (
             <button onClick={() => navigate(dashPath)} style={{

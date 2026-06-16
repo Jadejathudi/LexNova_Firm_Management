@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES } from './benchConstants';
+import { C, TIERS, SERVICES, JudgeName } from './benchConstants';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
@@ -218,7 +218,7 @@ export default function JudgeDashboard() {
             {judge.initials}
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.parchment }}>{judge.name}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.parchment }}><JudgeName name={judge.name} /></div>
             <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>{t.badge} · {judge.city}</div>
           </div>
         </div>

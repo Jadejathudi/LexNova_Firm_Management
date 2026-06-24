@@ -12,10 +12,10 @@ export default function Profile() {
 
   return (
     <div className="page-with-nav" style={{ padding: 24 }}>
-      <h2 style={{ color: '#0A1628', marginBottom: 24 }}>👤 Profile</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 24 }}>👤 Profile</h2>
 
       <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: '#0A1628', marginBottom: 8 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: '#1C2A40', marginBottom: 8 }}>
           {profile?.full_name || user?.full_name}
         </div>
         <div style={{ fontSize: 14, color: '#64748B', marginBottom: 4 }}>📧 {profile?.email || user?.email}</div>

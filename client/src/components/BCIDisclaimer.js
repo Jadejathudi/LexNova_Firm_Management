@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Logo from './Logo';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C';
+const NAVY = '#1C2A40';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 
 export default function BCIDisclaimer() {
   const [visible, setVisible] = useState(false);
@@ -31,15 +33,15 @@ export default function BCIDisclaimer() {
       <div style={{ background: '#fff', borderRadius: '18px', maxWidth: '580px', width: '100%', borderTop: `5px solid ${NAVY}`, boxShadow: '0 32px 80px rgba(0,0,0,.4)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ overflowY: 'auto', padding: '32px 32px 0', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: GOLD, fontSize: '20px' }}>⚖</span>
+            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Logo size={28} />
             </div>
             <div>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 700, color: NAVY }}>ClearCase</div>
+              <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '22px', fontWeight: 700, color: NAVY }}>ClearCase</div>
               <div style={{ fontSize: '12px', color: '#64748B' }}>Legal Technology Platform · clearcase.in</div>
             </div>
           </div>
-          <div style={{ background: '#FFF8E8', borderLeft: '4px solid #C9A84C', borderRadius: '0 8px 8px 0', padding: '12px 14px', marginBottom: '18px' }}>
+          <div style={{ background: '#FFF8E8', borderLeft: '4px solid #D97706', borderRadius: '0 8px 8px 0', padding: '12px 14px', marginBottom: '18px' }}>
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '4px' }}>Required Notice — Bar Council of India</div>
             <div style={{ fontSize: '12px', color: '#92400E', lineHeight: 1.6 }}>Please read before proceeding. As required under Rule 36, BCI Rules & the Advocates Act, 1961.</div>
           </div>
@@ -63,7 +65,7 @@ export default function BCIDisclaimer() {
           <button
             disabled={!checked}
             onClick={accept}
-            style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 700, border: 'none', borderRadius: '10px', cursor: checked ? 'pointer' : 'not-allowed', background: checked ? NAVY : '#E2E8F0', color: checked ? '#fff' : '#94A3B8', transition: 'all .2s', fontFamily: 'inherit' }}
+            style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 700, border: 'none', borderRadius: '10px', cursor: checked ? 'pointer' : 'not-allowed', background: checked ? GRAD : '#E2E8F0', color: checked ? '#fff' : '#94A3B8', transition: 'all .2s', fontFamily: 'inherit' }}
           >
             I Understand — Continue to ClearCase
           </button>

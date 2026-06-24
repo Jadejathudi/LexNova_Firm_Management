@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
+import Logo from '../../components/Logo';
 import { C, TIERS, STEPS, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
@@ -245,7 +246,7 @@ export default function BenchLanding() {
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ color: C.gold, fontSize: 16 }}>⚖</span>
+              <Logo size={18} />
               <span style={{ fontFamily: "'EB Garamond',serif", fontSize: 18, fontWeight: 600, color: C.parchment }}>The Bench</span>
               <span style={{ fontSize: 11, color: C.gray }}>by ClearCase</span>
             </div>

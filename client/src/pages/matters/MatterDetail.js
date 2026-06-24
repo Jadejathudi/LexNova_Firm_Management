@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F4F6FB';
 
 const TYPE_META = {
   corporate:   { label: 'Corporate Law',  color: '#0E7490' },
@@ -13,7 +13,7 @@ const TYPE_META = {
   civil:       { label: 'Civil',           color: '#16A34A' },
   family:      { label: 'Family',          color: '#D97706' },
   real_estate: { label: 'Real Estate',    color: '#78716C' },
-  bench:       { label: 'Bench Session',  color: '#1B2559' },
+  bench:       { label: 'Bench Session',  color: '#1C2A40' },
 };
 
 const INELIGIBLE = ['tax', 'immigration', 'bench'];

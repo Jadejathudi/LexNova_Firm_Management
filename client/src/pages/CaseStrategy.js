@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', GRAY = '#5E6577';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 const PURPLE = '#7C3AED';
 
 const INITIAL_CHECKLIST = [
@@ -44,12 +45,12 @@ export default function CaseStrategy() {
   };
 
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif", background: BG, minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: BG, minHeight: '100vh' }}>
       <PublicNavbar />
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg,#0B1237,#1B2559)', padding: '40px 48px 28px' }}>
-        <h1 style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: '36px', fontWeight: 700, marginBottom: '8px' }}>Your Case Tools</h1>
+      <div style={{ background: '#121C2C', padding: '40px 48px 28px' }}>
+        <h1 style={{ color: '#fff', fontFamily: "'Space Grotesk', sans-serif", fontSize: '36px', fontWeight: 700, marginBottom: '8px' }}>Your Case Tools</h1>
         <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '15px' }}>Prepare your instructions, flag gaps, and stay ahead of every hearing.</p>
       </div>
 
@@ -94,7 +95,7 @@ export default function CaseStrategy() {
             />
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button onClick={addQuestion} style={{ padding: '10px 18px', background: NAVY, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>💾 Save to My Notes</button>
-              <button style={{ padding: '10px 18px', background: GOLD, color: NAVY, border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>📤 Share with Advocate</button>
+              <button style={{ padding: '10px 18px', background: GRAD, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>📤 Share with Advocate</button>
               <button onClick={() => navigate('/intelligence')} style={{ padding: '10px 18px', background: 'transparent', border: `1.5px solid ${NAVY}`, color: NAVY, borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>🤖 Get AI Suggestions</button>
             </div>
           </div>
@@ -179,7 +180,7 @@ export default function CaseStrategy() {
             />
             <div style={{ display: 'flex', gap: '8px' }}>
               <button style={{ flex: 1, padding: '10px', background: NAVY, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Save Private</button>
-              <button style={{ flex: 1, padding: '10px', background: GOLD, color: NAVY, border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Share with Advocate</button>
+              <button style={{ flex: 1, padding: '10px', background: GRAD, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Share with Advocate</button>
             </div>
           </div>
         )}
@@ -218,8 +219,8 @@ export default function CaseStrategy() {
               </div>
             </div>
 
-            <div style={{ marginTop: '16px', background: '#FFF8E8', borderRadius: '10px', padding: '12px 14px', borderLeft: '3px solid #C9A84C' }}>
-              <p style={{ fontSize: '12px', color: '#92400E', lineHeight: 1.6, margin: 0 }}>Documents stored with 256-bit encryption in compliance with DPDP Act 2023. You may request deletion at any time.</p>
+            <div style={{ marginTop: '16px', background: '#EAF1F8', borderRadius: '10px', padding: '12px 14px', borderLeft: '3px solid #3D6FB0' }}>
+              <p style={{ fontSize: '12px', color: '#2A547F', lineHeight: 1.6, margin: 0 }}>Documents stored with 256-bit encryption in compliance with DPDP Act 2023. You may request deletion at any time.</p>
             </div>
 
             <button onClick={() => navigate('/documents')} style={{ marginTop: '14px', padding: '11px 22px', background: NAVY, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Go to Full Evidence Vault →</button>

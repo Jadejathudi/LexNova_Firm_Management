@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>ClearCase Logo Preview — Updated</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Space Grotesk', system-ui, sans-serif; background: #F5F5F1; }
+  h2 { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 20px; }
+  .row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-bottom: 8px; }
+  .label { font-size: 11px; text-align: center; margin-top: 6px; }
+  .chip { display: flex; flex-direction: column; align-items: center; }
+  .dark { background: #121C2C; padding: 32px 36px; border-radius: 16px; margin-bottom: 24px; }
+  .dark h2 { color: rgba(255,255,255,.4); }
+  .dark .label { color: rgba(255,255,255,.3); }
+  .white-card { background: #fff; padding: 32px 36px; border-radius: 16px; border: 1px solid #E2E8F0; margin-bottom: 24px; }
+  .white-card h2 { color: #5E6577; }
+  .white-card .label { color: #5E6577; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 24px; margin-bottom: 6px; color: #1C2A40; }
+  .sub { font-size: 13px; color: #5E6577; margin-bottom: 32px; }
+
+  /* reusable SVG defs */
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ClearCase Logo — Updated Preview</h1>
+  <p class="sub">White outer C · vivid blue-to-teal inner ring · bright aqua checkmark with glow</p>
+
+  <!-- ── NAVBAR SIMULATION ── -->
+  <div class="dark" style="display:flex; align-items:center; gap:12px; padding:18px 32px; border-radius:12px; margin-bottom:24px;">
+    <svg width="28" height="28" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="nav-ic" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/>
+        </linearGradient>
+        <linearGradient id="nav-ck" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/>
+        </linearGradient>
+        <filter id="nav-gw" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+      <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#nav-ic)" stroke-width="7" stroke-linecap="round" filter="url(#nav-gw)"/>
+      <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#nav-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#nav-gw)"/>
+    </svg>
+    <span style="color:#fff; font-size:18px; font-weight:700;">ClearCase</span>
+    <span style="color:rgba(255,255,255,.35); font-size:12px; margin-left:16px;">← Navbar (28px on #121C2C)</span>
+  </div>
+
+  <!-- ── DARK STRIP — multiple sizes ── -->
+  <div class="dark">
+    <h2>On dark background (#121C2C) — all usage sizes</h2>
+    <div class="row">
+
+      <!-- 18px -->
+      <div class="chip">
+        <svg width="18" height="18" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="d18-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="d18-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="d18-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#d18-ic)" stroke-width="7" stroke-linecap="round" filter="url(#d18-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#d18-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#d18-gw)"/>
+        </svg>
+        <span class="label">18px</span>
+      </div>
+
+      <!-- 26px -->
+      <div class="chip">
+        <svg width="26" height="26" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="d26-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="d26-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="d26-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#d26-ic)" stroke-width="7" stroke-linecap="round" filter="url(#d26-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#d26-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#d26-gw)"/>
+        </svg>
+        <span class="label">26px (Navbar)</span>
+      </div>
+
+      <!-- 28px -->
+      <div class="chip">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="d28-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="d28-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="d28-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#d28-ic)" stroke-width="7" stroke-linecap="round" filter="url(#d28-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#d28-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#d28-gw)"/>
+        </svg>
+        <span class="label">28px (PublicNav)</span>
+      </div>
+
+      <!-- 48px -->
+      <div class="chip">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="d48-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="d48-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="d48-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#d48-ic)" stroke-width="7" stroke-linecap="round" filter="url(#d48-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#d48-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#d48-gw)"/>
+        </svg>
+        <span class="label">48px (Login/Reg)</span>
+      </div>
+
+      <!-- 72px -->
+      <div class="chip">
+        <svg width="72" height="72" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="d72-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="d72-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="d72-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#d72-ic)" stroke-width="7" stroke-linecap="round" filter="url(#d72-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#d72-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#d72-gw)"/>
+        </svg>
+        <span class="label">72px</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── WHITE CARD — Login/Register context ── -->
+  <div class="white-card">
+    <h2>On white card (Login / Register page)</h2>
+    <div style="display:flex; align-items:flex-start; gap:40px; flex-wrap:wrap; margin-top:8px;">
+
+      <!-- 48px on white -->
+      <div class="chip">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="w48-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="w48-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="w48-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#w48-ic)" stroke-width="7" stroke-linecap="round" filter="url(#w48-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#w48-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#w48-gw)"/>
+        </svg>
+        <span class="label" style="color:#5E6577;">48px — outer ring fades,<br/>inner CC mark + checkmark visible</span>
+      </div>
+
+      <!-- Login card mockup -->
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:28px 32px; min-width:240px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,.08);">
+        <svg width="56" height="56" viewBox="0 0 100 100" style="display:inline-block;">
+          <defs>
+            <linearGradient id="lc-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+            <linearGradient id="lc-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+            <filter id="lc-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#lc-ic)" stroke-width="7" stroke-linecap="round" filter="url(#lc-gw)"/>
+          <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#lc-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#lc-gw)"/>
+        </svg>
+        <div style="font-size:22px; font-weight:700; color:#1C2A40; margin-top:8px;">ClearCase</div>
+        <div style="font-size:12px; color:#5E6577; margin-top:2px;">Sign in to your account</div>
+        <div style="margin-top:16px; background:#3D6FB0; color:#fff; border-radius:10px; padding:10px; font-size:13px; font-weight:600;">Sign In</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIDE BY SIDE: Before / After ── -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+    <div style="background:#121C2C; padding:28px; border-radius:14px; text-align:center;">
+      <div style="font-size:11px; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px;">BEFORE (old dark logo)</div>
+      <svg width="80" height="80" viewBox="0 0 100 100" style="display:inline-block;">
+        <defs>
+          <linearGradient id="old-oc" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#121C2C"/><stop offset="100%" stop-color="#1C3060"/></linearGradient>
+          <linearGradient id="old-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2A4F85"/><stop offset="55%" stop-color="#3D6FB0"/><stop offset="100%" stop-color="#2E8E86"/></linearGradient>
+          <linearGradient id="old-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#3D6FB0"/><stop offset="100%" stop-color="#2E8E86"/></linearGradient>
+        </defs>
+        <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="url(#old-oc)" stroke-width="9" stroke-linecap="round"/>
+        <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#old-ic)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#old-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div style="font-size:11px; color:rgba(255,255,255,.3); margin-top:10px;">Outer C invisible, inner C too dark</div>
+    </div>
+    <div style="background:#121C2C; padding:28px; border-radius:14px; text-align:center;">
+      <div style="font-size:11px; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px;">AFTER (updated)</div>
+      <svg width="80" height="80" viewBox="0 0 100 100" style="display:inline-block;">
+        <defs>
+          <linearGradient id="new-ic" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BAFF0"/><stop offset="50%" stop-color="#42A0E8"/><stop offset="100%" stop-color="#2ED4C2"/></linearGradient>
+          <linearGradient id="new-ck" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#62C8FF"/><stop offset="100%" stop-color="#2EE0CC"/></linearGradient>
+          <filter id="new-gw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <path d="M 84.8,75.3 A 43,43 0 1,1 84.8,24.7" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="9" stroke-linecap="round"/>
+        <path d="M 71.8,65.9 A 27,27 0 1,1 71.8,34.1" fill="none" stroke="url(#new-ic)" stroke-width="7" stroke-linecap="round" filter="url(#new-gw)"/>
+        <path d="M 33,54 L 44,64 L 67,38" fill="none" stroke="url(#new-ck)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#new-gw)"/>
+      </svg>
+      <div style="font-size:11px; color:rgba(255,255,255,.45); margin-top:10px;">White outer C · vivid inner ring · bright glow</div>
+    </div>
+  </div>
+
+  <p style="font-size:12px; color:#5E6577; text-align:center; padding:16px 20px; background:#EAF1F8; border-radius:10px; line-height:1.7;">
+    ✅ Build validated · Logo.js updated · All 6 usage sites (Navbar, PublicNavbar, BenchNav, BenchLanding, Login, Register) updated automatically
+  </p>
+</div>
+</body>
+</html>

@@ -73,7 +73,7 @@ export default function DocumentVault() {
     <div className="doc-vault page-with-nav" style={{ maxWidth: 800, margin: '0 auto', padding: '20px 16px 80px' }}>
       <button className="back-btn" onClick={() => window.history.back()}>← Back</button>
 
-      <h2 style={{ color: '#0A1628', marginBottom: 4, fontSize: 22, fontWeight: 700 }}>📄 Document Vault</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 4, fontSize: 22, fontWeight: 700 }}>📄 Document Vault</h2>
       <p style={{ fontSize: 12, color: '#94A3B8', marginBottom: 20 }}>
         🔒 All documents stored securely on Vercel Blob · {documents.length} file{documents.length !== 1 ? 's' : ''}
       </p>
@@ -81,14 +81,14 @@ export default function DocumentVault() {
       {/* Upload panel — advocates / managing partners only */}
       {canManage && (
         <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '20px', marginBottom: 24 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#1B2559', marginBottom: 14 }}>Upload New Document</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#1C2A40', marginBottom: 14 }}>Upload New Document</div>
 
           <div className="form-group" style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>Select Matter *</label>
             <select
               value={uploadMatter}
               onChange={e => setUploadMatter(e.target.value)}
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: 13, color: '#1B2559' }}
+              style={{ width: '100%', padding: '9px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: 13, color: '#1C2A40' }}
             >
               <option value="">— Choose a matter —</option>
               {matters.map(m => (
@@ -100,7 +100,7 @@ export default function DocumentVault() {
           {uploadMatter && (
             <div
               style={{
-                border: `2px dashed ${isDragging ? '#C9A84C' : '#CBD5E1'}`,
+                border: `2px dashed ${isDragging ? '#3D6FB0' : '#CBD5E1'}`,
                 borderRadius: 10,
                 padding: '24px 16px',
                 textAlign: 'center',
@@ -127,13 +127,13 @@ export default function DocumentVault() {
               {uploading ? (
                 <>
                   <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Uploading…</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40' }}>Uploading…</div>
                   <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Please wait</div>
                 </>
               ) : (
                 <>
                   <div style={{ fontSize: 28, marginBottom: 8 }}>☁️</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Click or drag & drop a file</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40' }}>Click or drag & drop a file</div>
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
                     {['PDF', 'DOCX', 'JPG', 'PNG'].map(t => (
                       <span key={t} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#E2E8F0', color: '#475569', fontWeight: 600 }}>{t}</span>
@@ -168,7 +168,7 @@ export default function DocumentVault() {
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: 'pointer',
-                background: filter === mn ? '#1B2559' : '#E2E8F0',
+                background: filter === mn ? '#1C2A40' : '#E2E8F0',
                 color: filter === mn ? '#FFF' : '#475569',
               }}
             >
@@ -195,7 +195,7 @@ export default function DocumentVault() {
           >
             <div style={{ fontSize: 26, flexShrink: 0 }}>{icon}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: '#1B2559', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontWeight: 600, fontSize: 14, color: '#1C2A40', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {d.filename}
               </div>
               <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>
@@ -210,7 +210,7 @@ export default function DocumentVault() {
                   href={d.stored_path}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  style={{ padding: '6px 14px', background: '#1C2A40', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
                 >
                   Open ↗
                 </a>

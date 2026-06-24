@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B', WHITE = '#FFFFFF';
-const GREEN = '#15803D', GREEN_BG = '#DCFCE7', AMBER = '#92400E', AMBER_BG = '#FFF8E8';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', GRAY = '#5E6577', WHITE = '#FFFFFF';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
+const GREEN = '#2F8F5B', GREEN_BG = '#E7F3EC', AMBER = '#92400E', AMBER_BG = '#FFF8E8';
+const INFO = '#2A547F', INFO_BG = '#EAF1F8';
 
 const SPEC_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Family: '#7C3AED', Corporate: '#0F766E', Banking: '#0369A1', 'Real Estate': '#C2410C', Consumer: '#0E7490', Revenue: '#92400E', Arbitration: '#6D28D9' };
 
@@ -43,9 +45,9 @@ function AdvocateCard({ advocate, onViewProfile, onBook }) {
   return (
     <div style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '22px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', gap: '13px', alignItems: 'flex-start', marginBottom: '14px' }}>
-        <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: GOLD, fontSize: '16px', fontWeight: 800 }}>{initials}</div>
+        <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: '16px', fontWeight: 800 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 700, color: NAVY, lineHeight: 1.2 }}>{name}</div>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '17px', fontWeight: 700, color: NAVY, lineHeight: 1.2 }}>{name}</div>
           <div style={{ fontSize: '12px', color: GRAY, marginTop: '3px' }}>{advocate.city} · {advocate.state} · {yrs} yrs at Bar</div>
           <div style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'monospace', marginTop: '2px' }}>{barNo}</div>
         </div>
@@ -60,7 +62,7 @@ function AdvocateCard({ advocate, onViewProfile, onBook }) {
       <div style={{ fontSize: '12px', color: GRAY, marginBottom: '14px' }}>🗣 {langs.join(' · ') || 'English'}</div>
       <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
         <button onClick={() => onViewProfile(advocate)} style={{ flex: 1, padding: '9px 8px', fontSize: '13px', background: 'transparent', border: `1.5px solid ${NAVY}`, borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>View Profile</button>
-        <button onClick={() => onBook(advocate)} style={{ flex: 1, padding: '9px 8px', fontSize: '13px', background: GOLD, border: 'none', borderRadius: '9px', color: NAVY, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Schedule Appointment</button>
+        <button onClick={() => onBook(advocate)} style={{ flex: 1, padding: '9px 8px', fontSize: '13px', background: GRAD, border: 'none', borderRadius: '9px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Schedule Appointment</button>
       </div>
     </div>
   );
@@ -92,13 +94,13 @@ export default function AdvocatesList() {
   const allSpecs = CANONICAL_SPECS.filter(s => presentSpecs.has(s));
 
   return (
-    <div style={{ background: BG, minHeight: '100vh', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <PublicNavbar />
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg,#0B1237,#1B2559)', padding: '32px 48px 24px' }}>
+      <div style={{ background: '#121C2C', padding: '32px 48px 24px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <h1 style={{ color: '#fff', fontSize: '30px', fontWeight: 700, marginBottom: '6px', fontFamily: 'Georgia, serif' }}>Advocate Directory</h1>
+          <h1 style={{ color: '#fff', fontSize: '30px', fontWeight: 700, marginBottom: '6px', fontFamily: "'Space Grotesk', sans-serif" }}>Advocate Directory</h1>
           <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '14px', marginBottom: '4px' }}>Bar Council enrolled advocates in Telangana & Andhra Pradesh</p>
           <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '12px', fontStyle: 'italic', marginBottom: '20px' }}>ClearCase does not rank or recommend advocates. Listings are informational only.</p>
 
@@ -130,8 +132,8 @@ export default function AdvocatesList() {
       {/* Content */}
       <div style={{ padding: '28px 48px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ background: AMBER_BG, borderLeft: '3px solid #C9A84C', borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '20px', maxWidth: '800px' }}>
-            <p style={{ fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>All information is self-declared by each advocate. ClearCase independently verifies Bar Council enrollment numbers only.</p>
+          <div style={{ background: INFO_BG, borderLeft: `3px solid ${GOLD}`, borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '20px', maxWidth: '800px' }}>
+            <p style={{ fontSize: '12px', color: INFO, lineHeight: 1.6 }}>All information is self-declared by each advocate. ClearCase independently verifies Bar Council enrollment numbers only.</p>
           </div>
 
           <p style={{ color: GRAY, fontSize: '14px', marginBottom: '20px' }}>{loading ? 'Loading...' : `${advocates.length} advocate${advocates.length !== 1 ? 's' : ''} listed`}</p>

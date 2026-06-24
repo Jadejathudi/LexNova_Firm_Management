@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#1B2559', GRAY = '#64748B', BG = '#F4F6FB';
+const NAVY = '#1C2A40', GRAY = '#5E6577', BG = '#F5F5F1';
 
 const sections = [
   ['Nature of Platform', 'ClearCase (clearcase.in) is a technology platform. It is not a law firm and does not practice law, provide legal advice, or represent clients in any capacity.'],
@@ -17,12 +17,12 @@ const sections = [
 export default function CompliancePage() {
   const navigate = useNavigate();
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <PublicNavbar />
       <div style={{ background: BG, minHeight: '100vh', padding: '44px 48px' }}>
         <div style={{ maxWidth: '760px', margin: '0 auto' }}>
           <div onClick={() => navigate(-1)} style={{ color: GRAY, fontSize: '14px', cursor: 'pointer', marginBottom: '22px' }}>← Back</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '34px', color: NAVY, marginBottom: '8px' }}>Compliance & Disclaimer</h1>
+          <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '34px', color: NAVY, marginBottom: '8px' }}>Compliance & Disclaimer</h1>
           <p style={{ color: GRAY, fontSize: '14px', marginBottom: '28px' }}>As required under the Advocates Act 1961, BCI Rules, and DPDP Act 2023.</p>
           {sections.map(([h, t]) => (
             <div key={h} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '22px', marginBottom: '12px' }}>

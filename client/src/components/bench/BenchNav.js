@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { C } from '../../pages/bench/benchConstants';
+import Logo from '../Logo';
 
 const NAV_LINKS = [
   { label: 'Directory',    path: '/bench/directory' },
@@ -45,7 +46,7 @@ export default function BenchNav() {
     }}>
       {/* Logo */}
       <span onClick={() => navigate('/bench')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ color: C.gold, fontSize: 20 }}>⚖</span>
+        <Logo size={26} />
         <div>
           <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, lineHeight: 1 }}>The Bench</div>
           <div style={{ fontSize: 9, color: C.gray, letterSpacing: '.14em', textTransform: 'uppercase' }}>by ClearCase</div>

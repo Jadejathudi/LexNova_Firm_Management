@@ -44,7 +44,7 @@ function StatCard({ label, value, sub }) {
   return (
     <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 8, padding: '18px 22px' }}>
       <div style={{ fontSize: 13, color: '#64748B', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: '#0A1628' }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 700, color: '#1C2A40' }}>{value}</div>
       {sub && <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>{sub}</div>}
     </div>
   );
@@ -118,7 +118,7 @@ export default function CRMBench() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#0A1628', marginBottom: 4 }}>The Bench — Admin</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1C2A40', marginBottom: 4 }}>The Bench — Admin</h2>
         <p style={{ fontSize: 14, color: '#64748B' }}>Manage judicial consultation bookings and judge availability.</p>
       </div>
 
@@ -142,8 +142,8 @@ export default function CRMBench() {
         {[['bookings', '📅 Bookings'], ['judges', '⚖ Judges']].map(([key, label]) => (
           <button key={key} onClick={() => setActiveTab(key)} style={{
             padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none',
-            background: 'transparent', borderBottom: `2px solid ${activeTab === key ? '#C9A84C' : 'transparent'}`,
-            color: activeTab === key ? '#C9A84C' : '#64748B', marginBottom: -2, fontFamily: 'inherit',
+            background: 'transparent', borderBottom: `2px solid ${activeTab === key ? '#3D6FB0' : 'transparent'}`,
+            color: activeTab === key ? '#3D6FB0' : '#64748B', marginBottom: -2, fontFamily: 'inherit',
           }}>{label}</button>
         ))}
       </div>
@@ -156,9 +156,9 @@ export default function CRMBench() {
             {STATUS_OPTS.map(s => (
               <button key={s} onClick={() => handleFilterChange(s)} style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                border: `1.5px solid ${statusFilter === s ? '#C9A84C' : '#E2E8F0'}`,
+                border: `1.5px solid ${statusFilter === s ? '#3D6FB0' : '#E2E8F0'}`,
                 background: statusFilter === s ? 'rgba(201,168,76,.1)' : 'white',
-                color: statusFilter === s ? '#C9A84C' : '#64748B', fontFamily: 'inherit',
+                color: statusFilter === s ? '#3D6FB0' : '#64748B', fontFamily: 'inherit',
               }}>
                 {s === 'all' ? 'All' : STATUS_LABELS[s]}
               </button>
@@ -178,14 +178,14 @@ export default function CRMBench() {
                   <div key={b.booking_id} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
                     {/* Header row */}
                     <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: '1px solid #F1F5F9' }}>
-                      <div style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: '#C9A84C', background: 'rgba(201,168,76,.08)', padding: '3px 8px', borderRadius: 4 }}>{b.booking_ref}</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: '#3D6FB0', background: 'rgba(201,168,76,.08)', padding: '3px 8px', borderRadius: 4 }}>{b.booking_ref}</div>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 3, background: sm.bg, color: sm.color }}>{STATUS_LABELS[b.status] || b.status}</span>
                       <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: '#0A1628' }}>{b.guest_name || 'Registered User'}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40' }}>{b.guest_name || 'Registered User'}</span>
                         {b.guest_phone && <span style={{ fontSize: 12, color: '#64748B', marginLeft: 10 }}>📞 {b.guest_phone}</span>}
                       </div>
                       <button onClick={() => isEditing ? setEditingId(null) : openEdit(b)} style={{
-                        background: isEditing ? '#F1F5F9' : '#0A1628', color: isEditing ? '#64748B' : 'white',
+                        background: isEditing ? '#F1F5F9' : '#1C2A40', color: isEditing ? '#64748B' : 'white',
                         border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                       }}>{isEditing ? 'Cancel' : 'Update'}</button>
                     </div>
@@ -238,7 +238,7 @@ export default function CRMBench() {
                           </div>
                         </div>
                         <button onClick={saveEdit} disabled={saving} style={{
-                          background: saving ? '#CBD5E1' : '#C9A84C', color: '#0A1628', border: 'none', borderRadius: 6,
+                          background: saving ? '#CBD5E1' : '#3D6FB0', color: '#1C2A40', border: 'none', borderRadius: 6,
                           padding: '9px 22px', fontSize: 13, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         }}>{saving ? 'Saving…' : 'Save Changes'}</button>
                       </div>
@@ -264,7 +264,7 @@ export default function CRMBench() {
                     {j.initials}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0A1628', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3, background: `${t.color}18`, color: t.color }}>{t.badge}</span>
                   </div>
                 </div>
@@ -281,13 +281,13 @@ export default function CRMBench() {
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#C9A84C' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0' }}>
                       {j.slots_left === 0 ? 'Fully Booked' : `${j.slots_left} / ${j.total_slots} slots available`}
                     </span>
                     <span style={{ fontSize: 11, color: '#94A3B8' }}>{j.slots_booked} booked</span>
                   </div>
                   <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#C9A84C', borderRadius: 2 }} />
+                    <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0', borderRadius: 2 }} />
                   </div>
                 </div>
               </div>

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '../components/PublicNavbar';
 import { api } from '../utils/api';
 
-const GOLD = '#C9A84C', NAVY = '#1B2559';
+const GOLD = '#3D6FB0', NAVY = '#1C2A40';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 
 function fmt(s) {
   return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
@@ -11,7 +12,7 @@ function fmt(s) {
 
 function Avatar({ initials, size = 46 }) {
   return (
-    <div style={{ width: size, height: size, borderRadius: size / 2, background: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: GOLD, fontSize: Math.round(size * .32), fontWeight: 800 }}>
+    <div style={{ width: size, height: size, borderRadius: size / 2, background: '#2F8F5B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: Math.round(size * .32), fontWeight: 800 }}>
       {initials}
     </div>
   );
@@ -46,12 +47,12 @@ export default function UrgentHelp() {
   const isUrgent = secs < 120;
 
   if (step === 'refund') return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <PublicNavbar />
       <div style={{ minHeight: '90vh', background: '#0D0D0D', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
         <div style={{ maxWidth: '460px', width: '100%', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '18px' }}>💔</div>
-          <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>We were unable to connect you in time.</h2>
+          <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>We were unable to connect you in time.</h2>
           <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '14px', marginBottom: '26px', lineHeight: 1.7 }}>The ₹1,999 platform facilitation fee has been automatically refunded.</p>
           <div style={{ background: 'rgba(220,38,38,.1)', border: '1px solid rgba(220,38,38,.3)', borderRadius: '14px', padding: '22px', marginBottom: '22px' }}>
             <div style={{ color: '#FCA5A5', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>REFUND INITIATED</div>
@@ -65,12 +66,12 @@ export default function UrgentHelp() {
   );
 
   if (step === 'connected') return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <PublicNavbar />
       <div style={{ minHeight: '90vh', background: '#0D1A0D', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
         <div style={{ maxWidth: '460px', width: '100%', textAlign: 'center' }}>
           <div style={{ fontSize: '46px', marginBottom: '16px' }}>✅</div>
-          <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>Connection facilitated.</h2>
+          <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>Connection facilitated.</h2>
           <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '13px', marginBottom: '22px', lineHeight: 1.7 }}>The advocate's contact details are below. Call directly from your phone.</p>
           <div style={{ background: 'rgba(21,128,61,.15)', border: '1px solid rgba(21,128,61,.4)', borderRadius: '14px', padding: '26px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
@@ -78,7 +79,7 @@ export default function UrgentHelp() {
             </div>
             <div style={{ color: '#fff', fontSize: '16px', fontWeight: 700 }}>{advName}</div>
             <div style={{ color: 'rgba(255,255,255,.45)', fontSize: '12px', marginTop: '3px' }}>{adv.bar_number} · {adv.city}</div>
-            <div style={{ color: '#86EFAC', fontSize: '28px', fontWeight: 800, fontFamily: 'Georgia, serif', margin: '14px 0' }}>+91 98765 43210</div>
+            <div style={{ color: '#86EFAC', fontSize: '28px', fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", margin: '14px 0' }}>+91 98765 43210</div>
             <a href="tel:+919876543210" style={{ display: 'block', background: '#15803D', color: '#fff', textDecoration: 'none', borderRadius: '10px', padding: '13px', fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>📞 Tap to Call</a>
             <div style={{ color: 'rgba(255,255,255,.3)', fontSize: '11px' }}>Opens native phone dialler</div>
           </div>
@@ -93,7 +94,7 @@ export default function UrgentHelp() {
   );
 
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <PublicNavbar />
       <div style={{ minHeight: '90vh', background: '#0D0D0D', padding: '36px 20px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
@@ -103,7 +104,7 @@ export default function UrgentHelp() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(220,38,38,.15)', border: '1px solid rgba(220,38,38,.4)', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
               <span style={{ color: '#FCA5A5', fontSize: '13px', fontWeight: 700 }}>🚨 URGENT ASSISTANCE</span>
             </div>
-            <h1 style={{ color: '#fff', fontSize: '26px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '8px' }}>Connect with an On-Call Advocate</h1>
+            <h1 style={{ color: '#fff', fontSize: '26px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '8px' }}>Connect with an On-Call Advocate</h1>
             <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '13px', lineHeight: 1.7 }}>Platform facilitation fee: ₹1,999. Auto-refunded if connection not made within 9 minutes.</p>
           </div>
 

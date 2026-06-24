@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0';
 
 const TYPE_BADGE = {
   corporate: '#0E7490', tax: '#7C3AED', immigration: '#0369A1',
   criminal: '#DC2626', civil: '#16A34A', family: '#D97706',
-  real_estate: '#78716C', bench: '#1B2559',
+  real_estate: '#78716C', bench: '#1C2A40',
 };
 const TYPE_LABEL = {
   corporate: 'Corporate', tax: 'Income Tax', immigration: 'Immigration',

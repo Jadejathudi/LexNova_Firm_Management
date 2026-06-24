@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F4F6FB';
 
 const TYPE_META = {
   corporate:   { label: 'Corporate Law',  color: '#0E7490', icon: '🏢' },
@@ -13,7 +13,7 @@ const TYPE_META = {
   civil:       { label: 'Civil',           color: '#16A34A', icon: '📋' },
   family:      { label: 'Family',          color: '#D97706', icon: '👨‍👩‍👧' },
   real_estate: { label: 'Real Estate',    color: '#78716C', icon: '🏠' },
-  bench:       { label: 'Bench Session',  color: '#1B2559', icon: '⚖'  },
+  bench:       { label: 'Bench Session',  color: '#1C2A40', icon: '⚖'  },
 };
 
 const STATUS_META = {
@@ -54,7 +54,7 @@ export default function MattersList() {
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '28px 20px' }} className="page-with-nav">
       <div className="page-header">
         <div>
-          <h2 style={{ color: NAVY, margin: 0, fontSize: 22, fontFamily: 'Georgia, serif' }}>
+          <h2 style={{ color: NAVY, margin: 0, fontSize: 22, fontFamily: "'Space Grotesk', sans-serif" }}>
             {advocate ? 'Consultation Matters' : 'My Matters'}
           </h2>
           <p style={{ color: '#64748B', fontSize: 13, margin: '4px 0 0' }}>

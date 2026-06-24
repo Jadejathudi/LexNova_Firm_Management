@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const NAVY = '#1B2559', GOLD = '#C9A84C', AMBER = '#92400E', AMBER_BG = '#FFF8E8';
+import Logo from './Logo';
 
 const NAV_LINKS = [
   { label: 'Find Advocate', path: '/advocates' },
@@ -29,27 +28,32 @@ export default function PublicNavbar() {
   const isActive = (path) => location.pathname.startsWith(path);
 
   const linkStyle = (path) => ({
-    color: isActive(path) ? GOLD : 'rgba(255,255,255,.72)',
+    color: isActive(path) ? '#fff' : 'rgba(255,255,255,.72)',
     fontSize: '13px', cursor: 'pointer', fontWeight: isActive(path) ? 700 : 500,
-    padding: '6px 10px', borderRadius: 6, transition: 'color .15s',
-    background: isActive(path) ? 'rgba(201,168,76,.1)' : 'transparent',
+    padding: '6px 11px', borderRadius: 8, transition: 'color .15s, background .15s',
+    background: isActive(path) ? 'rgba(61,111,176,.22)' : 'transparent',
     border: 'none', fontFamily: 'inherit',
   });
 
   return (
     <>
       <nav style={{
-        background: NAVY, padding: '0 32px', height: '62px',
+        background: 'rgba(18,28,44,.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        padding: '0 32px', height: '64px',
         display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 200,
-        gap: '4px', boxShadow: '0 2px 16px rgba(0,0,0,.22)',
+        gap: '4px', borderBottom: '1px solid rgba(255,255,255,.07)',
       }}>
         {/* Brand */}
         <button onClick={() => navigate('/')} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#fff', fontFamily: 'Georgia, serif', fontSize: '20px',
-          fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', padding: 0, marginRight: 12,
+          color: '#fff', fontFamily: "'Space Grotesk', sans-serif", fontSize: '18px',
+          fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px',
+          padding: 0, marginRight: 12, letterSpacing: '.01em',
         }}>
-          ⚖ ClearCase
+          <Logo size={28} />
+          ClearCase
         </button>
 
         {/* Desktop nav links */}
@@ -70,22 +74,30 @@ export default function PublicNavbar() {
         {/* Right CTA buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <button onClick={() => navigate('/urgent')} style={{
-            background: '#DC2626', color: '#fff', border: 'none', borderRadius: '8px',
+            background: '#C2453D', color: '#fff', border: 'none', borderRadius: '9px',
             padding: '8px 14px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-          }}>
+            transition: 'background .15s',
+          }}
+            onMouseOver={e => e.currentTarget.style.background = '#aa3c35'}
+            onMouseOut={e => e.currentTarget.style.background = '#C2453D'}
+          >
             🚨 Urgent Help
           </button>
           {user ? (
             <button onClick={() => navigate(dashPath)} style={{
-              background: GOLD, color: NAVY, border: 'none', borderRadius: '8px',
+              background: 'linear-gradient(135deg, #3D6FB0, #2E8E86)',
+              color: '#fff', border: 'none', borderRadius: '9px',
               padding: '8px 16px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 8px 20px -8px rgba(61,111,176,.4)',
             }}>
               Dashboard →
             </button>
           ) : (
             <button onClick={() => navigate('/register')} style={{
-              background: GOLD, color: NAVY, border: 'none', borderRadius: '8px',
+              background: 'linear-gradient(135deg, #3D6FB0, #2E8E86)',
+              color: '#fff', border: 'none', borderRadius: '9px',
               padding: '8px 16px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 8px 20px -8px rgba(61,111,176,.4)',
             }}>
               Get Started
             </button>
@@ -109,7 +121,7 @@ export default function PublicNavbar() {
       {/* Mobile drawer */}
       {menuOpen && (
         <div style={{
-          position: 'fixed', top: 62, left: 0, right: 0, background: '#0A1628', zIndex: 190,
+          position: 'fixed', top: 64, left: 0, right: 0, background: '#121C2C', zIndex: 190,
           display: 'flex', flexDirection: 'column', padding: '8px 0',
           borderBottom: '1px solid rgba(255,255,255,.1)', boxShadow: '0 8px 24px rgba(0,0,0,.3)',
         }}>
@@ -124,7 +136,7 @@ export default function PublicNavbar() {
           ))}
           {user && (
             <button onClick={() => { navigate(dashPath); setMenuOpen(false); }} style={{
-              background: 'none', border: 'none', color: GOLD,
+              background: 'none', border: 'none', color: '#7FBDE8',
               textAlign: 'left', padding: '13px 28px', fontSize: '15px', fontWeight: 600,
               cursor: 'pointer', fontFamily: 'inherit',
             }}>
@@ -135,19 +147,19 @@ export default function PublicNavbar() {
       )}
 
       {/* Compliance banner */}
-      <div style={{ background: AMBER_BG, borderBottom: '1px solid #FDE68A', padding: '6px 32px' }}>
-        <p style={{ fontSize: '12px', color: AMBER, maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ background: '#EAF1F8', borderBottom: '1px solid rgba(42,84,127,.14)', padding: '7px 32px' }}>
+        <p style={{ fontSize: '11.5px', color: '#2A547F', maxWidth: '1160px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.4 }}>
           ⚖ ClearCase is a legal technology platform, not a law firm. Advocates are independently enrolled with Bar Councils.{' '}
           <button onClick={() => navigate('/compliance')} style={{
             background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer',
-            fontWeight: 600, color: AMBER, fontSize: '12px', fontFamily: 'inherit', padding: 0,
+            fontWeight: 600, color: '#2A547F', fontSize: '11.5px', fontFamily: 'inherit', padding: 0,
           }}>
             View full compliance notice
           </button>
         </p>
       </div>
 
-      {/* Responsive style for mobile hamburger visibility */}
+      {/* Responsive style for mobile */}
       <style>{`
         @media (max-width: 640px) {
           .public-nav-links { display: none !important; }

@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
-const NAVY = '#0A1628';
+const NAVY = '#1C2A40';
 const WHITE = '#FFFFFF';
 const BG = '#F8FAFC';
 const GRAY = '#64748B';
-const GOLD = '#C9A84C';
+const GOLD = '#3D6FB0';
 
 export default function ConsultationDetails() {
   const { id } = useParams();

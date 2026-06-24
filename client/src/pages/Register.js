@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -34,21 +35,21 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg, #0A1628 0%, #1A2A44 100%)' }}>
-      <div style={{ background: 'white', borderRadius: 16, padding: 40, width: '100%', maxWidth: 420 }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#121C2C', padding: '40px 20px' }}>
+      <div style={{ background: 'white', borderRadius: 24, padding: 40, width: '100%', maxWidth: 420, boxShadow: '0 24px 48px rgba(0,0,0,.28)' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 36 }}>⚖️</div>
-          <h1 style={{ fontSize: 24, color: '#0A1628', marginTop: 8 }}>Create Account</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>Join ClearCase to manage your legal matters</p>
+          <Logo size={48} variant="light" style={{ display: 'inline-block' }} />
+          <h1 style={{ fontSize: 24, color: '#1C2A40', marginTop: 8, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700 }}>Create Account</h1>
+          <p style={{ color: '#5E6577', fontSize: 14, marginTop: 4 }}>Join ClearCase to manage your legal matters</p>
         </div>
 
         {message && (
-          <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400E', fontWeight: 600 }}>
+          <div style={{ background: '#FAF0DF', border: '1px solid rgba(176,127,42,.3)', borderRadius: 11, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#7A5A1A', fontWeight: 600 }}>
             🔒 {message}
           </div>
         )}
         {from && !message && (
-          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#1D4ED8' }}>
+          <div style={{ background: '#EAF1F8', border: '1px solid rgba(42,84,127,.2)', borderRadius: 11, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#2A547F' }}>
             Sign up to continue — you'll be taken back to where you left off.
           </div>
         )}
@@ -77,15 +78,15 @@ export default function Register() {
             <label>Confirm Password *</label>
             <input type="password" placeholder="Confirm your password" value={form.confirm} onChange={e => update('confirm', e.target.value)} required />
           </div>
-          <button className="btn btn-navy btn-full" type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Account'}
+          <button className="btn btn-primary btn-full" type="submit" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Account →'}
           </button>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <p style={{ fontSize: 14, color: '#64748B' }}>
+          <p style={{ fontSize: 14, color: '#5E6577' }}>
             Already have an account?{' '}
-            <Link to="/login" state={from ? { from, message } : undefined}>Sign In</Link>
+            <Link to="/login" style={{ color: '#2A4F85', fontWeight: 600 }} state={from ? { from, message } : undefined}>Sign In</Link>
           </p>
         </div>
       </div>

@@ -83,11 +83,11 @@ export default function Dashboard() {
             };
             const sc = statusColors[session.status] || { bg: '#F1F5F9', color: '#334155' };
             return (
-              <div key={session.session_id} style={{ background: '#FFFFFF', border: '2px solid #E2E8F0', borderLeft: '4px solid #C9A84C', borderRadius: '12px', padding: '18px 20px', marginBottom: '14px' }}>
+              <div key={session.session_id} style={{ background: '#FFFFFF', border: '2px solid #E2E8F0', borderLeft: '4px solid #3D6FB0', borderRadius: '12px', padding: '18px 20px', marginBottom: '14px' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1B2559' }}>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1C2A40' }}>
                       {modeIcon} {session.advocate_name || 'Advocate'}
                     </div>
                     {session.advocate_bar_number && (
@@ -102,8 +102,8 @@ export default function Dashboard() {
 
                 {/* Date & Time */}
                 <div style={{ background: '#F8FAFC', borderRadius: '9px', padding: '12px 14px', marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
-                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>DATE</span><span style={{ fontWeight: 600, color: '#1B2559' }}>{formatDate(session.scheduled_date)}</span></div>
-                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>TIME</span><span style={{ fontWeight: 600, color: '#1B2559' }}>{formatTime12h(session.scheduled_time)} · {session.duration_minutes} min</span></div>
+                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>DATE</span><span style={{ fontWeight: 600, color: '#1C2A40' }}>{formatDate(session.scheduled_date)}</span></div>
+                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>TIME</span><span style={{ fontWeight: 600, color: '#1C2A40' }}>{formatTime12h(session.scheduled_time)} · {session.duration_minutes} min</span></div>
                 </div>
 
                 {/* Mode-specific join/contact block */}
@@ -187,7 +187,7 @@ export default function Dashboard() {
             <div key={cr.request_id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '16px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#1B2559' }}>🎯 {cr.advocate_name}</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#1C2A40' }}>🎯 {cr.advocate_name}</div>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>{cr.advocate_location}</div>
                 </div>
                 <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '20px', background: '#FEF3C7', color: '#92400E' }}>AWAITING CONFIRMATION</span>
@@ -209,7 +209,7 @@ export default function Dashboard() {
         <>
           <h3>📁 My Matters</h3>
           {lightMatters.map(m => {
-            const typeColors = { bench: '#1B2559', corporate: '#0E7490', tax: '#7C3AED', immigration: '#0369A1', criminal: '#DC2626', civil: '#16A34A', family: '#D97706', real_estate: '#78716C' };
+            const typeColors = { bench: '#1C2A40', corporate: '#0E7490', tax: '#7C3AED', immigration: '#0369A1', criminal: '#DC2626', civil: '#16A34A', family: '#D97706', real_estate: '#78716C' };
             const typeLabels = { bench: 'Bench Session', corporate: 'Corporate', tax: 'Income Tax', immigration: 'Immigration', criminal: 'Criminal', civil: 'Civil', family: 'Family', real_estate: 'Real Estate' };
             const col = typeColors[m.matter_type] || '#64748B';
             return (
@@ -217,7 +217,7 @@ export default function Dashboard() {
                 style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: `4px solid ${col}`, borderRadius: '12px', padding: '14px 18px', marginBottom: '10px', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1B2559', marginBottom: '3px' }}>{m.title}</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1C2A40', marginBottom: '3px' }}>{m.title}</div>
                     <div style={{ fontSize: '12px', color: '#64748B' }}>
                       <span style={{ background: col + '18', color: col, padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600, marginRight: 8 }}>{typeLabels[m.matter_type] || m.matter_type}</span>
                       {m.advocate_name && `Advocate: ${m.advocate_name} · `}
@@ -230,7 +230,7 @@ export default function Dashboard() {
             );
           })}
           <div style={{ marginBottom: '8px' }}>
-            <button onClick={() => navigate('/matters')} style={{ background: 'transparent', border: '1.5px solid #1B2559', borderRadius: '8px', color: '#1B2559', padding: '7px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={() => navigate('/matters')} style={{ background: 'transparent', border: '1.5px solid #1C2A40', borderRadius: '8px', color: '#1C2A40', padding: '7px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
               View All Matters →
             </button>
           </div>

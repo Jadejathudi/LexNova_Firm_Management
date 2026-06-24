@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../utils/api';
+import Logo from '../components/Logo';
 
-const NAVY = '#0A1628';
-const GOLD = '#C9A84C';
-const BG = '#F8FAFC';
+const NAVY = '#1C2A40';
+const GOLD = '#3D6FB0';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
+const BG = '#F5F5F1';
 const WHITE = '#FFFFFF';
-const GRAY = '#64748B';
+const GRAY = '#5E6577';
 
 const SPEC_COLORS = {
   Criminal: '#B91C1C',
@@ -120,8 +122,9 @@ export default function AdvocateProfile() {
   return (
     <div style={{ background: BG, minHeight: '100vh' }}>
       <div style={{ background: NAVY, padding: '0 48px', height: '60px', display: 'flex', alignItems: 'center', gap: '32px' }}>
-        <span onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: 'Georgia, serif' }}>
-          ⚖️ CLEAR CASE
+        <span onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif" }}>
+          <Logo size={22} />
+          ClearCase
         </span>
         <div style={{ flex: 1 }} />
         <span onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', cursor: 'pointer' }}>Find an Advocate</span>
@@ -135,7 +138,7 @@ export default function AdvocateProfile() {
             {initials}
           </div>
           <div>
-            <h1 style={{ color: WHITE, fontSize: '28px', fontWeight: 800, fontFamily: 'Georgia, serif', marginBottom: '4px' }}>{displayName}</h1>
+            <h1 style={{ color: WHITE, fontSize: '28px', fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '4px' }}>{displayName}</h1>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>{a.experience_years} years experience • {a.city}, {a.state}</p>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
@@ -148,7 +151,7 @@ export default function AdvocateProfile() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 48px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div style={{ background: WHITE, borderRadius: '14px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>About</h3>
+            <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>About</h3>
             <p style={{ color: GRAY, fontSize: '14px', lineHeight: '1.8' }}>{a.bio}</p>
             <div style={{ display: 'flex', gap: '22px', marginTop: '18px', paddingTop: '18px', borderTop: '1px solid #F3F4F6' }}>
               <div>
@@ -167,7 +170,7 @@ export default function AdvocateProfile() {
           </div>
 
           <div style={{ background: WHITE, borderRadius: '14px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>Credentials</h3>
+            <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>Credentials</h3>
             <div style={{ fontSize: '13px', color: GRAY, marginBottom: '8px' }}>🏛 Bar No: {a.bar_number || 'N/A'}</div>
             <div style={{ fontSize: '13px', color: GRAY, marginBottom: '14px' }}>🗣 {(a.languages || []).join(' · ') || 'English'}</div>
             <div style={{ padding: '12px', background: '#F3F4F6', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -178,7 +181,7 @@ export default function AdvocateProfile() {
 
           {(a.specializations || a.specs || []).length > 0 && (
             <div style={{ background: WHITE, borderRadius: '14px', padding: '24px', border: '1px solid #E5E7EB' }}>
-              <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>Practice Areas</h3>
+              <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>Practice Areas</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {(a.specializations || a.specs || []).map((spec) => <SpecBadge key={spec} spec={spec} />)}
               </div>
@@ -187,7 +190,7 @@ export default function AdvocateProfile() {
 
           {(a.reviews || []).length > 0 && (
             <div style={{ background: WHITE, borderRadius: '14px', padding: '24px', border: '1px solid #E5E7EB' }}>
-              <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: 'Georgia, serif', marginBottom: '12px' }}>Client Reviews</h3>
+              <h3 style={{ color: NAVY, fontSize: '16px', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '12px' }}>Client Reviews</h3>
               {(a.reviews || []).slice(0, 3).map((review) => (
                 <div key={review.review_id || review.client_name} style={{ marginBottom: '18px' }}>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: NAVY }}>{review.client_name}</div>

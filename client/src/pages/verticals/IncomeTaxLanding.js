@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 import PublicNavbar from '../../components/PublicNavbar';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', PURPLE = '#7C3AED';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', PURPLE = '#7C3AED';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 
 const MATTERS = [
   'Section 143(2) scrutiny assessment notice',
@@ -49,12 +50,12 @@ export default function IncomeTaxLanding() {
         {/* Hero */}
         <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #4C1D95 100%)`, color: '#fff', padding: '72px 40px 60px', textAlign: 'center' }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>₹</div>
-          <h1 style={{ fontSize: 42, fontFamily: 'Georgia, serif', margin: '0 0 16px', fontWeight: 700 }}>Got a tax notice? Don't panic. Prepare.</h1>
+          <h1 style={{ fontSize: 42, fontFamily: "'Space Grotesk', sans-serif", margin: '0 0 16px', fontWeight: 700 }}>Got a tax notice? Don't panic. Prepare.</h1>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,.8)', maxWidth: 540, margin: '0 auto 32px', lineHeight: 1.6 }}>
             Experienced income tax advocates to help you respond, appeal, and resolve.
           </p>
           <button onClick={() => document.getElementById('intake-form').scrollIntoView({ behavior: 'smooth' })}
-            style={{ background: GOLD, color: NAVY, border: 'none', borderRadius: 10, padding: '14px 32px',
+            style={{ background: 'rgba(255,255,255,.15)', color: '#fff', border: '1px solid rgba(255,255,255,.3)', borderRadius: 10, padding: '14px 32px',
               fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>
             Get Help Now →
           </button>
@@ -83,7 +84,7 @@ export default function IncomeTaxLanding() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 20 }}>
               {JOURNEY.map((j, i) => (
                 <div key={i} style={{ textAlign: 'center', padding: '20px 16px' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: PURPLE, color: GOLD,
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: PURPLE, color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800,
                     margin: '0 auto 14px' }}>{j.step}</div>
                   <div style={{ fontWeight: 700, color: NAVY, marginBottom: 6, fontSize: 15 }}>{j.title}</div>

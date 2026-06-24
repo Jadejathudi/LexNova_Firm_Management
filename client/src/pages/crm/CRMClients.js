@@ -16,7 +16,7 @@ export default function CRMClients() {
 
   return (
     <div>
-      <h2 style={{ color: '#0A1628', marginBottom: 20 }}>Clients ({clients.length})</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 20 }}>Clients ({clients.length})</h2>
       <table className="data-table">
         <thead>
           <tr>

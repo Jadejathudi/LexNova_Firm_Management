@@ -46,7 +46,7 @@ export default function CRMCases() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ color: '#0A1628' }}>Filed Cases ({filtered.length})</h2>
+        <h2 style={{ color: '#1C2A40' }}>Filed Cases ({filtered.length})</h2>
         {canCreate && <button className="btn btn-gold btn-sm" onClick={() => setShowCreate(!showCreate)}>+ New Case</button>}
       </div>
 

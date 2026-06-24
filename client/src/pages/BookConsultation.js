@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import Logo from '../components/Logo';
 
-const NAVY = '#0A1628';
+const NAVY = '#1C2A40';
 const WHITE = '#FFFFFF';
-const BG = '#F8FAFC';
-const GRAY = '#64748B';
-const GOLD = '#C9A84C';
+const BG = '#F5F5F1';
+const GRAY = '#5E6577';
+const GOLD = '#3D6FB0';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 
 const MATTER_TYPES = [
   { value: 'criminal', label: 'Criminal' },
@@ -274,9 +276,10 @@ export default function BookConsultation() {
       <div style={{ background: NAVY, padding: '0 48px', height: '60px', display: 'flex', alignItems: 'center', gap: '32px', position: 'sticky', top: 0, zIndex: 50 }}>
         <span
           onClick={() => navigate('/')}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: 'Georgia, serif' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: WHITE, fontSize: '17px', fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif" }}
         >
-          ⚖️ CLEAR CASE
+          <Logo size={22} />
+          ClearCase
         </span>
         <div style={{ flex: 1 }} />
         <span onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', cursor: 'pointer' }}>

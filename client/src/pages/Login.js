@@ -85,6 +85,7 @@ export default function Login() {
           Partner: prashanth@clearcase.in<br />
           Sr. Advocate: meera@clearcase.in<br />
           Client: rahul@example.com<br />
+          Bench Judge: judge.rn@clearcase.legal<br />
           <em>Password for all: password123</em>
         </div>
       </div>

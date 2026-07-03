@@ -7,8 +7,8 @@ const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F4F6FB';
 
 const TYPE_META = {
   corporate:   { label: 'Corporate Law',  color: '#0E7490', icon: '🏢' },
-  tax:         { label: 'Income Tax',      color: '#7C3AED', icon: '₹'  },
-  immigration: { label: 'Immigration',    color: '#0369A1', icon: '✈'  },
+  credit_debit: { label: 'Credit/Debit Fraud', color: '#B45309', icon: '💳' },
+  cyber_crime:  { label: 'Cyber Crime',        color: '#4F46E5', icon: '🔐' },
   criminal:    { label: 'Criminal',        color: '#DC2626', icon: '⚖'  },
   civil:       { label: 'Civil',           color: '#16A34A', icon: '📋' },
   family:      { label: 'Family',          color: '#D97706', icon: '👨‍👩‍👧' },

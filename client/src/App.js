@@ -29,8 +29,8 @@ import CRMConsultations from './pages/crm/CRMConsultations';
 import MattersList from './pages/matters/MattersList';
 import MatterDetail from './pages/matters/MatterDetail';
 import CorporateLanding from './pages/verticals/CorporateLanding';
-import IncomeTaxLanding from './pages/verticals/IncomeTaxLanding';
-import ImmigrationLanding from './pages/verticals/ImmigrationLanding';
+import CreditDebitLanding from './pages/verticals/CreditDebitLanding';
+import CyberCrimeLanding from './pages/verticals/CyberCrimeLanding';
 import BCIDisclaimer from './components/BCIDisclaimer';
 import UrgentHelp from './pages/UrgentHelp';
 import CompliancePage from './pages/CompliancePage';
@@ -119,8 +119,8 @@ function AppRoutes() {
       <Route path="/urgent" element={<UrgentHelp />} />
       <Route path="/compliance" element={<CompliancePage />} />
       <Route path="/corporate" element={<CorporateLanding />} />
-      <Route path="/income-tax" element={<IncomeTaxLanding />} />
-      <Route path="/immigration" element={<ImmigrationLanding />} />
+      <Route path="/credit-debit" element={<CreditDebitLanding />} />
+      <Route path="/cyber-crime" element={<CyberCrimeLanding />} />
       <Route path="/intelligence" element={<CaseIntelligence />} />
       <Route path="/case-library" element={<CaseLibrary />} />
       <Route path="/case-strategy" element={<CaseStrategy />} />

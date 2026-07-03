@@ -6,12 +6,12 @@ import { api } from '../../utils/api';
 const NAVY = '#1C2A40', GOLD = '#3D6FB0';
 
 const TYPE_BADGE = {
-  corporate: '#0E7490', tax: '#7C3AED', immigration: '#0369A1',
+  corporate: '#0E7490', credit_debit: '#B45309', cyber_crime: '#4F46E5',
   criminal: '#DC2626', civil: '#16A34A', family: '#D97706',
   real_estate: '#78716C', bench: '#1C2A40',
 };
 const TYPE_LABEL = {
-  corporate: 'Corporate', tax: 'Income Tax', immigration: 'Immigration',
+  corporate: 'Corporate', credit_debit: 'Credit/Debit Fraud', cyber_crime: 'Cyber Crime',
   criminal: 'Criminal', civil: 'Civil', family: 'Family',
   real_estate: 'Real Estate', bench: 'Bench Session',
 };
@@ -62,7 +62,7 @@ export default function CRMMatters() {
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>TYPE</span>
-          {['all', 'corporate', 'tax', 'immigration', 'criminal', 'civil', 'family', 'real_estate', 'bench'].map(t => (
+          {['all', 'corporate', 'credit_debit', 'cyber_crime', 'criminal', 'civil', 'family', 'real_estate', 'bench'].map(t => (
             <button key={t} onClick={() => setFilterType(t)}
               style={{ padding: '4px 10px', borderRadius: 20, border: '1px solid', fontSize: 12, cursor: 'pointer',
                 background: filterType === t ? GOLD : '#fff', color: filterType === t ? NAVY : '#64748B',

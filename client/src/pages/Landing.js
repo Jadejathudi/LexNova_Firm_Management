@@ -135,7 +135,7 @@ export default function Landing() {
             <button onClick={() => navigate('/advocates')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: GRAD, color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px -8px rgba(61,111,176,.55)' }}>
               Find an Advocate →
             </button>
-            <button onClick={() => navigate('/bench/directory')} style={{ padding: '15px 36px', fontSize: '15px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => navigate('/bench/directory')} className="btn-bench-judge">
               ⚖ Ask a Judge <span style={{ fontSize: '0.6em', opacity: .75 }}>Retd.</span>
             </button>
           </div>
@@ -202,8 +202,8 @@ export default function Landing() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '22px' }}>
             {[
               { icon: '🏢', col: '#0E7490', title: 'Corporate Law', desc: 'Company formation, shareholder disputes, M&A, NCLT proceedings, and employment contracts handled by verified corporate advocates.', path: '/corporate', cta: 'Explore Corporate →' },
-              { icon: '₹', col: '#7C3AED', title: 'Income Tax', desc: 'Scrutiny notices, reassessments, TDS defaults, ITAT appeals — income tax advocates who know the AO, CIT(A), and tribunal process.', path: '/income-tax', cta: 'Explore Income Tax →' },
-              { icon: '✈', col: '#0369A1', title: 'Immigration', desc: 'Visa refusals, OCI applications, passport matters, FRRO registration, and citizenship — immigration law handled with precision.', path: '/immigration', cta: 'Explore Immigration →' },
+              { icon: '💳', col: '#B45309', title: 'Credit / Debit Fraud', desc: 'Unauthorized transactions, card cloning, OTP fraud, UPI scams — banking fraud advocates who know how to file, dispute, and recover.', path: '/credit-debit', cta: 'Explore Credit/Debit →' },
+              { icon: '🔐', col: '#4F46E5', title: 'Cyber Crime', desc: 'Online fraud, cyberstalking, identity theft, hacking, and digital extortion — cyber law advocates backed by IT Act expertise.', path: '/cyber-crime', cta: 'Explore Cyber Crime →' },
             ].map(v => (
               <div key={v.title} style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '28px', borderTop: `3px solid ${v.col}` }}>
                 <div style={{ fontSize: '36px', marginBottom: '14px' }}>{v.icon}</div>
@@ -308,7 +308,7 @@ export default function Landing() {
           </div>
           <div>
             <div style={{ color: 'rgba(255,255,255,.5)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '10px' }}>Links</div>
-            {[['Full Disclaimer', '/compliance'], ['The Bench', '/bench/directory'], ['Find Advocate', '/advocates'], ['Corporate Law', '/corporate'], ['Income Tax', '/income-tax'], ['Immigration', '/immigration']].map(([label, path]) => (
+            {[['Full Disclaimer', '/compliance'], ['The Bench', '/bench/directory'], ['Find Advocate', '/advocates'], ['Corporate Law', '/corporate'], ['Credit/Debit Fraud', '/credit-debit'], ['Cyber Crime', '/cyber-crime']].map(([label, path]) => (
               <div key={path} onClick={() => navigate(path)} style={{ color: 'rgba(255,255,255,.38)', fontSize: '13px', marginBottom: '5px', cursor: 'pointer', textDecoration: 'underline' }}>{label}</div>
             ))}
           </div>

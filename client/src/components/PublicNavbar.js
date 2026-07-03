@@ -7,8 +7,8 @@ const NAV_LINKS = [
   { label: 'Find Advocate', path: '/advocates' },
   { label: '⚖ The Bench', path: '/bench/directory' },
   { label: 'Corporate', path: '/corporate' },
-  { label: 'Income Tax', path: '/income-tax' },
-  { label: 'Immigration', path: '/immigration' },
+  { label: 'Cyber Crime', path: '/cyber-crime' },
+  { label: 'Credit/Debit', path: '/credit-debit' },
 ];
 
 export default function PublicNavbar() {

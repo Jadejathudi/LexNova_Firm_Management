@@ -4,28 +4,28 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 import PublicNavbar from '../../components/PublicNavbar';
 
-const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', TEAL = '#0E7490';
+const NAVY = '#1C2A40', BG = '#F5F5F1', TEAL = '#2E8E86';
 const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 
 const MATTERS = [
-  'Company incorporation & structuring',
-  'Shareholder agreements & disputes',
-  'Employment contracts & HR compliance',
-  'M&A due diligence & documentation',
-  'NCLT / insolvency proceedings',
-  'Regulatory compliance & licensing',
+  'Unauthorized credit/debit card transactions',
+  'Card cloning and ATM skimming fraud',
+  'OTP fraud and SIM swap attacks',
+  'Bank dispute and chargeback claims',
+  'EMI and personal loan fraud',
+  'UPI and digital wallet fraud',
 ];
 
 const JOURNEY = [
-  { step: '01', title: 'Describe your matter', desc: 'Fill in your company details and the legal issue you are facing.' },
-  { step: '02', title: 'Get matched', desc: 'We match you with a verified corporate law advocate based on your needs.' },
-  { step: '03', title: 'Book a consultation', desc: 'Schedule a video, phone, or in-person session at your convenience.' },
-  { step: '04', title: 'Ongoing support', desc: 'Your matter is tracked — documents, notes, and updates in one place.' },
+  { step: '01', title: 'Describe the fraud', desc: 'Share transaction details, bank statements, and how the fraud occurred.' },
+  { step: '02', title: 'Case assessment', desc: 'Advocate reviews the fraud timeline, bank communications, and applicable recovery paths.' },
+  { step: '03', title: 'Formal complaint', desc: 'Lodge complaints with your bank, RBI Ombudsman, or cybercrime cell — with proper legal backing.' },
+  { step: '04', title: 'Recovery & representation', desc: 'Legal action to recover lost funds and seek compensation from the responsible parties.' },
 ];
 
-const BLANK_FORM = { full_name: '', company: '', role: '', state: '', brief: '' };
+const BLANK_FORM = { full_name: '', fraudType: '', transactionDate: '', bankName: '', amount: '', state: '', brief: '' };
 
-export default function CorporateLanding() {
+export default function CreditDebitLanding() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [advocates, setAdvocates] = useState([]);
@@ -33,13 +33,13 @@ export default function CorporateLanding() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api.getAdvocates({ spec: 'Corporate' }).then(setAdvocates).catch(() => {});
+    api.getAdvocates({ spec: 'Banking' }).then(setAdvocates).catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    navigate('/advocates', { state: { spec: 'Corporate', intakeData: { ...form, matter_type: 'corporate' } } });
+    navigate('/advocates', { state: { spec: 'Banking', intakeData: { ...form, matter_type: 'credit_debit' } } });
   };
 
   return (
@@ -49,22 +49,22 @@ export default function CorporateLanding() {
 
         {/* Hero */}
         <div style={{ background: '#121C2C', color: '#fff', padding: '72px 40px 60px', textAlign: 'center' }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🏢</div>
-          <h1 style={{ fontSize: 42, fontFamily: "'Space Grotesk', sans-serif", margin: '0 0 16px', fontWeight: 700 }}>Legal clarity for your business.</h1>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>💳</div>
+          <h1 style={{ fontSize: 42, fontFamily: "'Space Grotesk', sans-serif", margin: '0 0 16px', fontWeight: 700 }}>Card fraud or bank scam? Get your money back.</h1>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,.8)', maxWidth: 540, margin: '0 auto 32px', lineHeight: 1.6 }}>
-            From incorporation to disputes — verified corporate advocates ready to guide you.
+            Banking fraud advocates who know how to dispute, escalate, and recover.
           </p>
           <button onClick={() => document.getElementById('intake-form').scrollIntoView({ behavior: 'smooth' })}
             style={{ background: GRAD, color: '#fff', border: 'none', borderRadius: 10, padding: '14px 32px',
               fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 24px -8px rgba(61,111,176,.5)' }}>
-            Start — It's Free →
+            Get Help Now →
           </button>
         </div>
 
         {/* Matters handled */}
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '60px 24px 40px' }}>
-          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>What we handle</h2>
-          <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 36 }}>Corporate legal matters across all stages of your business lifecycle</p>
+          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Banking fraud matters we handle</h2>
+          <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 36 }}>From unauthorized transactions to UPI scams — across banks and digital wallets</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
             {MATTERS.map((m, i) => (
               <div key={i} style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', border: '1px solid #E2E8F0',
@@ -99,7 +99,7 @@ export default function CorporateLanding() {
         {advocates.length > 0 && (
           <div style={{ maxWidth: 960, margin: '0 auto', padding: '50px 24px 30px' }}>
             <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Matched advocates</h2>
-            <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 32 }}>Verified corporate law specialists on ClearCase</p>
+            <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 32 }}>Verified banking fraud specialists on ClearCase</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
               {advocates.slice(0, 3).map(a => (
                 <div key={a.advocate_id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px', cursor: 'pointer' }}
@@ -115,25 +115,47 @@ export default function CorporateLanding() {
 
         {/* Intake Form */}
         <div id="intake-form" style={{ maxWidth: 560, margin: '0 auto', padding: '50px 24px 70px' }}>
-          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Tell us about your matter</h2>
+          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Tell us about the fraud</h2>
           <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 30, fontSize: 14 }}>
-            Takes 2 minutes. We'll match you with the right advocate.
+            Takes 2 minutes. A banking fraud advocate will review your matter.
           </p>
           <form onSubmit={handleSubmit} style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: '28px 28px' }}>
-            {[
-              { key: 'full_name', label: 'Your Full Name', type: 'text', required: true },
-              { key: 'company', label: 'Company Name', type: 'text', required: true },
-              { key: 'role', label: 'Your Role', type: 'text', placeholder: 'e.g. Founder, CFO, Legal Head' },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>{f.label}</label>
-                <input type={f.type} value={form[f.key]} required={f.required} placeholder={f.placeholder || ''}
-                  onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-              </div>
-            ))}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>State</label>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Your Full Name</label>
+              <input type="text" value={form.full_name} required onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Type of Fraud</label>
+              <select value={form.fraudType} onChange={e => setForm(p => ({ ...p, fraudType: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14 }}>
+                <option value="">Select fraud type</option>
+                <option value="Unauthorized Transactions">Unauthorized Card Transactions</option>
+                <option value="Card Cloning / Skimming">Card Cloning / ATM Skimming</option>
+                <option value="OTP / SIM Swap Fraud">OTP Fraud / SIM Swap</option>
+                <option value="Bank Dispute">Bank Dispute / Chargeback</option>
+                <option value="EMI / Loan Fraud">EMI / Personal Loan Fraud</option>
+                <option value="UPI / Digital Wallet Fraud">UPI / Digital Wallet Fraud</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Transaction / Incident Date</label>
+              <input type="date" value={form.transactionDate} onChange={e => setForm(p => ({ ...p, transactionDate: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Bank / Institution Name <span style={{ fontWeight: 400, color: '#94A3B8' }}>(optional)</span></label>
+              <input type="text" value={form.bankName} onChange={e => setForm(p => ({ ...p, bankName: e.target.value }))} placeholder="e.g. SBI, HDFC, Paytm"
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Approximate Amount Involved <span style={{ fontWeight: 400, color: '#94A3B8' }}>(optional)</span></label>
+              <input type="text" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} placeholder="e.g. ₹25,000"
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Your State (India)</label>
               <select value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
                 style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14 }}>
                 <option value="">Select state</option>
@@ -143,15 +165,15 @@ export default function CorporateLanding() {
               </select>
             </div>
             <div style={{ marginBottom: 22 }}>
-              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Describe your legal matter</label>
+              <label style={{ display: 'block', fontSize: 13, color: '#64748B', fontWeight: 600, marginBottom: 5 }}>Brief description</label>
               <textarea value={form.brief} onChange={e => setForm(p => ({ ...p, brief: e.target.value }))} required rows={4}
-                placeholder="What is the legal issue you are facing?"
+                placeholder="Describe what happened — transaction details, how you found out, and any steps you've already taken..."
                 style={{ width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', resize: 'vertical' }} />
             </div>
             <button type="submit" disabled={submitting}
               style={{ width: '100%', padding: '13px', borderRadius: 10, background: NAVY, color: '#fff',
                 border: 'none', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
-              Find a Corporate Advocate →
+              Find a Banking Fraud Advocate →
             </button>
           </form>
         </div>

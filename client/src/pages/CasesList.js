@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F4F6FB';
 
 const STATUS_META = {
   intake:        { label: 'Intake',         cls: 'badge-draft',   color: '#64748B' },
@@ -46,7 +46,7 @@ export default function CasesList() {
       {/* Page header */}
       <div className="page-header">
         <div>
-          <h2 style={{ color: NAVY, fontFamily: 'Georgia, serif', fontSize: 22, margin: 0 }}>⚖ Filed Cases</h2>
+          <h2 style={{ color: NAVY, fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, margin: 0 }}>⚖ Filed Cases</h2>
           <p style={{ color: '#64748B', fontSize: 13, margin: '4px 0 0' }}>Court-filed matters and their current status</p>
         </div>
         <button className="btn btn-gold btn-sm" onClick={() => navigate('/book')}>

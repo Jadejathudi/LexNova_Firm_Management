@@ -42,7 +42,7 @@ export default function CRMConsultations() {
 
   return (
     <div>
-      <h2 style={{ color: '#0A1628', marginBottom: 20 }}>Consultation Bookings</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 20 }}>Consultation Bookings</h2>
 
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
         <button

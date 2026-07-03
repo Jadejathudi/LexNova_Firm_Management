@@ -34,7 +34,7 @@ export default function CRMFinance() {
 
   return (
     <div>
-      <h2 style={{ color: '#0A1628', marginBottom: 20 }}>Finance</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 20 }}>Finance</h2>
 
       <div className="stats-grid">
         <div className="stat-card">

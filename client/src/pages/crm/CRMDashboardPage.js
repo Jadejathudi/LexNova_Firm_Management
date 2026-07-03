@@ -19,7 +19,7 @@ export default function CRMDashboard() {
 
   return (
     <div>
-      <h2 style={{ color: '#0A1628', marginBottom: 24 }}>Command Centre</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 24 }}>Command Centre</h2>
 
       <div className="stats-grid">
         <div className="stat-card">

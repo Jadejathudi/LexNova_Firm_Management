@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import Logo from './Logo';
 
 export default function Navbar() {
   const { user, logout, isInternal } = useAuth();
@@ -59,7 +60,8 @@ export default function Navbar() {
       <nav className="navbar">
         {/* Brand */}
         <Link to={brandTo} className="navbar-brand" style={{ textDecoration: 'none' }}>
-          ⚖️ CLEAR<span>CASE</span>
+          <Logo size={26} />
+          ClearCase
         </Link>
 
         {/* Desktop links */}
@@ -109,6 +111,14 @@ export default function Navbar() {
         >
           Sign Out
         </a>
+      </div>
+
+      {/* Compliance banner */}
+      <div className="navbar-compliance">
+        <p>
+          ⚖ ClearCase is a legal technology platform, not a law firm. Advocates are independently enrolled with Bar Councils.{' '}
+          <button onClick={() => navigate('/compliance')}>View full compliance notice</button>
+        </p>
       </div>
     </>
   );

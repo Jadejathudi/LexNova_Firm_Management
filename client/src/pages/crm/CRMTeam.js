@@ -17,7 +17,7 @@ export default function CRMTeam() {
 
   return (
     <div>
-      <h2 style={{ color: '#0A1628', marginBottom: 20 }}>Team Members ({team.length})</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 20 }}>Team Members ({team.length})</h2>
 
       <div className="card" style={{ marginBottom: 24 }}>
         <div className="card-header">Advocate Workloads</div>

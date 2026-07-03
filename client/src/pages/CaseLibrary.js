@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', GRAY = '#5E6577';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
+const INFO = '#2A547F', INFO_BG = '#EAF1F8';
 
 const AREA_COLORS = { Criminal: '#B91C1C', Civil: '#1D4ED8', Consumer: '#0E7490', Family: '#7C3AED', Corporate: '#0F766E' };
 
@@ -29,13 +31,13 @@ export default function CaseLibrary() {
   );
 
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif", background: BG, minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: BG, minHeight: '100vh' }}>
       <PublicNavbar />
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg,#0B1237,#1B2559)', padding: '48px 48px 32px', textAlign: 'center' }}>
-        <div style={{ color: GOLD, fontSize: '11px', fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Public Court Records</div>
-        <h1 style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: '38px', fontWeight: 700, marginBottom: '10px' }}>Case Library</h1>
+      <div style={{ background: '#121C2C', padding: '48px 48px 32px', textAlign: 'center' }}>
+        <div style={{ color: '#7FBDE8', fontSize: '11px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'JetBrains Mono', monospace" }}>Public Court Records</div>
+        <h1 style={{ color: '#fff', fontFamily: "'Space Grotesk', sans-serif", fontSize: '38px', fontWeight: 700, marginBottom: '10px' }}>Case Library</h1>
         <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '15px', maxWidth: '520px', margin: '0 auto 24px', lineHeight: 1.7 }}>Research similar cases from public court records. Know what arguments succeeded, what evidence was decisive, and what patterns courts follow.</p>
         <div style={{ maxWidth: '560px', margin: '0 auto', display: 'flex', gap: '10px' }}>
           <input
@@ -44,13 +46,13 @@ export default function CaseLibrary() {
             placeholder="Search by keyword, court, case type..."
             style={{ flex: 1, borderRadius: '10px', border: 'none', padding: '13px 16px', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
           />
-          <button style={{ padding: '13px 20px', background: GOLD, color: NAVY, border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Search</button>
+          <button style={{ padding: '13px 20px', background: GRAD, color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Search</button>
         </div>
       </div>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '28px 48px' }}>
-        <div style={{ background: '#FFF8E8', borderLeft: '3px solid #C9A84C', borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '20px' }}>
-          <p style={{ fontSize: '12px', color: '#92400E', lineHeight: 1.6, margin: 0 }}>All cases are from publicly available court records (eCourts, Indian Kanoon). Summaries are for research purposes only — not legal advice. Facts of each case are unique.</p>
+        <div style={{ background: INFO_BG, borderLeft: `3px solid ${GOLD}`, borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '20px' }}>
+          <p style={{ fontSize: '12px', color: INFO, lineHeight: 1.6, margin: 0 }}>All cases are from publicly available court records (eCourts, Indian Kanoon). Summaries are for research purposes only — not legal advice. Facts of each case are unique.</p>
         </div>
 
         {/* Type filter pills */}
@@ -70,7 +72,7 @@ export default function CaseLibrary() {
               <div key={c.id} onClick={() => setExpanded(isOpen ? null : c.id)} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '22px', borderLeft: `4px solid ${color}`, cursor: 'pointer', transition: 'box-shadow .2s' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '10px' }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 700, color: NAVY, marginBottom: '6px' }}>{c.title}</div>
+                    <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '17px', fontWeight: 700, color: NAVY, marginBottom: '6px' }}>{c.title}</div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '11px', fontWeight: 700, borderRadius: '20px', padding: '3px 11px', background: '#EEF2FF', color: NAVY }}>📍 {c.court}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: '11px', fontWeight: 700, borderRadius: '20px', padding: '3px 11px', background: '#F1F5F9', color: GRAY }}>📅 {c.year}</span>
@@ -99,7 +101,7 @@ export default function CaseLibrary() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '32px' }}>
-          <button onClick={() => navigate('/intelligence')} style={{ padding: '12px 28px', background: NAVY, color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>Go to Case Intelligence →</button>
+          <button onClick={() => navigate('/intelligence')} style={{ padding: '12px 28px', background: GRAD, color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>Go to Case Intelligence →</button>
         </div>
       </div>
     </div>

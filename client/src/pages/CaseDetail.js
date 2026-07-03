@@ -231,7 +231,7 @@ export default function CaseDetail() {
             {matter.urgency?.toUpperCase()}
           </span>
         </div>
-        <div className="case-info" style={{ fontSize: 18, fontWeight: 700, color: '#0A1628', marginTop: 6 }}>{matter.title}</div>
+        <div className="case-info" style={{ fontSize: 18, fontWeight: 700, color: '#1C2A40', marginTop: 6 }}>{matter.title}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: 8 }}>
           {matter.court_name && <div className="case-info">📍 {matter.court_name}</div>}
           {matter.matter_type && <div className="case-info">⚖️ {matter.matter_type.charAt(0).toUpperCase() + matter.matter_type.slice(1)}</div>}
@@ -273,7 +273,7 @@ export default function CaseDetail() {
           {canEdit && editing ? (
             /* ── Edit Form ── */
             <div className="card" style={{ marginBottom: 20 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#0A1628', marginBottom: 16 }}>Edit Case Details</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#1C2A40', marginBottom: 16 }}>Edit Case Details</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                   <label>Case Title</label>
@@ -367,7 +367,7 @@ export default function CaseDetail() {
                   {matter.advocates.map(a => (
                     <div key={a.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: '#0A1628' }}>👤 {a.full_name}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: '#1C2A40' }}>👤 {a.full_name}</div>
                         <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{a.role_on_matter?.replace('_', ' ')}</div>
                       </div>
                       <div style={{ textAlign: 'right', fontSize: 12, color: '#64748B' }}>
@@ -396,7 +396,7 @@ export default function CaseDetail() {
 
           {showAddHearing && (
             <div className="card" style={{ marginBottom: 20, background: '#F8FAFC' }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#0A1628', marginBottom: 12 }}>Schedule New Hearing</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#1C2A40', marginBottom: 12 }}>Schedule New Hearing</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="form-group">
                   <label>Date *</label>
@@ -434,7 +434,7 @@ export default function CaseDetail() {
               if (isEditing) {
                 return (
                   <div key={h.hearing_id} className="card" style={{ marginBottom: 16, background: '#F8FAFC' }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0A1628', marginBottom: 12 }}>Edit Hearing</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1C2A40', marginBottom: 12 }}>Edit Hearing</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                       <div className="form-group">
                         <label>Date *</label>
@@ -523,7 +523,7 @@ export default function CaseDetail() {
           {canEdit && (
             <div
               style={{
-                border: `2px dashed ${isDragging ? '#C9A84C' : '#CBD5E1'}`,
+                border: `2px dashed ${isDragging ? '#3D6FB0' : '#CBD5E1'}`,
                 borderRadius: 12,
                 padding: '28px 20px',
                 textAlign: 'center',
@@ -551,13 +551,13 @@ export default function CaseDetail() {
               {uploading ? (
                 <>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Uploading document…</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40' }}>Uploading document…</div>
                   <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Please wait, do not close this page</div>
                 </>
               ) : (
                 <>
                   <div style={{ fontSize: 30, marginBottom: 8 }}>☁️</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1B2559' }}>Upload Document</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40' }}>Upload Document</div>
                   <div style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>Click or drag & drop a file here</div>
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
                     {['PDF', 'DOCX', 'JPG', 'PNG'].map(t => (
@@ -596,7 +596,7 @@ export default function CaseDetail() {
               <div key={d.document_id} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: `4px solid ${accentColor}`, borderRadius: 10, padding: '14px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div style={{ fontSize: 26, flexShrink: 0 }}>{icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: '#1B2559', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#1C2A40', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {d.filename}
                   </div>
                   <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>
@@ -609,7 +609,7 @@ export default function CaseDetail() {
                       href={d.stored_path}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ padding: '6px 14px', background: '#1B2559', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                      style={{ padding: '6px 14px', background: '#1C2A40', color: '#FFF', borderRadius: 7, fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
                     >
                       Open ↗
                     </a>
@@ -700,7 +700,7 @@ function InfoRow({ label, value }) {
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 14, color: '#1B2559', fontWeight: 500 }}>{value || '—'}</div>
+      <div style={{ fontSize: 14, color: '#1C2A40', fontWeight: 500 }}>{value || '—'}</div>
     </div>
   );
 }

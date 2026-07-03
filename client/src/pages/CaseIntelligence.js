@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '../components/PublicNavbar';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB', GRAY = '#64748B';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F5F5F1', GRAY = '#5E6577';
+const GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 const PURPLE = '#7C3AED';
 
 const AREAS = ['Criminal', 'Civil', 'Consumer'];
@@ -87,13 +88,13 @@ export default function CaseIntelligence() {
   const data = MOCK[area] || MOCK.Criminal;
 
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', sans-serif", background: BG, minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: BG, minHeight: '100vh' }}>
       <PublicNavbar />
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg,#0B1237,#1B2559)', padding: '48px 48px 20px', textAlign: 'center' }}>
-        <div style={{ color: GOLD, fontSize: '11px', fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Powered by public court records</div>
-        <h1 style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: '38px', fontWeight: 700, marginBottom: '10px' }}>Case Intelligence</h1>
+      <div style={{ background: '#121C2C', padding: '48px 48px 20px', textAlign: 'center' }}>
+        <div style={{ color: '#7FBDE8', fontSize: '11px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'JetBrains Mono', monospace" }}>Powered by public court records</div>
+        <h1 style={{ color: '#fff', fontFamily: "'Space Grotesk', sans-serif", fontSize: '38px', fontWeight: 700, marginBottom: '10px' }}>Case Intelligence</h1>
         <p style={{ color: 'rgba(255,255,255,.55)', fontSize: '15px', maxWidth: '520px', margin: '0 auto 24px' }}>AI-powered insights from thousands of similar cases across Telangana and Andhra Pradesh courts.</p>
 
         {/* Area selector */}
@@ -105,8 +106,8 @@ export default function CaseIntelligence() {
       </div>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 48px' }}>
-        <div style={{ background: '#FFF8E8', borderLeft: '3px solid #C9A84C', borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '28px' }}>
-          <p style={{ fontSize: '12px', color: '#92400E', lineHeight: 1.6, margin: 0 }}>All insights are drawn from publicly available court judgements (eCourts, Indian Kanoon). This is informational research only — not legal advice. Use this to be better prepared for your conversations with your advocate.</p>
+        <div style={{ background: '#EAF1F8', borderLeft: '3px solid #3D6FB0', borderRadius: '0 8px 8px 0', padding: '10px 16px', marginBottom: '28px' }}>
+          <p style={{ fontSize: '12px', color: '#2A547F', lineHeight: 1.6, margin: 0 }}>All insights are drawn from publicly available court judgements (eCourts, Indian Kanoon). This is informational research only — not legal advice. Use this to be better prepared for your conversations with your advocate.</p>
         </div>
 
         {/* Tab selector */}
@@ -149,7 +150,7 @@ export default function CaseIntelligence() {
                 </div>
                 {data.keyPoints.map((k, i) => (
                   <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: GOLD, color: NAVY, fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>{i + 1}</div>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: GRAD, color: '#fff', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>{i + 1}</div>
                     <p style={{ fontSize: '13px', color: '#1E293B', lineHeight: 1.65, margin: 0 }}>{k}</p>
                   </div>
                 ))}
@@ -208,10 +209,10 @@ export default function CaseIntelligence() {
               <button onClick={() => navigate('/case-strategy')} style={{ width: '100%', padding: '11px', background: NAVY, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Open Case Strategy Tools →</button>
             </div>
 
-            <div style={{ background: 'linear-gradient(135deg,#1B2559,#263580)', borderRadius: '16px', padding: '26px' }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>Search the Case Library</div>
+            <div style={{ background: '#1C2A40', borderRadius: '16px', padding: '26px', border: '1px solid rgba(61,111,176,.2)' }}>
+              <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>Search the Case Library</div>
               <p style={{ color: 'rgba(255,255,255,.58)', fontSize: '14px', marginBottom: '18px', lineHeight: 1.7 }}>Browse similar cases by keywords, court, year, or outcome. Own your case completely.</p>
-              <button onClick={() => navigate('/case-library')} style={{ padding: '12px 24px', background: GOLD, color: NAVY, border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Open Case Library →</button>
+              <button onClick={() => navigate('/case-library')} style={{ padding: '12px 24px', background: GRAD, color: '#fff', border: 'none', borderRadius: '9px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Open Case Library →</button>
             </div>
 
             <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '20px' }}>

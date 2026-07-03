@@ -3,20 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../utils/api';
 
-const NAVY = '#1B2559', GOLD = '#C9A84C', BG = '#F4F6FB';
+const NAVY = '#1C2A40', GOLD = '#3D6FB0', BG = '#F4F6FB';
 
 const TYPE_META = {
   corporate:   { label: 'Corporate Law',  color: '#0E7490' },
-  tax:         { label: 'Income Tax',      color: '#7C3AED' },
-  immigration: { label: 'Immigration',    color: '#0369A1' },
+  credit_debit: { label: 'Credit/Debit Fraud', color: '#B45309' },
+  cyber_crime:  { label: 'Cyber Crime',        color: '#4F46E5' },
   criminal:    { label: 'Criminal',        color: '#DC2626' },
   civil:       { label: 'Civil',           color: '#16A34A' },
   family:      { label: 'Family',          color: '#D97706' },
   real_estate: { label: 'Real Estate',    color: '#78716C' },
-  bench:       { label: 'Bench Session',  color: '#1B2559' },
+  bench:       { label: 'Bench Session',  color: '#1C2A40' },
 };
 
-const INELIGIBLE = ['tax', 'immigration', 'bench'];
+const INELIGIBLE = ['credit_debit', 'cyber_crime', 'bench'];
 const CAN_EDIT = ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate', 'judge'];
 
 export default function MatterDetail() {

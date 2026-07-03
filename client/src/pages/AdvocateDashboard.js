@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 
-const NAVY = '#0A1628';
+const NAVY = '#1C2A40';
 const GRAY = '#64748B';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -140,7 +140,7 @@ export default function AdvocateDashboard() {
           <div className="stat-label">Active Cases</div>
         </div>
         <div className="stat-card" style={{ cursor: upcomingSessions.length > 0 ? 'pointer' : 'default' }} onClick={() => upcomingSessions.length > 0 && setView('sessions')}>
-          <div className="stat-value" style={{ color: upcomingSessions.length > 0 ? '#0A1628' : 'inherit' }}>{upcomingSessions.length}</div>
+          <div className="stat-value" style={{ color: upcomingSessions.length > 0 ? '#1C2A40' : 'inherit' }}>{upcomingSessions.length}</div>
           <div className="stat-label">Upcoming Sessions</div>
         </div>
         <div className="stat-card">
@@ -213,7 +213,7 @@ export default function AdvocateDashboard() {
                   <div key={req.request_id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '16px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1B2559' }}>👤 {req.client_name || 'Client'}</div>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1C2A40' }}>👤 {req.client_name || 'Client'}</div>
                         {req.client_phone && (
                           <div style={{ fontSize: '12px', color: GRAY }}>📞 {req.client_phone}</div>
                         )}
@@ -278,10 +278,10 @@ export default function AdvocateDashboard() {
               return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${period}`;
             })();
             return (
-              <div key={session.session_id} style={{ background: '#FFFFFF', border: '2px solid #E2E8F0', borderLeft: '4px solid #C9A84C', borderRadius: '12px', padding: '18px 20px', marginBottom: '14px' }}>
+              <div key={session.session_id} style={{ background: '#FFFFFF', border: '2px solid #E2E8F0', borderLeft: '4px solid #3D6FB0', borderRadius: '12px', padding: '18px 20px', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1B2559' }}>{modeIcon} {session.client_name || 'Client'}</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1C2A40' }}>{modeIcon} {session.client_name || 'Client'}</div>
                     <div style={{ fontSize: '13px', color: GRAY, marginTop: '4px' }}>
                       {session.matter_type ? session.matter_type.charAt(0).toUpperCase() + session.matter_type.slice(1) : 'Consultation'} · {session.session_mode === 'video' ? 'Video Call' : session.session_mode === 'phone' ? 'Phone Call' : 'In-Person'}
                     </div>
@@ -293,8 +293,8 @@ export default function AdvocateDashboard() {
 
                 {/* Date & Time */}
                 <div style={{ background: '#F8FAFC', borderRadius: '9px', padding: '12px 14px', marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
-                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>DATE</span><span style={{ fontWeight: 600, color: '#1B2559' }}>{dateFormatted}</span></div>
-                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>TIME</span><span style={{ fontWeight: 600, color: '#1B2559' }}>{timeFormatted} · {session.duration_minutes} min</span></div>
+                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>DATE</span><span style={{ fontWeight: 600, color: '#1C2A40' }}>{dateFormatted}</span></div>
+                  <div><span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, display: 'block', marginBottom: '2px' }}>TIME</span><span style={{ fontWeight: 600, color: '#1C2A40' }}>{timeFormatted} · {session.duration_minutes} min</span></div>
                 </div>
 
                 {/* Mode-specific client contact block */}
@@ -401,7 +401,7 @@ export default function AdvocateDashboard() {
                       onChange={e => updateScheduleDay(idx, 'is_available', e.target.checked)}
                       style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: NAVY }}
                     />
-                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#1B2559' }}>{DAY_FULL[day.day_of_week]}</span>
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#1C2A40' }}>{DAY_FULL[day.day_of_week]}</span>
                   </label>
 
                   {day.is_available ? (
@@ -411,7 +411,7 @@ export default function AdvocateDashboard() {
                         <select
                           value={day.start_time}
                           onChange={e => updateScheduleDay(idx, 'start_time', e.target.value)}
-                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFF', color: '#1B2559' }}
+                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFF', color: '#1C2A40' }}
                         >
                           {TIME_OPTIONS.map(t => <option key={t} value={t}>{fmt12h(t)}</option>)}
                         </select>
@@ -419,7 +419,7 @@ export default function AdvocateDashboard() {
                         <select
                           value={day.end_time}
                           onChange={e => updateScheduleDay(idx, 'end_time', e.target.value)}
-                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFF', color: '#1B2559' }}
+                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFF', color: '#1C2A40' }}
                         >
                           {TIME_OPTIONS.map(t => <option key={t} value={t}>{fmt12h(t)}</option>)}
                         </select>

@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearCase — Legal clarity, intelligently delivered</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+/* ─────────────────────────────────────────────────────────────
+   PALETTE — chosen for the emotional state of the person using
+   this, not just visual taste. Dominant hues are low-arousal
+   (blue, teal, sage) to keep a stressed user calm; amber is kept
+   rare and reserved for genuinely time-bound items; red is kept
+   out entirely except in the one place it should mean something:
+   the real emergency flow.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --bg:#F5F5F1; --surface:#FFFFFF; --surface-2:#EDEEE9;
+  --ink:#1C2A40; --ink-2:#243652; --ink-3:#121C2C;
+  --text:#1E2636; --muted:#5E6577; --faint:#92989F;
+  --line:rgba(28,42,64,.09); --line-2:rgba(28,42,64,.17);
+
+  --blue:#3D6FB0;        /* trust — primary */
+  --blue-deep:#2A4F85;
+  --teal:#2E8E86;        /* clarity — intelligence features */
+  --teal-deep:#1F6B65;
+  --grad:linear-gradient(135deg,var(--blue),var(--teal));
+
+  --ok:#2F8F5B;          /* resolution, safety, good news */
+  --ok-bg:#E7F3EC;
+  --info:#2A547F;        /* calm transparency, not a warning */
+  --info-bg:#EAF1F8;
+  --warn:#B07F2A;        /* genuinely time-bound, used sparingly */
+  --warn-bg:#FAF0DF;
+  --danger:#C2453D;      /* reserved for true emergencies only */
+  --danger-bg:#FAEAE8;
+
+  --r:16px; --r-sm:11px; --r-lg:24px;
+  --shadow:0 1px 2px rgba(28,42,64,.05),0 1px 1px rgba(28,42,64,.04);
+  --shadow-lg:0 24px 48px -20px rgba(42,79,133,.18);
+  --shadow-glow:0 18px 40px -14px rgba(61,111,176,.26);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.56;-webkit-font-smoothing:antialiased}
+.display{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.06}
+.head{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.01em;line-height:1.18}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+a{color:inherit}
+::selection{background:rgba(61,111,176,.2)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.78)}}
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(-2%,2%)}100%{transform:translate(0,0)}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+.fade{animation:fade .4s ease both}
+.d2{animation-delay:.1s}.d3{animation-delay:.18s}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);display:inline-flex;align-items:center;gap:8px}
+.eyebrow .seg{color:rgba(255,255,255,.4)}
+.eyebrow.on-light .seg{color:var(--faint)}
+.rule{height:1px;background:var(--line);border:0}
+
+.btn{font-family:'Plus Jakarta Sans',sans-serif;border:1px solid transparent;border-radius:var(--r-sm);padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s,border-color .15s,color .15s;display:inline-flex;align-items:center;gap:9px;line-height:1;text-decoration:none;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn svg{flex-shrink:0}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:var(--shadow-glow)}.btn-primary:hover{filter:brightness(1.07)}
+.btn-ink{background:var(--ink);color:#fff}.btn-ink:hover{background:var(--ink-3)}
+.btn-line{background:var(--surface);color:var(--ink);border-color:var(--line-2)}.btn-line:hover{border-color:var(--blue);color:var(--blue)}
+.btn-ghost{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.18)}.btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.35)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#aa3c35}
+.btn-ai{background:rgba(46,142,134,.1);color:var(--teal-deep);border-color:rgba(46,142,134,.25)}.btn-ai:hover{background:rgba(46,142,134,.18)}
+.btn-sm{padding:9px 15px;font-size:13px}
+.btn-block{width:100%;justify-content:center}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;border:1.5px solid var(--line-2);border-radius:var(--r-sm);padding:11px 14px;font-size:14px;width:100%;outline:none;background:var(--surface);color:var(--text);transition:border-color .15s,box-shadow .15s}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(61,111,176,.12)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235E6577' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel-hover{transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s;cursor:pointer}
+.panel-hover:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:rgba(61,111,176,.22)}
+.glass{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-lg)}
+.notice{border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start}
+
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:999px;padding:4px 11px;letter-spacing:.01em;white-space:nowrap}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1160px;margin:0 auto}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-live{position:relative}
+.dot-live::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:currentColor;opacity:.35;animation:pulse 1.8s ease-in-out infinite}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:6px}::-webkit-scrollbar-track{background:transparent}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.tech{background-color:var(--ink);background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1.2px);background-size:20px 20px;position:relative}
+.tech::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent 40%);pointer-events:none}
+
+.mesh{position:relative;background:var(--ink-3);overflow:hidden}
+.mesh::before{content:'';position:absolute;inset:-10%;background:
+    radial-gradient(40% 44% at 18% 22%,rgba(61,111,176,.40),transparent 70%),
+    radial-gradient(36% 42% at 84% 16%,rgba(46,142,134,.34),transparent 70%),
+    radial-gradient(46% 50% at 68% 88%,rgba(61,111,176,.16),transparent 70%);
+  filter:blur(40px);animation:drift 18s ease-in-out infinite;pointer-events:none}
+.mesh::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1.2px);background-size:22px 22px;pointer-events:none}
+
+.icon-tile{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-tile-sm{width:34px;height:34px;border-radius:10px}
+
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.section{padding:88px 40px}
+.section-sm{padding:48px 40px}
+.nav-burger{display:none}
+
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:1fr 1fr}
+  .section{padding:60px 20px}.section-sm{padding:36px 20px}
+  .hide-sm{display:none!important}
+  .nav-burger{display:inline-flex!important}
+  .two-col{grid-template-columns:1fr!important}
+  nav{padding:0 18px!important}
+  .section,.section-sm,.wrap{padding-left:18px;padding-right:18px}
+}
+@media (max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+#disc{position:fixed;inset:0;background:rgba(12,18,30,.78);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;animation:fade .3s ease;overflow-y:auto}
+#disc-box{background:var(--surface);border-radius:20px;max-width:560px;width:100%;box-shadow:0 50px 100px rgba(20,30,48,.35);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+#disc-top{height:4px;background:var(--grad)}
+#disc-body{overflow-y:auto;padding:28px 30px 4px}
+#disc-foot{padding:18px 30px 26px;border-top:1px solid var(--line);background:var(--bg)}
+.disc-row{display:flex;gap:12px;align-items:flex-start;padding:9px 0}
+.disc-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--blue);flex-shrink:0;width:22px;padding-top:2px}
+.disc-row span{font-size:13.5px;color:var(--text);line-height:1.6}
+#disc-btn{width:100%;padding:14px;font-size:15px;font-weight:600;border:none;border-radius:var(--r-sm);background:var(--line-2);color:#fff;cursor:not-allowed;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+#disc-btn.on{background:var(--grad);cursor:pointer;box-shadow:var(--shadow-glow)}
+.check{width:19px;height:19px;border:1.5px solid var(--line-2);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#fff}
+.check.on{background:var(--grad);border-color:transparent}
+</style>
+</head>
+<body>
+
+<div id="disc">
+  <div id="disc-box">
+    <div id="disc-top"></div>
+    <div id="disc-body">
+      <div style="display:flex;align-items:center;gap:13px;margin-bottom:18px">
+        <span id="disc-mark"></span>
+        <div><div class="display" style="font-size:21px;color:var(--ink)">ClearCase</div>
+        <div class="mono" style="font-size:11px;color:var(--faint);letter-spacing:.05em">LEGAL TECHNOLOGY · CLEARCASE.IN</div></div>
+      </div>
+      <div class="notice" style="background:var(--info-bg)">
+        <span style="color:var(--info);margin-top:1px" id="disc-info-ic"></span>
+        <div><div class="lbl" style="color:var(--info);margin-bottom:4px">Required reading — Bar Council of India</div>
+        <div style="font-size:12.5px;color:var(--info);line-height:1.55">A short notice before you continue, as required under Rule 36 of the BCI Rules and the Advocates Act, 1961.</div></div>
+      </div>
+      <div style="font-size:13.5px;color:var(--text);margin:18px 0 6px;font-weight:700">By proceeding, you confirm that:</div>
+      <div class="rule" style="margin:6px 0"></div>
+      <div class="disc-row"><span class="disc-num">01</span><span>You are visiting this website of your own accord. No advertisement, solicitation, or inducement has been made to you.</span></div>
+      <div class="disc-row"><span class="disc-num">02</span><span>ClearCase is a legal technology platform — not a law firm. It does not provide legal advice or represent clients.</span></div>
+      <div class="disc-row"><span class="disc-num">03</span><span>Advocates listed here are independently enrolled with their State Bar Council and maintain independent practices.</span></div>
+      <div class="disc-row"><span class="disc-num">04</span><span>ClearCase does not rank, rate, or recommend any advocate. Listings are informational only.</span></div>
+      <div class="disc-row"><span class="disc-num">05</span><span>Any legal advice or engagement is exclusively between you and the advocate you choose to contact.</span></div>
+      <div class="disc-row"><span class="disc-num">06</span><span>Advocate information is self-declared. Enrolment numbers are independently verified.</span></div>
+    </div>
+    <div id="disc-foot">
+      <label style="display:flex;align-items:center;gap:11px;cursor:pointer;margin-bottom:14px" onclick="toggleDisc()">
+        <span id="disc-check" class="check"></span>
+        <span style="font-size:13px;color:var(--ink);font-weight:500;line-height:1.45">I have read and understood the above. I am visiting ClearCase of my own accord.</span>
+      </label>
+      <button id="disc-btn" disabled onclick="acceptDisc()">Continue to ClearCase</button>
+      <div style="text-align:center;margin-top:9px;font-size:11px;color:var(--faint)">Tick the box above to continue</div>
+    </div>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<script>
+// ════════ ICONS — one consistent line set ════════
+const ICONS={
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  insight:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>',
+  spark:'<path d="M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3.2 3.2M15.8 15.8L19 19M19 5l-3.2 3.2M8.2 15.8L5 19"/><circle cx="12" cy="12" r="2.6"/>',
+  bell:'<path d="M6 9a6 6 0 0 1 12 0c0 4.5 2 5.5 2 5.5H4S6 13.5 6 9z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h3.5l2 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  pen:'<path d="M4 20l4.5-1L18 9.5 14.5 6 5 15.5z"/><path d="M13.5 7l3.5 3.5"/>',
+  book:'<path d="M12 6.5C10 5 6.8 5 4.5 6v12.5c2.3-1 5.5-1 7.5.5 2-1.5 5.2-1.5 7.5-.5V6c-2.3-1-5.5-1-7.5.5z"/><path d="M12 6.5V19"/>',
+  video:'<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>',
+  phone:'<path d="M5 4h3.2l1.8 4.6-2 1.2a11 11 0 0 0 5.2 5.2l1.2-2 4.6 1.8V19a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  building:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M3 21h18"/>',
+  alert:'<path d="M12 3.2l9 16.3H3z"/><path d="M12 9.5v4.5M12 17.2h.01"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 7.6h.01M11.1 11h1v6h1"/>',
+  court:'<path d="M3 9l9-5.2L21 9"/><path d="M5.5 9v8M9.5 9v8M14.5 9v8M18.5 9v8M3 21h18"/>',
+  bulb:'<path d="M9.2 18h5.6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.7 10.7c.8.7.9 1.6.9 2.3h5.6c0-.7.1-1.6.9-2.3A6 6 0 0 0 12 3z"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.4 9a2.6 2.6 0 0 1 4.4 1.6c0 1.8-2.4 1.9-2.4 3.6M12 17.2h.01"/>',
+  check:'<path d="M4.5 12.5l4.5 4.5L19.5 6.5"/>',
+  flag:'<path d="M5 21V4"/><path d="M5 4.5h11.5l-2.2 4 2.2 4H5"/>',
+  clip:'<path d="M20 11.5l-8.5 8.5a5 5 0 0 1-7-7l8.5-8.5a3.4 3.4 0 0 1 4.8 4.8l-8.4 8.4a1.8 1.8 0 0 1-2.6-2.6l7.6-7.6"/>',
+  calendar:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',
+  doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 13h5M9.5 16.5h5"/>',
+  image:'<rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="M3 16.5l5-4 4 3 3-2.2 6 5.2"/>',
+  chat:'<path d="M4 5h16v11H9.5L4 20z"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9L19 19M19 5l-2.1 2.1M7.1 16.9L5 19"/>',
+  pin:'<path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+  refund:'<path d="M3.5 12a8.5 8.5 0 1 0 2.8-6.3"/><path d="M3 4v4h4"/>',
+  key:'<circle cx="8" cy="14" r="4"/><path d="M11 11l9.5-9.5M16.5 5l2.2 2.2M13.7 7.8l2.2 2.2"/>',
+  arrow:'<path d="M4.5 12h15M13.5 6l6 6-6 6"/>',
+  star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.5 9.7l5.9-.9z"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c0-4 3.5-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/>',
+  upload:'<path d="M12 16.5V4M8 8l4-4 4 4"/><path d="M4 16v3.5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V16"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  send:'<path d="M4.5 12L20 5l-6.5 15-2.2-6z"/>',
+  scale:'<path d="M12 4v16M8 20h8M5.5 8h13"/><path d="M5.5 8L3 13.5a3 3 0 0 0 5 0z"/><path d="M18.5 8L16 13.5a3 3 0 0 0 5 0z"/><circle cx="12" cy="4" r="1.3"/>',
+  back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  gavel:'<path d="M14 6l4 4M16 4l4 4-3 3-4-4z"/><path d="M5 19l7-7M3.5 17.5l4 4M11 21h9"/>',
+  heart:'<path d="M12 20s-7.5-4.6-9.7-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.7 11c-2.2 4.4-9.7 9-9.7 9z"/>',
+  call:'<path d="M5 4h3.2l1.8 4.6-2 1.2a11 11 0 0 0 5.2 5.2l1.2-2 4.6 1.8V19a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  layers:'<path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/>',
+};
+function Icon(n,s=20,extra=''){return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="${extra}">${ICONS[n]||''}</svg>`;}
+function Mark(sz=32){
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*.3)}px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 16px -4px rgba(61,111,176,.45)">
+    <svg width="${Math.round(sz*.56)}" height="${Math.round(sz*.56)}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS.scale}</svg>
+  </div>`;
+}
+document.getElementById('disc-mark').innerHTML=Mark(38);
+document.getElementById('disc-info-ic').innerHTML=Icon('info',16);
+
+let discChecked=false;
+function toggleDisc(){
+  discChecked=!discChecked;
+  const c=document.getElementById('disc-check');
+  c.classList.toggle('on',discChecked);
+  c.innerHTML=discChecked?`<span style="color:#fff">${Icon('check',13)}</span>`:'';
+  const b=document.getElementById('disc-btn');b.disabled=!discChecked;b.classList.toggle('on',discChecked);
+  b.innerHTML=discChecked?`Continue to ClearCase ${Icon('arrow',16)}`:'Continue to ClearCase';
+}
+function acceptDisc(){document.getElementById('disc').style.display='none';sessionStorage.setItem('cc_disc','1');}
+if(sessionStorage.getItem('cc_disc')==='1')document.getElementById('disc').style.display='none';
+
+// ════════ DATA ════════
+const ADVOCATES=[
+  {id:1,name:"Adv. Meera Krishnamurthy",ini:"MK",enrolled:2011,barNo:"TS/HC/2011/1234",areas:["Criminal","Family","Civil"],state:"Telangana",city:"Hyderabad",education:"LLB — Osmania University",bio:"Enrolled with the Telangana State Bar Council since 2011. Handles criminal defence, family law, and civil matters before the Telangana High Court and subordinate courts.",langs:["Telugu","English","Hindi"],available:true,office:"Chambers No. 4, High Court Complex, Nampally, Hyderabad — 500 001"},
+  {id:2,name:"Adv. Venkata Subramaniam",ini:"VS",enrolled:2016,barNo:"AP/HC/2016/5678",areas:["Corporate","Banking","Civil"],state:"Andhra Pradesh",city:"Vijayawada",education:"LLB — Andhra University",bio:"Enrolled with the AP State Bar Council since 2016. Handles corporate disputes, banking matters, and civil litigation before AP courts and the NCLT.",langs:["Telugu","English"],available:true,office:"Chambers No. 12, District Court Complex, Vijayawada — 520 001"},
+  {id:3,name:"Adv. Lakshmi Devi Nair",ini:"LD",enrolled:2018,barNo:"TS/HC/2018/9012",areas:["Civil","Real Estate","Consumer"],state:"Telangana",city:"Hyderabad",education:"LLB — NALSAR University of Law",bio:"Enrolled with the Telangana State Bar Council since 2018. Handles property disputes, consumer protection, and civil litigation before Telangana courts.",langs:["Telugu","English","Tamil"],available:false,office:"Chambers No. 7, City Civil Court, Nampally, Hyderabad — 500 001"},
+  {id:4,name:"Adv. Ravi Teja Reddy",ini:"RT",enrolled:2014,barNo:"AP/HC/2014/3456",areas:["Criminal","Family","Revenue"],state:"Andhra Pradesh",city:"Visakhapatnam",education:"LLB — Andhra University",bio:"Enrolled with the AP State Bar Council since 2014. Handles criminal defence, family law, and revenue tribunal matters across Andhra Pradesh courts.",langs:["Telugu","English"],available:true,office:"Chambers No. 3, District Court Complex, Visakhapatnam — 530 001"},
+  {id:5,name:"Adv. Sravanthi Rao",ini:"SR",enrolled:2020,barNo:"TS/HC/2020/7890",areas:["Family","Civil","Consumer"],state:"Telangana",city:"Warangal",education:"LLB — Kakatiya University",bio:"Enrolled with the Telangana State Bar Council since 2020. Handles family law, civil matters, and consumer protection cases in Warangal courts.",langs:["Telugu","English"],available:true,office:"Chambers No. 9, District Court Complex, Warangal — 506 001"},
+  {id:6,name:"Adv. Prasad Yeluri",ini:"PY",enrolled:2007,barNo:"AP/HC/2007/2345",areas:["Criminal","Corporate","Banking"],state:"Andhra Pradesh",city:"Amaravati",education:"LLB — Sri Venkateswara University",bio:"Enrolled with the AP State Bar Council since 2007. Former Additional Advocate General, AP. Handles high-value criminal, corporate, and banking matters.",langs:["Telugu","English","Hindi"],available:true,office:"Chambers No. 1, High Court Annexe, Amaravati — 522 020"},
+];
+/* practice-area tags use a muted, no-red family deliberately — these
+   labels sit on a person's own case, repeatedly, so none of them
+   should read as alarming, even for Criminal matters. */
+const AREA_COLORS={Criminal:"#4A5C80",Civil:"#3D7A8A",Family:"#7A6A8A",Corporate:"#2E7F66",Banking:"#475873","Real Estate":"#9C7A4A",Consumer:"#2E8A8F",Revenue:"#7A7142"};
+const BLOCKED={14:["10:00 AM","2:00 PM"],15:["11:00 AM","3:30 PM"],17:["10:00 AM","11:00 AM"],18:["2:00 PM"]};
+const SLOTS=["9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","2:00 PM","3:00 PM","3:30 PM","4:30 PM","5:00 PM"];
+const CASE_INTEL={
+  Criminal:{precedents:[{title:"State of AP v. Ramaiah (2021)",court:"AP HC",outcome:"Acquittal — inconsistent witness testimony"},{title:"Krishnamurthy v. State (2022)",court:"Telangana HC",outcome:"Bail granted — no prior antecedents"}],keyPoints:["Witness credibility is decisive — inconsistencies in FIR vs. testimony often determine outcome","Bail applications succeed when: no prior record, roots in community, cooperation with investigation","Charge sheet delay beyond 60/90 days (CrPC 167) entitles bail as of right"],crossExam:["Establish when witness first reported the incident vs. FIR date","Ask if witness knew accused before the alleged incident","Confirm exact position of witness at time of alleged offence"],judgeNotes:"Telangana HC Bench B: known to scrutinise delay in filing charge sheets carefully."},
+  Civil:{precedents:[{title:"Reddy v. State Housing Board (2023)",court:"Telangana HC",outcome:"Decree in favour — clear title documents"},{title:"Rao Properties v. Municipal Corp (2022)",court:"AP HC",outcome:"Injunction granted — possession maintained"}],keyPoints:["Clear chain of title documents from original seller to current owner is the strongest evidence","Mutation records (Pahani/ROR) + tax receipts establish long possession","Courts look for unbroken possession — any gaps are used by opposite party"],crossExam:["Ask when opposite party last physically occupied the property","Confirm whether opposite party paid any property tax receipts","Establish if any encroachments were reported to authorities"],judgeNotes:"Civil courts prioritise documentary evidence over oral testimony in property disputes."},
+  Consumer:{precedents:[{title:"Sharma v. Builder Co. (2023)",court:"NCDRC",outcome:"Full refund + compensation — delayed possession"},{title:"Venkat v. Insurance Ltd (2022)",court:"AP SCDRC",outcome:"Claim allowed — deficiency in service proved"}],keyPoints:["Deficiency in service requires proving: promise made, service not delivered, loss suffered","Consumer forums are consumer-friendly — complainant's burden of proof is relatively low","Keep all written communications, emails, and receipts — they are primary evidence"],crossExam:["Confirm the exact delivery/service date promised in writing","Establish that complaint was made to opposite party and ignored","Ask for documentary proof of any alleged performance by opposite party"],judgeNotes:"Consumer forums routinely award compensation beyond the claim amount for mental agony."},
+};
+const NUDGE_LOG=[
+  {from:"ClearCase",to:"Adv. Venkata",msg:"Reminder: Hearing scheduled in 7 days for matter CC-2025-00421. Please update case notes for your client.",time:"2 days ago",status:"sent"},
+  {from:"ClearCase",to:"Adv. Venkata",msg:"Your client has uploaded 2 new documents to the case vault. Please review before the next hearing.",time:"5 days ago",status:"read"},
+  {from:"ClearCase",to:"You",msg:"Upcoming hearing: May 21, 2025. Your advocate has been reminded. Ensure all documents are uploaded.",time:"2 days ago",status:"sent"},
+  {from:"You",to:"Adv. Venkata",msg:"Gap Alert: I noticed the delivery challan from March 2024 has not been referenced in the draft argument. Please review.",time:"1 week ago",status:"sent"},
+];
+const STORIES=[
+  {stat:"50M+",sub:"cases pending before Indian courts today"},
+  {stat:"24×7",sub:"case monitoring and follow-up, always on"},
+  {stat:"100%",sub:"advocates enrolled with the Bar Council, verified"},
+  {stat:"Clear",sub:"intelligence drawn from public court records"},
+];
+
+let state={
+  screen:"landing",regStep:1,phone:"",otp:["","","","","",""],
+  form:{name:"",state:"Telangana",city:"",matter:"",brief:""},
+  stateFilter:"all",areaFilter:"all",advSearch:"",advSort:"relevance",saved:[],navOpen:false,
+  selAdv:ADVOCATES[1],selDate:14,selSlot:"",meetType:"video",
+  storyIdx:0,sessionSecs:1200,sessionPhase:"active",timerOn:false,
+  consentShown:false,recordConsent:false,
+  emergStep:"info",emergSecs:540,
+  dashTab:"overview",intelArea:"Criminal",
+  gapText:"",crossInput:"",argInput:"",
+};
+let storyTimer=null,sessionTimer=null,emergTimer=null;
+
+function ss(p){Object.assign(state,p);render();}
+function go(s){ss({screen:s,navOpen:false});window.scrollTo(0,0);}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function startStoryTimer(){if(storyTimer)return;storyTimer=setInterval(()=>{ss({storyIdx:(state.storyIdx+1)%STORIES.length});},3800);}
+function startSession(){
+  ss({timerOn:true,sessionPhase:"active"});
+  if(sessionTimer)return;
+  sessionTimer=setInterval(()=>{
+    if(state.sessionPhase!=="active"&&state.sessionPhase!=="extended"){clearInterval(sessionTimer);sessionTimer=null;return;}
+    const s=state.sessionSecs-1;
+    if(s<=0){ss({sessionSecs:0,sessionPhase:"ending"});clearInterval(sessionTimer);sessionTimer=null;}
+    else ss({sessionSecs:s});
+  },1000);
+}
+function startEmergTimer(){
+  if(emergTimer)return;
+  emergTimer=setInterval(()=>{
+    const s=state.emergSecs-1;
+    if(s<=0){clearInterval(emergTimer);emergTimer=null;ss({emergStep:"refund",emergSecs:0});}
+    else ss({emergSecs:s});
+  },1000);
+}
+function toggleSave(id){const i=state.saved.indexOf(id);const s=[...state.saved];if(i>-1)s.splice(i,1);else s.push(id);ss({saved:s});}
+function advSearchInput(v){state.advSearch=v;render();const el=document.getElementById('advSearch');if(el){el.focus();el.setSelectionRange(v.length,v.length);}}
+function selectAdv(id){ss({selAdv:ADVOCATES.find(x=>x.id===id)});go('profile');}
+function handleOtp(i,v){const o=[...state.otp];o[i]=v.slice(-1);ss({otp:o});if(v){const n=document.getElementById('otp'+(i+1));if(n)n.focus();}}
+
+// ── UI helpers ──
+function Monogram(ini,sz=52,light=false){
+  const innerBg=light?'rgba(255,255,255,.08)':'#fff';
+  const fg=light?'#CFE0EE':'var(--ink)';
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:var(--grad);padding:2px;flex-shrink:0">
+    <div style="width:100%;height:100%;border-radius:50%;background:${innerBg};display:flex;align-items:center;justify-content:center">
+      <span class="head" style="font-size:${Math.round(sz*.34)}px;color:${fg}">${ini}</span>
+    </div>
+  </div>`;}
+function AreaTag(a){const c=AREA_COLORS[a]||'var(--ink)';return `<span class="tag" style="background:${c}16;color:${c}">${a}</span>`;}
+function Eyebrow(seg,txt,light){return `<div class="eyebrow ${light?'':'on-light'}"><span class="seg">${seg}</span>${txt}</div>`;}
+function IconTile(ic,tint='ink',sm=false){
+  const map={ink:['rgba(28,42,64,.06)','var(--ink)'],blue:['rgba(61,111,176,.1)','var(--blue)'],teal:['rgba(46,142,134,.1)','var(--teal-deep)'],ok:['var(--ok-bg)','var(--ok)'],info:['var(--info-bg)','var(--info)'],warn:['var(--warn-bg)','var(--warn)'],danger:['var(--danger-bg)','var(--danger)']};
+  const [bg,fg]=map[tint]||map.ink;
+  return `<div class="icon-tile${sm?' icon-tile-sm':''}" style="background:${bg};color:${fg}">${Icon(ic,sm?17:21)}</div>`;
+}
+function NoticeBox(tint,ic,html){
+  const map={info:['var(--info-bg)','var(--info)'],warn:['var(--warn-bg)','var(--warn)'],teal:['rgba(46,142,134,.08)','var(--teal-deep)'],ok:['var(--ok-bg)','#1F7245']};
+  const [bg,fg]=map[tint]||map.info;
+  return `<div class="notice" style="background:${bg}"><span style="color:${fg};margin-top:1px;flex-shrink:0">${Icon(ic,15)}</span><p style="font-size:12.5px;color:${fg};line-height:1.55">${html}</p></div>`;
+}
+
+function AdvCard(a){
+  const yrs=2025-a.enrolled, saved=state.saved.includes(a.id);
+  return `<div class="panel panel-hover" onclick="selectAdv(${a.id})" style="padding:22px;display:flex;flex-direction:column">
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      ${Monogram(a.ini,50)}
+      <div style="flex:1;min-width:0">
+        <div class="head" style="font-size:16.5px;color:var(--ink);line-height:1.25">${a.name}</div>
+        <div class="mono" style="font-size:11px;color:var(--faint);margin-top:4px;letter-spacing:.03em">${a.barNo}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:5px">${a.city}, ${a.state} · ${yrs} yrs at the Bar</div>
+      </div>
+      <button title="${saved?'Saved':'Save advocate'}" onclick="event.stopPropagation();toggleSave(${a.id})" style="border:none;background:transparent;cursor:pointer;color:${saved?'var(--blue)':'var(--line-2)'};padding:2px;line-height:0">${Icon('star',19,saved?'fill:var(--blue)':'')}</button>
+    </div>
+    <div class="rule" style="margin:16px 0 13px"></div>
+    <div class="lbl" style="margin-bottom:8px">Practice areas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px">${a.areas.map(AreaTag).join('')}</div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin-bottom:16px">${Icon('globe',15)}${a.langs.join(' · ')}</div>
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:16px;margin-top:auto">
+      <span class="dot ${a.available?'dot-live':''}" style="background:${a.available?'var(--ok)':'var(--faint)'};color:var(--ok)"></span>
+      <span style="font-size:12px;font-weight:600;color:${a.available?'var(--ok)':'var(--faint)'}">${a.available?'Accepting appointments':'Not available this week'}</span>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-line btn-sm" style="flex:1;justify-content:center" onclick="event.stopPropagation();selectAdv(${a.id})">View profile</button>
+      <button class="btn btn-ink btn-sm" style="flex:1;justify-content:center" onclick="event.stopPropagation();selectAdv(${a.id})">Schedule ${Icon('arrow',14)}</button>
+    </div>
+  </div>`;
+}
+
+function navLink(label,scr){return `<span onclick="go('${scr}')" style="color:rgba(255,255,255,.72);font-size:14px;cursor:pointer;font-weight:500;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.72)'">${label}</span>`;}
+function Nav(auth=true){
+  const links=`${navLink('Find an advocate','advocates')}${auth?navLink('My case','dashboard'):''}${navLink('Case intelligence','intelligence')}`;
+  return `<nav style="background:rgba(18,28,44,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:0 28px;height:64px;display:flex;align-items:center;position:sticky;top:0;z-index:100;gap:26px;border-bottom:1px solid rgba(255,255,255,.07)">
+    <span onclick="go('landing')" style="cursor:pointer;display:flex;align-items:center;gap:10px;color:#fff">
+      ${Mark(30)}
+      <span class="head" style="font-size:18px;color:#fff">ClearCase</span>
+    </span>
+    <div style="flex:1"></div>
+    <div class="hide-sm" style="display:flex;align-items:center;gap:24px">${links}
+      <button onclick="go('urgent')" class="btn btn-danger btn-sm">${Icon('alert',15)} Urgent help</button>
+      <button onclick="go('register')" class="btn btn-primary btn-sm">Get started</button>
+    </div>
+    <button class="nav-burger" onclick="ss({navOpen:!state.navOpen})" style="background:transparent;border:none;color:#fff;cursor:pointer;padding:4px;margin-left:auto">${Icon(state.navOpen?'x':'menu',24)}</button>
+  </nav>
+  ${state.navOpen?`<div class="tech" style="padding:14px 28px 20px;display:flex;flex-direction:column;gap:16px;position:sticky;top:64px;z-index:99;border-bottom:1px solid rgba(255,255,255,.08)">
+    ${links}
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button onclick="go('urgent')" class="btn btn-danger btn-sm" style="flex:1;justify-content:center">${Icon('alert',15)} Urgent help</button>
+      <button onclick="go('register')" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">Get started</button>
+    </div>
+  </div>`:''}
+  <div style="background:var(--info-bg);border-bottom:1px solid rgba(42,84,127,.14);padding:7px 28px">
+    <p style="font-size:11.5px;color:var(--info);max-width:1160px;margin:0 auto;display:flex;align-items:center;gap:8px;line-height:1.4">${Icon('scale',14,'flex-shrink:0')}<span>ClearCase is a legal technology platform, not a law firm. Advocates are independently enrolled with Bar Councils. <span onclick="go('compliance')" style="text-decoration:underline;cursor:pointer;font-weight:600">Read the full compliance notice</span></span></p>
+  </div>`;
+}
+function SecHead(seg,eyebrow,title,sub,dark=false){
+  return `<div style="margin-bottom:44px;max-width:640px">
+    ${Eyebrow(seg,eyebrow,dark)}
+    <h2 class="display" style="font-size:clamp(28px,4.2vw,38px);color:${dark?'#fff':'var(--ink)'};margin:16px 0 ${sub?'12px':'0'}">${title}</h2>
+    ${sub?`<p style="color:${dark?'rgba(255,255,255,.62)':'var(--muted)'};font-size:16px;line-height:1.6">${sub}</p>`:''}
+  </div>`;
+}
+function cardHead(ic,title,sub,tint='ink'){
+  return `<div style="display:flex;align-items:center;gap:13px;margin-bottom:18px">
+    ${IconTile(ic,tint)}
+    <div><div style="font-size:14px;font-weight:700;color:var(--ink)">${title}</div><div style="font-size:12px;color:var(--muted)">${sub}</div></div>
+  </div>`;
+}
+function toolHead(ic,title,sub,tint='ink'){
+  return `<div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:10px">
+    ${IconTile(ic,tint)}
+    <div><div style="font-size:15px;font-weight:700;color:var(--ink)">${title}</div><div style="font-size:12.5px;color:var(--muted);line-height:1.45">${sub}</div></div>
+  </div>`;
+}
+function field(label,input){return `<div><label class="lbl" style="display:block;margin-bottom:6px">${label}</label>${input}</div>`;}
+function toggle(on){return `<div style="width:44px;height:24px;border-radius:13px;background:${on?'var(--grad)':'var(--line-2)'};position:relative;flex-shrink:0;cursor:pointer"><div style="position:absolute;top:3px;left:${on?23:3}px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s"></div></div>`;}
+function nudgeRow(n,compact){
+  const ico=n.from==='ClearCase'?'bell':n.from==='You'?'flag':'chat';
+  const tint=n.from==='ClearCase'?'blue':n.from==='You'?'warn':'teal';
+  return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)">
+    ${IconTile(ico,tint,true)}
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
+        <span style="font-size:12.5px;font-weight:700;color:var(--ink)">${n.from}</span><span style="color:var(--faint)">→</span><span style="font-size:12.5px;color:var(--muted)">${n.to}</span>
+        ${!compact?`<span class="tag" style="background:${n.status==='read'?'var(--ok-bg)':'rgba(28,42,64,.05)'};color:${n.status==='read'?'var(--ok)':'var(--muted)'}">${n.status==='read'?'Read':'Sent'}</span>`:''}
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.55">${n.msg}</div>
+    </div>
+    <div class="mono" style="font-size:10.5px;color:var(--faint);flex-shrink:0;white-space:nowrap">${n.time}</div>
+  </div>`;
+}
+function Footer(){
+  return `<footer class="tech" style="padding:48px 40px 30px">
+    <div class="wrap" style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;margin-bottom:30px;position:relative;z-index:1">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#fff">${Mark(28)}<span class="head" style="font-size:18px">ClearCase</span></div>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;line-height:1.7;max-width:300px">A legal technology platform. Not a law firm. Does not provide legal advice or represent clients.</p>
+      </div>
+      <div><div class="lbl" style="color:rgba(255,255,255,.45);margin-bottom:12px">Compliance</div>${["BCI Rule 36 compliant","Advocates Act, 1961","DPDP Act, 2023"].map(t=>`<div style="color:rgba(255,255,255,.42);font-size:13px;margin-bottom:7px;display:flex;align-items:center;gap:7px"><span style="color:#7FC2BC">${Icon('check',14)}</span>${t}</div>`).join('')}</div>
+      <div><div class="lbl" style="color:rgba(255,255,255,.45);margin-bottom:12px">Links</div>${[["Full disclaimer","compliance"],["Case intelligence","intelligence"],["For advocates","advocates"]].map(([l,scr])=>`<div onclick="go('${scr}')" style="color:rgba(255,255,255,.42);font-size:13px;margin-bottom:7px;cursor:pointer" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.42)'">${l}</div>`).join('')}</div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:20px;text-align:center;position:relative;z-index:1"><p class="mono" style="color:rgba(255,255,255,.28);font-size:11px;line-height:1.7;letter-spacing:.03em">NOT A LAW FIRM · DOES NOT PRACTISE LAW · © 2025 CLEARCASE TECHNOLOGY PVT. LTD. · CLEARCASE.IN</p></div>
+  </footer>`;
+}
+
+// ════════ LANDING ════════
+function renderLanding(){
+  const s=STORIES[state.storyIdx];startStoryTimer();
+  return `${Nav(false)}
+  <header class="mesh" style="padding:68px 40px 76px">
+    <div class="wrap two-col" style="display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;position:relative;z-index:1">
+      <div class="rise">
+        <div class="eyebrow"><span class="seg">EST. 2025</span>Telangana &amp; Andhra Pradesh</div>
+        <h1 class="display" style="font-size:clamp(38px,6.2vw,64px);color:#fff;margin:20px 0 22px">Legal clarity, intelligently delivered.</h1>
+        <p style="color:rgba(255,255,255,.68);font-size:17px;line-height:1.72;max-width:520px;margin-bottom:34px">Engage a Bar Council&ndash;enrolled advocate, track every step of your matter in real time, and see what public court records say about cases like yours.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="go('advocates')" style="padding:14px 26px;font-size:15px">Find an advocate ${Icon('arrow',16)}</button>
+          <button class="btn btn-ghost" onclick="go('intelligence')" style="padding:14px 26px;font-size:15px">${Icon('spark',17)} Explore case intelligence</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:42px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span class="display" style="color:#fff;font-size:38px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${s.stat}</span>
+            <span style="color:rgba(255,255,255,.55);font-size:14px;max-width:230px">${s.sub}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:18px">
+          ${STORIES.map((_,i)=>`<button onclick="ss({storyIdx:${i}})" aria-label="Stat ${i+1}" style="border:none;cursor:pointer;width:${i===state.storyIdx?26:8}px;height:4px;border-radius:2px;background:${i===state.storyIdx?'var(--blue)':'rgba(255,255,255,.22)'};transition:all .4s;padding:0"></button>`).join('')}
+        </div>
+      </div>
+      <div class="glass rise d2" style="overflow:hidden">
+        <div style="background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+          <div class="mono" style="font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.5)">MATTER · CC-2025-00421</div>
+          <span class="tag" style="background:rgba(46,142,134,.18);color:#8FE0D6"><span class="dot dot-live" style="background:#8FE0D6"></span>Active</span>
+        </div>
+        <div style="padding:20px 18px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            ${Monogram('VS',44,true)}
+            <div><div class="head" style="font-size:15px;color:#fff">Adv. Venkata Subramaniam</div><div class="mono" style="font-size:10.5px;color:rgba(255,255,255,.4)">AP/HC/2016/5678</div></div>
+          </div>
+          <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(255,255,255,.08)">
+            <div><div class="lbl" style="color:rgba(255,255,255,.45);margin-bottom:3px">Next hearing</div><div style="font-weight:700;font-size:15px;color:#fff">Tue, 21 May · 11:00</div></div>
+            <div style="text-align:right"><div class="display" style="font-size:28px;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1">7</div><div class="lbl" style="color:rgba(255,255,255,.4);font-size:9px">days</div></div>
+          </div>
+          <div style="display:flex;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;align-items:flex-start;background:rgba(255,255,255,.03)">
+            <span style="color:#9CC4E5;margin-top:1px">${Icon('bell',16)}</span>
+            <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5">Reminder sent to your advocate. Two documents shared. You are up to date.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tech" style="padding:13px 28px">
+    <div class="wrap" style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;position:relative;z-index:1">
+      ${[["scale","BCI Rule 36"],["court","Bar Council verified"],["shield","DPDP Act 2023"],["spark","Public-record intelligence"],["bell","24×7 monitoring"]].map(([ic,t],i)=>`<div style="display:flex;align-items:center;gap:9px;padding:4px 22px">${i>0?'<span style="width:1px;height:16px;background:rgba(255,255,255,.14);margin-right:22px"></span>':''}<span style="color:#7FC2BC">${Icon(ic,15)}</span><span class="mono" style="font-size:11px;letter-spacing:.07em;color:rgba(255,255,255,.7)">${t}</span></div>`).join('')}
+    </div>
+  </div>
+
+  <section class="section" style="background:var(--surface)">
+    <div class="wrap">
+      ${SecHead('01','What ClearCase does','Your case. Your control.','Everything you need to stay informed, stay organised, and never feel left in the dark about your legal matter.')}
+      <div class="grid g3">
+        ${[
+          {ic:"search",t:"Find &amp; connect",tint:"blue",d:"Browse Bar Council&ndash;enrolled advocates by practice area and location. Schedule directly &mdash; video, phone, or in person at chambers.",act:"advocates",cta:"Browse advocates"},
+          {ic:"spark",t:"Case intelligence",tint:"teal",d:"Read what thousands of public judgements reveal: which arguments worked, what judges look for, and which evidence proved decisive.",act:"intelligence",cta:"Explore intelligence"},
+          {ic:"bell",t:"Monitoring &amp; follow-up",tint:"ok",d:"We remind you and your advocate before every hearing, and follow up on your behalf &mdash; so nothing slips.",act:"dashboard",cta:"Open dashboard"},
+          {ic:"folder",t:"Evidence vault",tint:"info",d:"Upload, annotate, and organise every document in one encrypted place. You decide exactly what your advocate can see.",act:"dashboard",cta:"View vault"},
+          {ic:"pen",t:"Build your strategy",tint:"blue",d:"Draft cross-examination questions, flag missing points, and note arguments &mdash; then send them to your advocate when you choose.",act:"case-tools",cta:"Open case tools"},
+          {ic:"book",t:"Public case library",tint:"teal",d:"Search similar matters from eCourts and public records. Understand outcomes and precedents from the ground up.",act:"case-library",cta:"Search the library"},
+        ].map(f=>`<div class="panel panel-hover" style="padding:26px;display:flex;flex-direction:column">
+          ${IconTile(f.ic,f.tint)}
+          <h3 class="head" style="color:var(--ink);font-size:19px;margin:16px 0 9px">${f.t}</h3>
+          <p style="color:var(--muted);font-size:14px;line-height:1.66;margin-bottom:18px;flex:1">${f.d}</p>
+          <button class="btn btn-line btn-sm" style="align-self:flex-start" onclick="go('${f.act}')">${f.cta} ${Icon('arrow',14)}</button>
+        </div>`).join('')}
+      </div>
+    </div>
+  </section>
+
+  <section class="tech section">
+    <div class="wrap" style="position:relative;z-index:1">
+      ${SecHead('02','How it works','From confused to in control &mdash; in minutes.','No more guessing. No more silence. ClearCase keeps you informed at every step.',true)}
+      <div class="grid g4">
+        ${[
+          {n:"01",t:"Find your advocate",d:"Browse enrolled advocates by area and location. View qualifications and schedule a first appointment."},
+          {n:"02",t:"Book the appointment",d:"Pick a date, time, and format. Upload your documents ahead of the meeting."},
+          {n:"03",t:"Use the tools",d:"Prepare with public-record insight. Draft cross-examination points. Track every development."},
+          {n:"04",t:"We follow up",d:"ClearCase nudges your advocate before every hearing. You are always kept in the loop."},
+        ].map((x)=>`<div style="position:relative;padding-top:18px">
+          <div style="position:absolute;top:0;left:0;width:32px;height:2px;background:var(--grad);border-radius:2px"></div>
+          <div class="mono" style="color:#9CC4E5;font-size:13px;font-weight:600;letter-spacing:.1em;margin:14px 0 14px">${x.n}</div>
+          <h3 class="head" style="color:#fff;font-size:18px;margin-bottom:9px">${x.t}</h3>
+          <p style="color:rgba(255,255,255,.55);font-size:14px;line-height:1.66">${x.d}</p>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:48px"><button class="btn btn-primary" onclick="go('register')" style="padding:14px 32px;font-size:15px">Get started &mdash; it's free ${Icon('arrow',16)}</button></div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--bg)">
+    <div class="wrap">
+      ${SecHead('03','The directory','Bar Council&ndash;enrolled advocates',null)}
+      ${NoticeBox('info','info','Listings are informational. ClearCase does not rank or recommend advocates. All details are self-declared; only enrolment is verified.')}
+      <div style="height:6px"></div>
+      <div class="grid g3">${ADVOCATES.slice(0,3).map(AdvCard).join('')}</div>
+      <div style="margin-top:30px"><button class="btn btn-line" onclick="go('advocates')">View the full directory ${Icon('arrow',15)}</button></div>
+    </div>
+  </section>
+
+  <section style="background:#231314;border-top:1px solid rgba(194,69,61,.25)" class="section">
+    <div class="wrap" style="max-width:680px;text-align:center">
+      <span style="color:var(--danger);display:inline-flex;background:rgba(194,69,61,.13);padding:14px;border-radius:18px;margin-bottom:18px">${Icon('alert',26)}</span>
+      <h2 class="display" style="color:#fff;font-size:clamp(26px,4vw,33px);margin-bottom:12px">Facing an urgent legal situation?</h2>
+      <p style="color:rgba(255,255,255,.62);font-size:15px;line-height:1.72;margin-bottom:8px">An arrest, a property dispute, a legal notice. Get connected to an on-call advocate within nine minutes &mdash; any time, any day.</p>
+      <p style="color:rgba(255,255,255,.34);font-size:12px;margin-bottom:26px">Platform facilitation fee ₹1,999. Auto-refunded if no connection is made within nine minutes.</p>
+      <button class="btn btn-danger" onclick="go('urgent')" style="padding:14px 30px;font-size:15px">Request urgent connection ${Icon('arrow',16)}</button>
+    </div>
+  </section>
+
+  ${Footer()}`;
+}
+
+// ════════ CASE INTELLIGENCE ════════
+function renderIntelligence(){
+  const area=state.intelArea, intel=CASE_INTEL[area]||CASE_INTEL.Criminal;
+  const tabs=Object.keys(CASE_INTEL);
+  return `${Nav()}
+  <div class="tech" style="padding:52px 40px 0">
+    <div class="wrap" style="position:relative;z-index:1">
+      <div class="eyebrow">${Icon('spark',13)}<span class="seg">INTEL</span>Drawn from public court records</div>
+      <h1 class="display" style="color:#fff;font-size:clamp(30px,4.6vw,42px);margin:16px 0 12px">Case intelligence</h1>
+      <p style="color:rgba(255,255,255,.6);font-size:16px;max-width:580px;line-height:1.6">Insights from thousands of similar matters across Telangana and Andhra Pradesh courts &mdash; so you walk in prepared.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:26px">
+        ${tabs.map(a=>`<button onclick="ss({intelArea:'${a}'})" class="mono" style="border:1px solid ${area===a?'transparent':'rgba(255,255,255,.16)'};background:${area===a?'var(--grad)':'rgba(255,255,255,.05)'};color:${area===a?'#fff':'rgba(255,255,255,.78)'};border-radius:999px;padding:8px 17px;font-size:12px;letter-spacing:.05em;cursor:pointer;transition:all .15s">${a.toUpperCase()}</button>`).join('')}
+      </div>
+      <div style="height:36px"></div>
+    </div>
+  </div>
+  <div class="section-sm" style="background:var(--bg)">
+    <div class="wrap">
+      ${NoticeBox('teal','info','All insights are drawn from publicly available judgements (eCourts, Indian Kanoon). This is informational research, not legal advice — useful for preparing your conversation with your advocate.')}
+      <div style="height:20px"></div>
+      <div class="grid g2" style="margin-bottom:20px">
+        <div class="panel" style="padding:24px;border-top:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box">
+          ${cardHead('book','Similar precedents','Public records · '+area+' matters','blue')}
+          ${intel.precedents.map(p=>`<div style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px">
+            <div class="head" style="font-size:14.5px;color:var(--ink);margin-bottom:5px">${p.title}</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:9px">${Icon('court',14)}${p.court}</div>
+            <div class="tag" style="background:var(--ok-bg);color:var(--ok)">${Icon('check',13)} ${p.outcome}</div>
+          </div>`).join('')}
+          <button class="btn btn-line btn-sm btn-block" onclick="go('case-library')" style="margin-top:6px">Browse the full case library ${Icon('arrow',14)}</button>
+        </div>
+        <div class="panel" style="padding:24px">
+          ${cardHead('bulb','What courts look for','Key factors in '+area+' cases','teal')}
+          ${intel.keyPoints.map((k,i)=>`<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px">
+            <span class="mono" style="color:var(--blue);font-size:12px;font-weight:600;flex-shrink:0;padding-top:2px">${String(i+1).padStart(2,'0')}</span>
+            <p style="font-size:13.5px;color:var(--ink);line-height:1.6">${k}</p>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="panel" style="padding:24px">
+          ${cardHead('help','Cross-examination angles','From similar '+area+' cases','teal')}
+          ${intel.crossExam.map(q=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:rgba(46,142,134,.06);border-radius:10px;margin-bottom:8px">
+            <span style="color:var(--teal-deep);flex-shrink:0;margin-top:1px">${Icon('arrow',15)}</span>
+            <p style="font-size:13px;color:var(--ink);line-height:1.55">${q}</p>
+          </div>`).join('')}
+          <div class="rule" style="margin:14px 0"></div>
+          <button class="btn btn-ai btn-sm btn-block" onclick="go('case-tools')">Send to advocate via case tools ${Icon('arrow',14)}</button>
+        </div>
+        <div class="panel" style="padding:24px">
+          ${cardHead('court','Court patterns observed','From public judgement analysis','ok')}
+          <div style="background:var(--ok-bg);border-radius:12px;padding:15px;margin-bottom:13px">
+            <div class="lbl" style="color:var(--ok);margin-bottom:6px">Pattern in public records</div>
+            <p style="font-size:13.5px;color:var(--ink);line-height:1.6">${intel.judgeNotes}</p>
+          </div>
+          ${NoticeBox('warn','info','Based on published judgements. Your specific matter may differ &mdash; always discuss with your advocate.')}
+          <button class="btn btn-line btn-sm btn-block" onclick="go('case-tools')" style="margin-top:13px">Add to my case notes ${Icon('arrow',14)}</button>
+        </div>
+      </div>
+      <div class="tech" style="border-radius:20px;padding:30px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px">
+        <div style="position:relative;z-index:1">
+          <div class="head" style="font-size:21px;color:#fff;margin-bottom:6px">Search the case library</div>
+          <p style="color:rgba(255,255,255,.6);font-size:14px;max-width:440px">Browse similar matters by keyword, court, year, or outcome. Own your case completely.</p>
+        </div>
+        <button class="btn btn-primary" onclick="go('case-library')" style="flex-shrink:0;position:relative;z-index:1">Open case library ${Icon('arrow',15)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ CASE LIBRARY ════════
+function renderCaseLibrary(){
+  const cases=[
+    {title:"State of Telangana v. K. Ramaiah",court:"Telangana HC",year:2022,area:"Criminal",outcome:"Acquittal",summary:"Accused acquitted due to contradictions in prosecution witness testimony. Court noted delay in FIR filing as suspicious.",key:"Witness contradiction, FIR delay"},
+    {title:"Reddy Properties v. Housing Board",court:"AP HC",year:2023,area:"Civil",outcome:"Plaintiff succeeded",summary:"Clear chain of title documents upheld. Court rejected oral claim of adverse possession where documentary evidence was strong.",key:"Title documents, adverse possession"},
+    {title:"Sharma v. Builder Co. (NCDRC)",court:"NCDRC",year:2023,area:"Consumer",outcome:"Full refund + ₹2L compensation",summary:"Builder failed to deliver possession within the agreed period. Forum awarded refund plus compensation for mental agony.",key:"Delayed possession, written agreement"},
+    {title:"Venkat v. LIC of India",court:"AP SCDRC",year:2022,area:"Consumer",outcome:"Claim allowed",summary:"Insurance claim repudiation set aside. Forum held that the insurer must prove suppression of material facts — the burden does not lie on the insured.",key:"Insurance repudiation, burden of proof"},
+    {title:"Rao v. Municipal Corporation",court:"Telangana HC",year:2023,area:"Civil",outcome:"Injunction granted",summary:"Interim injunction protecting possession granted. Court held that the balance of convenience lay with the long-term possessor.",key:"Interim injunction, possession"},
+    {title:"In re: Bail Application — NDPS",court:"AP HC",year:2023,area:"Criminal",outcome:"Bail granted",summary:"Bail granted under NDPS where the quantity was small, the accused had no prior record, and the investigation was near complete.",key:"NDPS bail, small quantity, clean record"},
+  ];
+  return `${Nav()}
+  <div class="tech" style="padding:48px 40px">
+    <div class="wrap" style="text-align:center;max-width:620px;position:relative;z-index:1">
+      <div class="eyebrow" style="justify-content:center">${Icon('book',13)}<span class="seg">LIBRARY</span>Public court records</div>
+      <h1 class="display" style="color:#fff;font-size:clamp(28px,4.2vw,38px);margin:16px 0 12px">Case library</h1>
+      <p style="color:rgba(255,255,255,.58);font-size:15px;margin:0 auto 26px;line-height:1.6">Research similar matters from public court records. Know which arguments succeeded, what evidence proved decisive, and which patterns courts follow.</p>
+      <div style="display:flex;gap:10px;max-width:540px;margin:0 auto">
+        <input placeholder="Search by keyword, court, or case type…" style="flex:1"/>
+        <button class="btn btn-primary" style="flex-shrink:0">${Icon('search',16)} Search</button>
+      </div>
+    </div>
+  </div>
+  <div class="section-sm" style="background:var(--bg)">
+    <div class="wrap">
+      ${NoticeBox('teal','info','All cases are from publicly available court records (eCourts, Indian Kanoon). Summaries are for research only, not legal advice — each case turns on its own facts.')}
+      <div style="height:18px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+        ${["All","Criminal","Civil","Consumer","Family","Corporate"].map((a,i)=>`<button class="mono" style="background:${i===0?'var(--grad)':'var(--surface)'};color:${i===0?'#fff':'var(--ink)'};border:1px solid ${i===0?'transparent':'var(--line-2)'};border-radius:999px;padding:7px 16px;font-size:11.5px;letter-spacing:.04em;cursor:pointer">${a.toUpperCase()}</button>`).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        ${cases.map(c=>`<div class="panel panel-hover" style="padding:22px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:11px">
+            <div style="flex:1;min-width:200px">
+              <div class="head" style="font-size:18px;color:var(--ink);margin-bottom:8px">${c.title}</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <span class="tag" style="background:rgba(28,42,64,.06);color:var(--ink)">${Icon('court',13)} ${c.court}</span>
+                <span class="tag" style="background:rgba(28,42,64,.06);color:var(--muted)">${c.year}</span>
+                ${AreaTag(c.area)}
+              </div>
+            </div>
+            <span class="tag" style="background:var(--ok-bg);color:var(--ok);padding:5px 12px">${Icon('check',13)} ${c.outcome}</span>
+          </div>
+          <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:13px">${c.summary}</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div class="tag" style="background:rgba(46,142,134,.1);color:var(--teal-deep)">${Icon('key',13)} ${c.key}</div>
+            <button class="btn btn-line btn-sm">Save to my case ${Icon('arrow',14)}</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ CASE TOOLS ════════
+function renderCaseTools(){
+  return `${Nav()}
+  <div class="tech" style="padding:46px 40px">
+    <div class="wrap" style="position:relative;z-index:1">
+      <div class="eyebrow">${Icon('pen',13)}<span class="seg">TOOLS</span>Prepare · flag · stay ahead</div>
+      <h1 class="display" style="color:#fff;font-size:clamp(28px,4.2vw,38px);margin:16px 0 10px">Your case tools</h1>
+      <p style="color:rgba(255,255,255,.58);font-size:15px">Draft your instructions, flag gaps, and stay ahead of every hearing.</p>
+    </div>
+  </div>
+  <div class="section-sm" style="background:var(--bg)">
+    <div class="wrap grid" style="grid-template-columns:1fr 1fr">
+      <div class="panel" style="padding:24px;grid-column:1/-1">
+        ${toolHead('help','Cross-examination question builder','Prepare questions for your advocate to raise. You decide if and when to share them.','teal')}
+        <div style="background:rgba(46,142,134,.07);border-radius:10px;padding:11px 14px;margin-bottom:15px;font-size:12.5px;color:var(--teal-deep);line-height:1.55">Write down questions or points you want explored during cross-examination. These stay private until you choose to share them.</div>
+        <textarea rows="5" placeholder="e.g. 'Ask the witness when they first reported this — the FIR is dated three days later.'" style="resize:vertical;margin-bottom:12px" oninput="state.crossInput=this.value">${state.crossInput}</textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ink btn-sm">${Icon('lock',15)} Save private</button>
+          <button class="btn btn-primary btn-sm">${Icon('send',15)} Share with advocate</button>
+          <button class="btn btn-ai btn-sm" onclick="go('intelligence')">${Icon('spark',15)} Get suggestions</button>
+        </div>
+      </div>
+
+      <div class="panel" style="padding:24px">
+        ${toolHead('flag','Flag a gap','Noticed something missing? Send a formal, timestamped note to your advocate.','warn')}
+        <div style="background:var(--warn-bg);border-radius:10px;padding:11px 14px;margin-bottom:15px;font-size:12.5px;color:var(--warn);line-height:1.55">This creates a timestamped record. Your advocate is notified and prompted to respond within 48 hours.</div>
+        <textarea rows="4" placeholder="e.g. 'The delivery challan from March 2024 is not in the evidence list. Please review.'" style="resize:vertical;margin-bottom:12px" oninput="state.gapText=this.value">${state.gapText}</textarea>
+        <div style="display:flex;gap:8px">
+          <select style="flex:1"><option>Select urgency</option><option>Low — for information</option><option>Medium — please review</option><option>High — before next hearing</option></select>
+          <button class="btn btn-ink btn-sm" style="flex-shrink:0">${Icon('flag',15)} Send</button>
+        </div>
+      </div>
+
+      <div class="panel" style="padding:24px">
+        ${toolHead('check','Hearing prep checklist','Auto-generated for your matter · Corporate dispute','ok')}
+        ${[
+          {done:true,text:"Upload signed contract to the document vault"},
+          {done:true,text:"Share the correspondence email thread with advocate"},
+          {done:false,text:"Obtain certified copy of bank transaction records"},
+          {done:false,text:"Review advocate's draft argument notes"},
+          {done:false,text:"Confirm hearing date and court room number"},
+          {done:false,text:"Prepare a list of witnesses you can name"},
+        ].map(item=>`<label style="display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer">
+          <input type="checkbox" ${item.done?'checked':''} style="width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;margin-top:2px"/>
+          <span style="font-size:13.5px;color:${item.done?'var(--faint)':'var(--ink)'};text-decoration:${item.done?'line-through':'none'};line-height:1.5">${item.text}</span>
+        </label>`).join('')}
+      </div>
+
+      <div class="panel" style="padding:24px">
+        ${toolHead('gavel','Points for arguments','What you want emphasised before the court','blue')}
+        <div style="background:rgba(61,111,176,.06);border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--blue-deep);line-height:1.55">Your personal strategy notes. Share with your advocate when ready, or keep them private.</div>
+        <textarea rows="5" placeholder="e.g. 'The oral agreement of June 2023 was acknowledged by email — this must be highlighted.'" style="resize:vertical;margin-bottom:12px" oninput="state.argInput=this.value">${state.argInput}</textarea>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ink btn-sm" style="flex:1;justify-content:center">Save private</button>
+          <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center">Share</button>
+        </div>
+      </div>
+
+      <div class="panel" style="padding:24px;grid-column:1/-1">
+        ${toolHead('clip','Annotated evidence vault','Upload documents and note why each matters. You control what the advocate sees.','ink')}
+        <div class="grid g4" style="gap:12px">
+          ${[
+            {name:"Supplier_Contract_2024.pdf",note:"Clause 8 — committed delivery timeline. Our strongest piece.",shared:true,ic:"doc"},
+            {name:"Email_Thread_March.pdf",note:"Their own director acknowledges the delay.",shared:true,ic:"doc"},
+            {name:"Invoice_Proof.jpg",note:"Keep private — shows our internal pricing.",shared:false,ic:"image"},
+          ].map(d=>`<div style="border:1px solid ${d.shared?'rgba(47,143,91,.35)':'var(--line)'};border-radius:14px;padding:14px">
+            <span style="color:var(--muted)">${Icon(d.ic,20)}</span>
+            <div style="font-size:12.5px;font-weight:600;color:var(--ink);margin:8px 0 4px;word-break:break-all">${d.name}</div>
+            <div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:11px;font-style:italic">“${d.note}”</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="tag" style="background:${d.shared?'var(--ok-bg)':'rgba(28,42,64,.05)'};color:${d.shared?'var(--ok)':'var(--muted)'}">${d.shared?'Shared':'Private'}</span>
+              <button class="btn btn-line" style="font-size:11px;padding:5px 11px">${d.shared?'Unshare':'Share'}</button>
+            </div>
+          </div>`).join('')}
+          <label style="border:1.5px dashed var(--line-2);border-radius:14px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;text-align:center;min-height:150px;color:var(--muted)">
+            <input type="file" style="display:none"/>${Icon('upload',22)}
+            <div style="font-size:12px;font-weight:600;margin-top:8px">Upload &amp; annotate</div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ DASHBOARD ════════
+function renderDashboard(){
+  const tab=state.dashTab;
+  const tabs=[["overview","Overview","insight"],["nudges","Follow-ups","bell"],["documents","Vault","folder"],["appointments","Appointments","calendar"],["account","Account","gear"]];
+  return `${Nav()}
+  <div class="tech" style="padding:26px 40px">
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;position:relative;z-index:1">
+      <div>
+        <h1 class="display" style="color:#fff;font-size:25px">Good morning, Suresh.</h1>
+        <p class="mono" style="color:rgba(255,255,255,.5);font-size:11.5px;margin-top:5px;letter-spacing:.03em">HEARING IN 7 DAYS · ADVOCATE ACTIVE 2 DAYS AGO · 2 NUDGES SENT</p>
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="go('intelligence')">${Icon('spark',15)} Intelligence</button>
+        <button class="btn btn-ghost btn-sm" onclick="go('case-tools')">${Icon('pen',15)} Case tools</button>
+        <button class="btn btn-primary btn-sm" onclick="go('advocates')">${Icon('plus',15)} New appointment</button>
+      </div>
+    </div>
+  </div>
+  <div style="background:var(--surface);border-bottom:1px solid var(--line)">
+    <div class="wrap" style="display:flex;overflow-x:auto">
+      ${[["calendar","21 May","Next hearing","blue"],["bell","2","Nudges sent","teal"],["folder","4","Documents","info"],["flag","1","Gap pending","warn"],["chat","3","Appointments","ok"]].map(([ic,v,l,t])=>`<div style="padding:18px 26px;border-right:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;gap:12px">${IconTile(ic,t,true)}<div><div class="head" style="font-size:18px;color:var(--ink);line-height:1">${v}</div><div class="lbl" style="font-size:9.5px;margin-top:3px">${l}</div></div></div>`).join('')}
+    </div>
+  </div>
+  <div style="background:var(--surface);border-bottom:1px solid var(--line)">
+    <div class="wrap" style="display:flex;overflow-x:auto">
+      ${tabs.map(([t,l,ic])=>`<button onclick="ss({dashTab:'${t}'})" style="padding:14px 18px;font-size:14px;font-weight:600;color:${tab===t?'var(--ink)':'var(--muted)'};border:none;border-bottom:2px solid ${tab===t?'var(--blue)':'transparent'};background:transparent;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px">${Icon(ic,16)}${l}</button>`).join('')}
+    </div>
+  </div>
+  <div class="wrap" style="padding:28px 40px">
+    ${tab==='overview'?dashOverview():tab==='nudges'?dashNudges():tab==='documents'?dashDocs():tab==='appointments'?dashAppts():dashAccount()}
+  </div>`;
+}
+function dashOverview(){
+  return `
+    <div class="panel" style="padding:24px;border-top:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box;margin-bottom:18px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          ${Monogram('VS',50)}
+          <div>
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px">
+              <div class="head" style="font-size:17px;color:var(--ink)">Adv. Venkata Subramaniam</div>
+              <span class="tag" style="background:var(--ok-bg);color:var(--ok)"><span class="dot dot-live" style="background:var(--ok)"></span>Confirmed</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-bottom:4px">${Icon('calendar',14)} Tuesday, 21 May · 11:00 · Video call</div>
+            <div class="mono" style="font-size:11px;color:var(--faint)">AP/HC/2016/5678 · CONTRACT DISPUTE · CC-2025-00421</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="ss({consentShown:false,selAdv:ADVOCATES[1]});go('session');startSession()">Join session ${Icon('arrow',14)}</button>
+          <button class="btn btn-line btn-sm">Reschedule</button>
+        </div>
+      </div>
+      <div class="rule" style="margin:16px 0"></div>
+      <div class="grid g3" style="gap:12px">
+        ${[["help","Cross-exam notes","2 questions prepared","case-tools","teal"],["flag","Gap alerts","1 pending response","case-tools","warn"],["folder","Documents","4 uploaded · 2 shared","","info"]].map(([ic,t,d,scr,tint])=>`<div onclick="${scr?`go('${scr}')`:`ss({dashTab:'documents'})`}" style="background:var(--bg);border-radius:12px;padding:14px;cursor:pointer;display:flex;gap:11px;align-items:flex-start">
+          ${IconTile(ic,tint,true)}
+          <div><div style="font-size:12.5px;font-weight:700;color:var(--ink)">${t}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${d}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="panel" style="padding:22px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink)">${Icon('bell',17)} Recent follow-ups</div>
+        <button class="btn btn-line btn-sm" onclick="ss({dashTab:'nudges'})">View all</button>
+      </div>
+      ${NUDGE_LOG.slice(0,2).map(n=>nudgeRow(n,true)).join('')}
+    </div>
+    <div class="grid g4">
+      ${[
+        {ic:"spark",t:"Case intelligence",d:"Insights from similar cases",fn:"intelligence",tint:"teal"},
+        {ic:"help",t:"Cross-exam builder",d:"Prepare your questions",fn:"case-tools",tint:"blue"},
+        {ic:"book",t:"Case library",d:"Browse public cases",fn:"case-library",tint:"ok"},
+        {ic:"flag",t:"Flag a gap",d:"Alert your advocate",fn:"case-tools",tint:"warn"},
+      ].map(a=>`<div class="panel panel-hover" style="padding:18px" onclick="go('${a.fn}')">
+        ${IconTile(a.ic,a.tint)}
+        <div style="font-size:13px;font-weight:700;color:var(--ink);margin:12px 0 3px">${a.t}</div>
+        <div style="font-size:11.5px;color:var(--muted)">${a.d}</div>
+      </div>`).join('')}
+    </div>`;
+}
+function dashNudges(){
+  return `
+    <div style="margin-bottom:18px">
+      <h2 class="display" style="font-size:24px;color:var(--ink);margin-bottom:6px">Follow-ups &amp; nudges</h2>
+      <p style="color:var(--muted);font-size:14px">ClearCase sends automated reminders to your advocate and keeps you informed at every step. Every follow-up is logged here.</p>
+    </div>
+    <div class="tech" style="border-radius:18px;padding:22px;margin-bottom:18px">
+      <div style="color:#fff;font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;position:relative;z-index:1">${Icon('bell',17,'color:#9CC4E5')} How follow-ups work</div>
+      <p style="color:rgba(255,255,255,.62);font-size:13px;line-height:1.7;position:relative;z-index:1">ClearCase reminds your advocate at key moments — seven days before a hearing, two days before, and the morning of. We also follow up if a gap you raised hasn't been acknowledged. You're notified of every action.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${NUDGE_LOG.map(n=>`<div class="panel" style="padding:6px 18px">${nudgeRow(n,false)}</div>`).join('')}
+    </div>
+    <div class="panel" style="padding:20px;margin-top:18px">
+      <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px">${Icon('calendar',16)} Upcoming scheduled nudges</div>
+      ${[["14 May · 09:00","7-day hearing reminder to advocate"],["19 May · 09:00","2-day hearing reminder to advocate"],["21 May · 08:00","Morning-of hearing reminder"]].map(([d,m])=>`<div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--line)">
+        <div class="mono" style="background:var(--bg);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--ink);white-space:nowrap">${d}</div>
+        <div style="flex:1;font-size:13px;color:var(--muted)">${m}</div>
+        <span class="tag" style="background:rgba(28,42,64,.05);color:var(--muted)">Scheduled</span>
+      </div>`).join('')}
+    </div>`;
+}
+function dashDocs(){
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+      <div><h2 class="display" style="font-size:24px;color:var(--ink)">Evidence vault</h2><p style="color:var(--muted);font-size:14px;margin-top:3px">You control what your advocate can see. Private documents are never shared without your action.</p></div>
+      <label class="btn btn-primary btn-sm">${Icon('upload',15)} Upload document<input type="file" style="display:none"/></label>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${[
+        {name:"Supplier_Contract_2024.pdf",date:"13 May",tag:"Hearing prep",shared:true,note:"Clause 8 is key",sz:"2.3 MB"},
+        {name:"Email_Thread_March.pdf",date:"7 May",tag:"Evidence",shared:true,note:"Director acknowledges delay",sz:"0.8 MB"},
+        {name:"Invoice_Proof.jpg",date:"28 Apr",tag:"Financial",shared:false,note:"Keep private for now",sz:"1.1 MB"},
+        {name:"Police_Complaint_Draft.pdf",date:"20 Apr",tag:"Draft",shared:false,note:"Not finalised",sz:"0.4 MB"},
+      ].map(d=>`<div class="panel" style="padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="color:var(--muted)">${Icon(d.name.endsWith('.jpg')?'image':'doc',24)}</span>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px">${d.name}</div>
+          <div style="font-size:12px;color:var(--muted)">${d.date} · ${d.tag} · ${d.sz} · <em>“${d.note}”</em></div>
+        </div>
+        <span class="tag" style="background:${d.shared?'var(--ok-bg)':'rgba(28,42,64,.05)'};color:${d.shared?'var(--ok)':'var(--muted)'}">${d.shared?Icon('check',12)+' Shared':Icon('lock',12)+' Private'}</span>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-line" style="font-size:12px;padding:6px 11px">View</button>
+          <button class="btn btn-line" style="font-size:12px;padding:6px 11px">${d.shared?'Unshare':'Share'}</button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:16px">${NoticeBox('ok','shield','Documents are stored with 256-bit encryption under the DPDP Act, 2023. You may request deletion at any time. ClearCase staff cannot view your documents.')}</div>`;
+}
+function dashAppts(){
+  return `<div style="display:flex;flex-direction:column;gap:14px">
+    ${[
+      {ini:"VS",name:"Adv. Venkata Subramaniam",bar:"AP/HC/2016/5678",date:"21 May 2025",time:"11:00",type:"Video",status:"Upcoming",ref:"CC-2025-00421",active:true},
+      {ini:"MK",name:"Adv. Meera Krishnamurthy",bar:"TS/HC/2011/1234",date:"7 May 2025",time:"10:00",type:"Video",status:"Completed",ref:"CC-2025-00312",active:false},
+      {ini:"PY",name:"Adv. Prasad Yeluri",bar:"AP/HC/2007/2345",date:"28 Apr 2025",time:"15:00",type:"Phone",status:"Completed",ref:"CC-2025-00189",active:false},
+    ].map(s=>`<div class="panel" style="padding:22px;${s.active?'border-top:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box':''}">
+      <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+        ${Monogram(s.ini,46)}
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <div class="head" style="font-size:16px;color:var(--ink)">${s.name}</div>
+            <span class="tag" style="background:${s.active?'var(--info-bg)':'var(--ok-bg)'};color:${s.active?'var(--info)':'var(--ok)'}">${s.status}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted)">${s.date} · ${s.time} · ${s.type} · Ref ${s.ref}</div>
+          <div class="mono" style="font-size:11px;color:var(--faint);margin-top:2px">${s.bar}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        ${s.active?`<button class="btn btn-primary btn-sm" onclick="ss({consentShown:false,selAdv:ADVOCATES[1]});go('session');startSession()">Join ${Icon('arrow',14)}</button>`:''}
+        <button class="btn btn-line" style="font-size:12px;padding:7px 12px">${Icon('pen',14)} Notes</button>
+        <button class="btn btn-line" style="font-size:12px;padding:7px 12px">${Icon('video',14)} Recording</button>
+        <label class="btn btn-line" style="font-size:12px;padding:7px 12px">${Icon('clip',14)} Upload<input type="file" style="display:none"/></label>
+        <button class="btn btn-line" style="font-size:12px;padding:7px 12px;margin-left:auto" onclick="go('booking')">Rebook</button>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+function dashAccount(){
+  return `<div style="max-width:560px">
+    <div class="panel" style="padding:26px;margin-bottom:16px">
+      <h3 class="head" style="font-size:19px;color:var(--ink);margin-bottom:18px">My profile</h3>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        ${field('Full name','<input value="Suresh Varma"/>')}
+        ${field('Phone (cannot be changed)','<input value="+91 98765 43210" readonly style="background:var(--bg);color:var(--muted)"/>')}
+        <div class="grid g2" style="gap:12px">
+          ${field('State','<select><option>Telangana</option><option>Andhra Pradesh</option></select>')}
+          ${field('City','<input value="Hyderabad"/>')}
+        </div>
+        <button class="btn btn-ink" style="align-self:flex-start">Save changes</button>
+      </div>
+    </div>
+    <div class="panel" style="padding:24px;margin-bottom:16px">
+      <h3 class="head" style="font-size:18px;color:var(--ink);margin-bottom:14px">Notifications</h3>
+      ${[["Hearing reminders","7-day, 2-day, and morning-of alerts",true],["Advocate follow-up alerts","When we nudge on your behalf",true],["Document notifications","When an advocate views or requests documents",true],["Platform updates","New features and improvements",false]].map(([t,d,on])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-size:13px;font-weight:600;color:var(--ink)">${t}</div><div style="font-size:12px;color:var(--muted);margin-top:1px">${d}</div></div>
+        ${toggle(on)}
+      </div>`).join('')}
+    </div>
+    <button onclick="go('landing')" class="btn btn-line btn-block" style="color:var(--muted)">Log out</button>
+  </div>`;
+}
+
+// ════════ ADVOCATES (with search + sort) ════════
+function renderAdvocates(){
+  const areas=[...new Set(ADVOCATES.flatMap(a=>a.areas))];
+  const q=(state.advSearch||'').toLowerCase().trim();
+  let filtered=ADVOCATES.filter(a=>
+    (state.stateFilter==='all'||a.state===state.stateFilter)&&
+    (state.areaFilter==='all'||a.areas.includes(state.areaFilter))&&
+    (!q||a.name.toLowerCase().includes(q)||a.city.toLowerCase().includes(q)||a.areas.join(' ').toLowerCase().includes(q))
+  );
+  if(state.advSort==='years')filtered=[...filtered].sort((x,y)=>x.enrolled-y.enrolled);
+  if(state.advSort==='name')filtered=[...filtered].sort((x,y)=>x.name.localeCompare(y.name));
+  return `${Nav()}
+  <div class="tech" style="padding:36px 40px 26px">
+    <div class="wrap" style="position:relative;z-index:1">
+      <div class="eyebrow">${Icon('layers',13)}<span class="seg">DIRECTORY</span>Bar Council enrolled</div>
+      <h1 class="display" style="color:#fff;font-size:clamp(26px,4vw,34px);margin:14px 0 6px">Advocate directory</h1>
+      <p style="color:rgba(255,255,255,.5);font-size:14px;margin-bottom:3px">Telangana &amp; Andhra Pradesh</p>
+      <p style="color:rgba(255,255,255,.32);font-size:12px;font-style:italic;margin-bottom:20px">ClearCase does not rank or recommend advocates. Listings are informational only.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div style="position:relative;flex:1;min-width:220px;max-width:360px">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint)">${Icon('search',16)}</span>
+          <input id="advSearch" value="${state.advSearch}" oninput="advSearchInput(this.value)" placeholder="Search name, city, or area" style="padding-left:39px"/>
+        </div>
+        <select onchange="ss({stateFilter:this.value})" style="width:auto">
+          <option value="all" ${state.stateFilter==='all'?'selected':''}>All states</option>
+          <option value="Telangana" ${state.stateFilter==='Telangana'?'selected':''}>Telangana</option>
+          <option value="Andhra Pradesh" ${state.stateFilter==='Andhra Pradesh'?'selected':''}>Andhra Pradesh</option>
+        </select>
+        <select onchange="ss({advSort:this.value})" style="width:auto">
+          <option value="relevance" ${state.advSort==='relevance'?'selected':''}>Sort: default</option>
+          <option value="years" ${state.advSort==='years'?'selected':''}>Most years at Bar</option>
+          <option value="name" ${state.advSort==='name'?'selected':''}>Name (A–Z)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+        ${['all',...areas].map(a=>`<button onclick="ss({areaFilter:'${a}'})" class="mono" style="border:1px solid ${state.areaFilter===a?'transparent':'rgba(255,255,255,.16)'};background:${state.areaFilter===a?'var(--grad)':'rgba(255,255,255,.05)'};color:${state.areaFilter===a?'#fff':'rgba(255,255,255,.75)'};border-radius:999px;padding:6px 14px;font-size:11px;letter-spacing:.04em;cursor:pointer">${(a==='all'?'All areas':a).toUpperCase()}</button>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="section-sm" style="background:var(--bg)">
+    <div class="wrap">
+      ${NoticeBox('info','info','All information is self-declared by each advocate. ClearCase independently verifies Bar Council enrolment numbers only.')}
+      <p class="mono" style="color:var(--muted);font-size:12px;margin:18px 0;letter-spacing:.03em">${filtered.length} ADVOCATE${filtered.length!==1?'S':''} LISTED</p>
+      ${filtered.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${filtered.map(AdvCard).join('')}</div>`:`<div class="panel" style="padding:60px;text-align:center;color:var(--muted)">No advocates match your search. <button class="btn btn-line btn-sm" style="margin-left:8px" onclick="ss({advSearch:'',areaFilter:'all',stateFilter:'all'})">Clear filters</button></div>`}
+    </div>
+  </div>`;
+}
+
+// ════════ PROFILE ════════
+function renderProfile(){
+  const a=state.selAdv,yrs=2025-a.enrolled;
+  return `${Nav()}
+  <div class="tech" style="padding:32px 40px">
+    <div class="wrap" style="position:relative;z-index:1">
+      <button onclick="go('advocates')" class="btn btn-ghost btn-sm" style="margin-bottom:22px">${Icon('back',15)} Back to directory</button>
+      <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
+        ${Monogram(a.ini,82,true)}
+        <div style="flex:1;min-width:220px">
+          <h1 class="display" style="color:#fff;font-size:27px">${a.name}</h1>
+          <div style="color:rgba(255,255,255,.6);font-size:14px;margin-top:5px">Enrolled ${a.enrolled} · ${yrs} years at the Bar · ${a.city}, ${a.state}</div>
+          <div class="mono" style="color:rgba(255,255,255,.42);font-size:12px;margin-top:4px;letter-spacing:.03em">${a.barNo}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:13px">${a.areas.map(x=>`<span class="tag" style="background:rgba(255,255,255,.1);color:#fff">${x}</span>`).join('')}</div>
+        </div>
+        <div class="glass" style="padding:16px 20px;text-align:center;border-radius:16px">
+          <div class="lbl" style="color:#9CC4E5;margin-bottom:6px">Enrolment</div>
+          <div style="color:#7FE0AE;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;justify-content:center">${Icon('check',16)} Bar Council verified</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:4px">Self-declared · enrolment verified</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap two-col" style="padding:32px 40px;display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="panel" style="padding:24px">
+        <h3 class="head" style="color:var(--ink);font-size:19px;margin-bottom:12px">Professional information</h3>
+        <p style="color:var(--muted);font-size:14px;line-height:1.75;margin-bottom:16px">${a.bio}</p>
+        <div class="grid g2" style="gap:10px">
+          ${[["book","Education",a.education],["calendar","Year enrolled",a.enrolled],["globe","Languages",a.langs.join(', ')],["pin","Location",a.city+', '+a.state]].map(([ic,l,v])=>`<div style="background:var(--bg);border-radius:12px;padding:13px"><div class="lbl" style="display:flex;align-items:center;gap:6px;margin-bottom:5px">${Icon(ic,13)} ${l}</div><div style="font-size:13.5px;font-weight:600;color:var(--ink)">${v}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="panel" style="padding:24px">
+        <h3 class="head" style="color:var(--ink);font-size:19px;margin-bottom:12px">Bar Council credentials</h3>
+        ${[["Enrolment number",a.barNo],["State Bar Council",a.state+" State Bar Council"],["Year enrolled",a.enrolled]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:var(--bg);border-radius:12px;margin-bottom:8px"><span style="font-size:13px;color:var(--muted)">${l}</span><span class="mono" style="font-size:12.5px;font-weight:600;color:var(--ink)">${v}</span></div>`).join('')}
+        <div style="margin-top:12px;padding:13px;background:var(--ok-bg);border-radius:12px;display:flex;align-items:flex-start;gap:10px">
+          <span style="color:var(--ok);margin-top:1px">${Icon('check',18)}</span>
+          <div><div style="font-size:13px;font-weight:700;color:var(--ok)">Enrolment number verified</div><div style="font-size:11.5px;color:#1F7245;margin-top:1px">Verified against State Bar Council records. All other details are self-declared.</div></div>
+        </div>
+      </div>
+      <div class="panel" style="padding:24px">
+        <h3 class="head" style="color:var(--ink);font-size:19px;margin-bottom:4px">Practice areas</h3>
+        <p style="color:var(--muted);font-size:12px;font-style:italic;margin-bottom:12px">As declared by the advocate.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${a.areas.map(AreaTag).join('')}</div>
+      </div>
+      <div class="panel" style="padding:24px">
+        <h3 class="head" style="color:var(--ink);font-size:19px;margin-bottom:12px">Office address</h3>
+        <div style="display:flex;align-items:flex-start;gap:10px;color:var(--muted)">${Icon('pin',17)}<span style="font-size:14px;color:var(--ink);line-height:1.6">${a.office}</span></div>
+      </div>
+    </div>
+    <div style="position:sticky;top:88px;display:flex;flex-direction:column;gap:14px">
+      <div class="panel" style="padding:22px;border-top:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box">
+        <div style="background:var(--info-bg);border-radius:12px;padding:13px;text-align:center;margin-bottom:16px">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">Schedule an appointment</div>
+          <div style="font-size:12px;color:var(--muted)">Video, phone, or in person at chambers</div>
+        </div>
+        ${["Choose from available calendar slots","Upload documents before the meeting","SMS &amp; email confirmation","ClearCase monitors follow-ups"].map(t=>`<div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--muted);margin-bottom:9px"><span style="color:var(--ok);margin-top:1px">${Icon('check',14)}</span>${t}</div>`).join('')}
+        <button class="btn btn-primary btn-block" onclick="go('booking')" style="margin-top:8px">Schedule appointment ${Icon('arrow',15)}</button>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin-top:10px;line-height:1.5">Professional fees are agreed directly with the advocate.</p>
+      </div>
+      <div class="panel" style="padding:18px">
+        <div class="lbl" style="margin-bottom:12px">Availability this week</div>
+        <div style="display:flex;gap:5px">
+          ${["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>`<div style="flex:1;text-align:center;padding:9px 4px;border-radius:10px;background:${i===1||i===3?'var(--ok-bg)':'var(--bg)'}"><div class="mono" style="font-size:10px;color:var(--faint)">${d}</div><div style="font-size:11px;font-weight:700;color:${i===1||i===3?'var(--ok)':'var(--faint)'};margin-top:3px">${i===1||i===3?'Open':'Busy'}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ BOOKING ════════
+function renderBooking(){
+  const a=state.selAdv;
+  const dates=[{d:13,day:"Mon"},{d:14,day:"Tue"},{d:15,day:"Wed"},{d:16,day:"Thu"},{d:17,day:"Fri"},{d:20,day:"Mon"},{d:21,day:"Tue"},{d:22,day:"Wed"},{d:23,day:"Thu"},{d:24,day:"Fri"},{d:27,day:"Mon"},{d:28,day:"Tue"},{d:29,day:"Wed"},{d:30,day:"Thu"},{d:31,day:"Fri"}];
+  const blocked=BLOCKED[state.selDate]||[];
+  return `${Nav()}
+  <div class="section-sm" style="background:var(--bg);min-height:100vh">
+    <div class="wrap" style="max-width:900px">
+      <button onclick="go('profile')" class="btn btn-line btn-sm" style="margin-bottom:22px">${Icon('back',15)} Back to profile</button>
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        ${Monogram(a.ini,46)}
+        <div>
+          <h2 class="head" style="font-size:21px;color:var(--ink)">Schedule with ${a.name}</h2>
+          <div class="mono" style="color:var(--muted);font-size:12px">${a.barNo} · ${a.city}, ${a.state}</div>
+        </div>
+      </div>
+      ${NoticeBox('info','info',`Professional fees, if any, are agreed directly between you and ${a.name} and are unrelated to this platform. Any legal advice is the advocate's independent responsibility.`)}
+      <div style="height:18px"></div>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="panel" style="padding:22px">
+          <div class="lbl" style="margin-bottom:14px">01 — Select a date</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+            ${dates.map(({d,day})=>`<button onclick="ss({selDate:${d},selSlot:''})" style="padding:9px 4px;border-radius:10px;border:1.5px solid ${state.selDate===d?'transparent':'var(--line-2)'};background:${state.selDate===d?'var(--grad)':'var(--surface)'};cursor:pointer;text-align:center"><div class="mono" style="font-size:10px;color:${state.selDate===d?'rgba(255,255,255,.65)':'var(--faint)'}">${day}</div><div style="font-size:15px;font-weight:700;color:${state.selDate===d?'#fff':'var(--ink)'};margin-top:2px">${d}</div></button>`).join('')}
+          </div>
+          <div style="margin-top:12px;padding:9px 11px;background:var(--bg);border-radius:9px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px">${Icon('calendar',14)} ${state.selDate} May 2025 selected</div>
+        </div>
+        <div class="panel" style="padding:22px">
+          <div class="lbl" style="margin-bottom:14px">02 — Select a time</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+            ${SLOTS.map(t=>{const isBk=blocked.includes(t),isSel=state.selSlot===t;
+              return `<button ${isBk?'disabled':`onclick="ss({selSlot:'${t}'})"`} style="padding:10px 8px;border-radius:9px;border:1.5px solid ${isBk?'var(--line)':isSel?'transparent':'var(--line-2)'};background:${isBk?'var(--bg)':isSel?'var(--grad)':'var(--surface)'};cursor:${isBk?'not-allowed':'pointer'};text-align:center;font-size:12.5px;font-weight:600;color:${isBk?'var(--faint)':isSel?'#fff':'var(--ink)'}">${isBk?`<s>${t}</s>`:isSel?`${Icon('check',13)} ${t}`:t}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="padding:22px;margin-bottom:16px">
+        <div class="lbl" style="margin-bottom:14px">03 — How would you like to meet?</div>
+        <div class="grid g3" style="gap:10px">
+          ${[{t:"video",ic:"video",l:"Video call",d:"Join link sent to you"},{t:"phone",ic:"phone",l:"Phone call",d:"Advocate calls your number"},{t:"office",ic:"building",l:"In person",d:a.city+" chambers"}].map(o=>`<button onclick="ss({meetType:'${o.t}'})" style="padding:16px 12px;border-radius:13px;border:1.5px solid ${state.meetType===o.t?'var(--blue)':'var(--line-2)'};background:${state.meetType===o.t?'rgba(61,111,176,.05)':'var(--surface)'};cursor:pointer;text-align:center"><span style="color:${state.meetType===o.t?'var(--blue)':'var(--ink)'}">${Icon(o.ic,22)}</span><div style="font-size:13px;font-weight:700;color:var(--ink);margin-top:7px">${o.l}</div><div style="font-size:11.5px;color:var(--muted);margin-top:2px">${o.d}</div></button>`).join('')}
+        </div>
+      </div>
+      <div class="panel" style="padding:22px;margin-bottom:16px">
+        <div class="lbl" style="margin-bottom:14px">04 — About your matter</div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          ${field('Full name *','<input placeholder="Your full name"/>')}
+          ${field('Brief description * <span style="font-weight:400;text-transform:none;color:var(--faint)">(helps the advocate prepare)</span>','<textarea rows="3" placeholder="Nature and background of your legal matter…" style="resize:vertical"></textarea>')}
+          <div class="grid g2" style="gap:12px">
+            ${field('FIR number <span style="font-weight:400;text-transform:none;color:var(--faint)">(if any)</span>','<input placeholder="e.g. 0234/2025"/>')}
+            ${field('Email <span style="font-weight:400;text-transform:none;color:var(--faint)">(for confirmation)</span>','<input type="email" placeholder="you@email.com"/>')}
+          </div>
+          ${field('Upload documents <span style="font-weight:400;text-transform:none;color:var(--faint)">(PDF, JPG, PNG · max 10 MB)</span>',`<label style="border:1.5px dashed var(--line-2);border-radius:13px;padding:18px;text-align:center;cursor:pointer;background:var(--bg);display:block"><input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple style="display:none"/><span style="color:var(--muted)">${Icon('clip',22)}</span><div style="font-size:13px;color:var(--ink);font-weight:600;margin-top:5px">Tap to upload documents</div><div style="font-size:11.5px;color:var(--muted);margin-top:3px">FIR copy, contracts, property documents — added to your vault, shared when you choose.</div></label>`)}
+        </div>
+      </div>
+      ${NoticeBox('info','info','By confirming, you acknowledge that you are contacting this advocate of your own accord and that ClearCase is a scheduling platform, not a party to any legal engagement.')}
+      <div style="height:18px"></div>
+      <button class="btn btn-primary btn-block" onclick="go('session');startSession()" style="padding:15px;font-size:15px">Confirm appointment · ${state.selDate} May · ${state.selSlot||'select a slot above'} ${Icon('arrow',16)}</button>
+    </div>
+  </div>`;
+}
+
+// ════════ SESSION ════════
+function renderSession(){
+  const a=state.selAdv,secs=state.sessionSecs,pct=Math.round(((1200-secs)/1200)*100),urgent=secs<300,nearEnd=secs<120;
+  if(!state.consentShown)return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink-3);display:flex;align-items:center;justify-content:center;padding:40px">
+    <div class="glass" style="padding:38px;max-width:460px;width:100%">
+      <div style="text-align:center;color:#9CC4E5;margin-bottom:14px">${Icon('video',38)}</div>
+      <h2 class="display" style="color:#fff;font-size:21px;margin-bottom:10px;text-align:center">Before your appointment</h2>
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:13px;margin-bottom:18px;font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.65;text-align:center">ClearCase has facilitated this scheduling. Any advice is the advocate's independent responsibility.</div>
+      <div style="background:rgba(255,255,255,.06);border-radius:14px;padding:18px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div><div style="color:#fff;font-size:14px;font-weight:600">Record this session</div><div style="color:rgba(255,255,255,.45);font-size:12px;margin-top:1px">Saved securely · your choice</div></div>
+          <div onclick="ss({recordConsent:!state.recordConsent})" style="width:48px;height:26px;border-radius:13px;background:${state.recordConsent?'var(--ok)':'rgba(255,255,255,.15)'};cursor:pointer;position:relative;flex-shrink:0"><div style="position:absolute;top:3px;left:${state.recordConsent?24:3}px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></div></div>
+        </div>
+        <div style="padding:10px;background:${state.recordConsent?'rgba(47,143,91,.18)':'rgba(255,255,255,.04)'};border-radius:9px;font-size:12px;color:${state.recordConsent?'#7FE0AE':'rgba(255,255,255,.4)'}">${state.recordConsent?'Recording on — saved to your secure vault':'No recording — your preference is respected'}</div>
+      </div>
+      <button class="btn btn-primary btn-block" style="padding:14px;font-size:15px" onclick="ss({consentShown:true});startSession()">Join appointment ${Icon('arrow',16)}</button>
+    </div>
+  </div>`;
+
+  if(state.sessionPhase==='ending')return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink-3);display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="max-width:500px;width:100%;text-align:center">
+      <div style="color:#9CC4E5;margin-bottom:16px;display:flex;justify-content:center">${Icon('clock',46)}</div>
+      <h2 class="display" style="color:#fff;font-size:25px;margin-bottom:10px">Your appointment time is up.</h2>
+      <p style="color:rgba(255,255,255,.55);font-size:14px;margin-bottom:26px">We're giving you five extra minutes as a courtesy — no charge.</p>
+      <div class="glass" style="padding:24px;margin-bottom:18px">
+        <div class="display" style="background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:20px;margin-bottom:8px">Five courtesy minutes</div>
+        <div style="color:rgba(255,255,255,.65);font-size:13px;line-height:1.7;margin-bottom:18px">Finish your discussion. Ask your final questions.</div>
+        <button class="btn btn-primary btn-block" onclick="ss({sessionPhase:'extended',sessionSecs:300});startSession()">Continue ${Icon('arrow',15)}</button>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border-radius:14px;padding:18px">
+        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:12px">Need more time? Platform scheduling fees:</div>
+        <div class="grid g3" style="gap:8px">
+          ${[["₹999","15 min"],["₹1,699","30 min"],["₹2,999","60 min"]].map(([p,t])=>`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="color:#9CC4E5;font-size:16px;font-weight:700">${p}</div><div class="mono" style="color:rgba(255,255,255,.45);font-size:10px;margin-top:3px">${t}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink-3);display:grid;grid-template-columns:1fr 300px" class="two-col">
+    <div style="padding:28px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+        ${Monogram(a.ini,42,true)}
+        <div><div style="color:#fff;font-weight:700;font-size:14px">${a.name}</div><div style="display:flex;align-items:center;gap:5px"><span class="dot dot-live" style="background:var(--ok);color:var(--ok)"></span><span style="color:#7FE0AE;font-size:12px;font-weight:600">Appointment active</span></div></div>
+        <div style="margin-left:auto;background:rgba(255,255,255,.06);border-radius:12px;padding:10px 16px;text-align:center;border:1px solid ${nearEnd?'var(--warn)':urgent?'rgba(156,196,229,.5)':'rgba(255,255,255,.1)'}">
+          <div class="mono" style="color:${nearEnd?'#E8C089':urgent?'#9CC4E5':'#fff'};font-size:24px;font-weight:600;line-height:1">${fmt(secs)}</div>
+          <div class="lbl" style="color:${nearEnd?'#E8C089':'#9CC4E5'};font-size:9px;margin-top:3px">${state.sessionPhase==='extended'?'COURTESY TIME':nearEnd?'ENDING SOON':'REMAINING'}</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border-radius:3px;height:4px;margin-bottom:20px;overflow:hidden"><div style="height:100%;background:${nearEnd?'var(--warn)':'var(--grad)'};width:${pct}%;transition:width 1s linear"></div></div>
+      <div style="background:rgba(255,255,255,.03);border-radius:16px;border:1px solid rgba(255,255,255,.08);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative">
+        <div style="text-align:center">${Monogram(a.ini,58,true)}<div style="color:rgba(255,255,255,.45);font-size:12px;margin-top:10px">Video active</div></div>
+        ${state.recordConsent?`<div style="position:absolute;top:10px;right:10px;background:rgba(194,69,61,.88);border-radius:8px;padding:4px 9px;display:flex;align-items:center;gap:5px"><span class="dot" style="background:#fff"></span><span class="mono" style="color:#fff;font-size:10px;font-weight:600">REC</span></div>`:''}
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,.03);border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:10px;min-height:120px">
+        <div style="display:flex;gap:9px">${Monogram(a.ini,30,true)}<div style="background:rgba(255,255,255,.08);border-radius:13px 13px 13px 0;padding:10px 13px;max-width:70%"><div style="color:#fff;font-size:13px;line-height:1.6">Based on the documents you shared, we have a strong position. Let me walk you through the approach…</div><div class="mono" style="color:rgba(255,255,255,.3);font-size:10px;margin-top:4px">10:04</div></div></div>
+        <div style="margin-top:auto;display:flex;gap:7px"><input placeholder="Type your message…" style="flex:1;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#fff"/><button class="btn btn-primary btn-sm">${Icon('send',15)}</button></div>
+      </div>
+      <div style="margin-top:10px"><button onclick="ss({sessionSecs:0,sessionPhase:'ending'})" class="mono" style="background:rgba(255,255,255,.04);color:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px 12px;font-size:10.5px;cursor:pointer">DEMO · TRIGGER END</button></div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.08);padding:22px 16px;display:flex;flex-direction:column;gap:14px">
+      <h3 style="color:#fff;font-size:13px;font-weight:700">Appointment notes</h3>
+      <textarea placeholder="Notes from this appointment…" style="flex:1;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#fff;font-size:12px;resize:none;min-height:140px;line-height:1.65" rows="7"></textarea>
+      <label style="border:1.5px dashed rgba(255,255,255,.16);border-radius:13px;padding:13px;text-align:center;cursor:pointer;color:rgba(255,255,255,.55)">
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none"/>${Icon('clip',18)}
+        <div style="font-size:12px;margin-top:5px">Upload document</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:2px">To your vault · you control sharing</div>
+      </label>
+      <button class="btn btn-line" style="font-size:12px;padding:9px;border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6);background:transparent" onclick="go('case-tools')">Open case tools ${Icon('arrow',13)}</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:9px" onclick="go('retainer')">Ongoing engagement ${Icon('arrow',13)}</button>
+    </div>
+  </div>`;
+}
+
+// ════════ URGENT ════════
+function renderUrgent(){
+  const step=state.emergStep,secs=state.emergSecs,urgent=secs<120;
+  if(step==='refund')return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink-3);display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="max-width:460px;width:100%;text-align:center">
+      <div style="color:rgba(255,255,255,.55);margin-bottom:16px;display:flex;justify-content:center">${Icon('heart',42)}</div>
+      <h2 class="display" style="color:#fff;font-size:22px;margin-bottom:12px">We couldn't connect you in time.</h2>
+      <p style="color:rgba(255,255,255,.55);font-size:14px;margin-bottom:24px;line-height:1.7">That's on us, not you. Your ₹1,999 platform facilitation fee has already been refunded — automatically, no need to ask.</p>
+      <div style="background:var(--ok-bg);border:1px solid rgba(47,143,91,.3);border-radius:16px;padding:22px;margin-bottom:22px">
+        <div class="lbl" style="color:var(--ok);margin-bottom:5px">Refund confirmed</div>
+        <div style="color:var(--ink);font-size:24px;font-weight:700">₹1,999</div>
+        <div class="mono" style="color:#1F7245;font-size:11.5px;margin-top:6px">Back to you in 3–5 business days · Ref CCU-${Date.now().toString().slice(-6)}</div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="go('advocates')">Browse the advocate directory ${Icon('arrow',15)}</button>
+    </div>
+  </div>`;
+
+  if(step==='connected')return `${Nav()}
+  <div style="min-height:100vh;background:var(--ink-3);display:flex;align-items:center;justify-content:center;padding:40px">
+    <div style="max-width:460px;width:100%;text-align:center">
+      <div style="color:#7FE0AE;margin-bottom:14px;display:flex;justify-content:center">${Icon('check',44)}</div>
+      <h2 class="display" style="color:#fff;font-size:23px;margin-bottom:12px">Connection facilitated.</h2>
+      <p style="color:rgba(255,255,255,.55);font-size:13px;margin-bottom:22px;line-height:1.7">The advocate's contact details are below. Tap to call directly from your phone.</p>
+      <div style="background:rgba(47,143,91,.12);border:1px solid rgba(47,143,91,.32);border-radius:16px;padding:26px;margin-bottom:16px">
+        ${Monogram('MK',56,true)}
+        <div style="margin-top:12px;color:#fff;font-size:16px;font-weight:700">Adv. Meera Krishnamurthy</div>
+        <div class="mono" style="color:rgba(255,255,255,.45);font-size:11.5px;margin-top:3px">TS/HC/2011/1234 · Hyderabad</div>
+        <div class="display" style="color:#7FE0AE;font-size:24px;margin:14px 0">+91 98765 43210</div>
+        <a href="tel:+919876543210" class="btn" style="display:flex;background:var(--ok);color:#fff;width:100%;justify-content:center;padding:13px;font-size:14px;margin-bottom:8px;border-radius:11px">${Icon('call',16)} Tap to call</a>
+        <div style="color:rgba(255,255,255,.3);font-size:11px">Opens your phone's dialler</div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid ${urgent?'var(--warn)':'rgba(255,255,255,.1)'};border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between">
+        <span style="color:rgba(255,255,255,.5);font-size:13px">Connection window</span>
+        <span class="mono" style="font-size:18px;font-weight:600;color:${urgent?'#E8C089':'#7FE0AE'}">${fmt(secs)}</span>
+      </div>
+      <p style="color:rgba(255,255,255,.3);font-size:11px;margin-top:10px">Auto-refund if no connection is established.</p>
+    </div>
+  </div>`;
+
+  return `${Nav()}
+  <div style="min-height:100vh;background:#1A1012;padding:36px 20px">
+    <div style="max-width:480px;margin:0 auto">
+      <button onclick="go('landing')" class="btn btn-ghost btn-sm" style="margin-bottom:24px">${Icon('back',15)} Back</button>
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(194,69,61,.15);border:1px solid rgba(194,69,61,.35);border-radius:999px;padding:7px 18px;margin-bottom:14px"><span style="color:#E89A93">${Icon('alert',15)}</span><span style="color:#E89A93;font-size:12.5px;font-weight:700;letter-spacing:.03em">URGENT ASSISTANCE</span></div>
+        <h1 class="display" style="color:#fff;font-size:23px;margin-bottom:8px">Connect with an on-call advocate</h1>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.7">Platform facilitation fee ₹1,999. Auto-refunded if no connection is made within nine minutes.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin-bottom:18px">
+        <div class="lbl" style="color:#9CC4E5;margin-bottom:7px">Platform notice</div>
+        <p style="color:rgba(255,255,255,.55);font-size:12px;line-height:1.7">The ₹1,999 is a platform facilitation fee, not payment for legal advice. Any legal advice is the advocate's independent responsibility. ClearCase is not a party to the advocate-client relationship.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+        ${Monogram('MK',46,true)}
+        <div><div style="color:#fff;font-weight:700;font-size:14px">Adv. Meera Krishnamurthy</div><div class="mono" style="color:rgba(255,255,255,.45);font-size:11px">TS/HC/2011/1234 · Criminal, Family, Civil</div><div style="display:flex;align-items:center;gap:5px;margin-top:4px"><span class="dot dot-live" style="background:#3DBB7E;color:#3DBB7E"></span><span style="color:#7FE0AE;font-size:11px;font-weight:600">On call</span></div></div>
+      </div>
+      <div class="grid g3" style="gap:8px;margin-bottom:18px">
+        ${[["clock","9 min","Connection window"],["refund","Auto-refund","If window exceeded"],["doc","Platform fee","Not a legal fee"]].map(([ic,v,l])=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:13px;text-align:center"><span style="color:#9CC4E5">${Icon(ic,17)}</span><div style="color:#fff;font-size:12px;font-weight:700;margin-top:6px">${v}</div><div class="mono" style="color:rgba(255,255,255,.38);font-size:9.5px;margin-top:2px">${l}</div></div>`).join('')}
+      </div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px;margin-bottom:14px">
+        <div class="lbl" style="color:rgba(255,255,255,.45);margin-bottom:14px">Platform facilitation fee</div>
+        <div style="display:flex;gap:8px;margin-bottom:13px">
+          ${["UPI","Card","Netbanking"].map((m,i)=>`<div style="flex:1;padding:9px;border-radius:10px;border:1px solid ${i===0?'transparent':'rgba(255,255,255,.12)'};background:${i===0?'var(--grad)':'transparent'};text-align:center;cursor:pointer;color:#fff;font-size:13px;font-weight:600">${m}</div>`).join('')}
+        </div>
+        <input placeholder="yourname@upi" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);color:#fff;margin-bottom:13px"/>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,.45);margin-bottom:6px"><span>Platform fee</span><span>₹1,694</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,.45);margin-bottom:11px"><span>GST (18%)</span><span>₹305</span></div>
+        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:11px;display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:#fff;margin-bottom:14px"><span>Total</span><span>₹1,999</span></div>
+        <button onclick="ss({emergStep:'connected'});startEmergTimer()" class="btn btn-danger btn-block" style="padding:14px;font-size:14px">Pay ₹1,999 &amp; request connection ${Icon('arrow',15)}</button>
+        <div style="text-align:center;color:rgba(255,255,255,.28);font-size:11px;margin-top:9px">GST invoice generated · Secured by Razorpay</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ REGISTER ════════
+function renderRegister(){
+  const {regStep,phone,otp,form}=state;
+  return `${Nav(false)}
+  <div style="min-height:100vh;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:52px 20px 80px">
+    <div style="width:100%;max-width:480px">
+      <button onclick="go('landing')" class="btn btn-line btn-sm" style="margin-bottom:22px">${Icon('back',15)} Back</button>
+      <div class="panel" style="padding:36px">
+        <div style="display:flex;gap:7px;margin-bottom:24px">${[1,2,3].map(i=>`<div style="flex:1;height:4px;border-radius:2px;background:${i<=regStep?'var(--grad)':'var(--line)'};transition:background .3s"></div>`).join('')}</div>
+        ${regStep===1
+          ?`<h2 class="display" style="font-size:22px;color:var(--ink);margin-bottom:6px">Create your account</h2><p style="color:var(--muted);font-size:14px;margin-bottom:24px">Step 1 of 3 · Your phone number is your identity</p>
+          <label class="lbl" style="display:block;margin-bottom:8px">Mobile number *</label>
+          <div style="display:flex;gap:8px;margin-bottom:14px"><div style="background:var(--bg);border:1.5px solid var(--line-2);border-radius:10px;padding:11px 14px;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap">+91</div><input type="tel" placeholder="10-digit mobile number" value="${phone}" oninput="ss({phone:this.value.replace(/\\D/g,'').slice(0,10)})"/></div>
+          <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:24px;font-size:13px;color:var(--muted);line-height:1.6;display:flex;gap:8px;align-items:flex-start">${Icon('lock',15,'flex-shrink:0;margin-top:1px')}Used for appointment reminders only. Never shared with third parties.</div>
+          <button class="btn btn-primary btn-block" style="padding:14px" onclick="ss({regStep:2})">Send OTP ${Icon('arrow',16)}</button>`
+          :regStep===2
+          ?`<h2 class="display" style="font-size:22px;color:var(--ink);margin-bottom:6px">Verify your number</h2><p style="color:var(--muted);font-size:14px;margin-bottom:24px">OTP sent to +91 ${phone||'XXXXX XXXXX'}</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:18px">${[0,1,2,3,4,5].map(i=>`<input maxlength="1" value="${otp[i]}" style="width:44px;height:52px;text-align:center;font-size:20px;font-weight:800;border:1.5px solid ${otp[i]?'var(--blue)':'var(--line-2)'};border-radius:11px;background:${otp[i]?'rgba(61,111,176,.05)':'#fff'}" oninput="handleOtp(${i},this.value)" id="otp${i}"/>`).join('')}</div>
+          <div style="text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">Didn't receive it? <span style="color:var(--blue);font-weight:600;cursor:pointer">Resend in 0:45</span></div>
+          <button class="btn btn-primary btn-block" style="padding:14px" onclick="ss({regStep:3})">Verify &amp; continue ${Icon('arrow',16)}</button>`
+          :`<h2 class="display" style="font-size:22px;color:var(--ink);margin-bottom:6px">Your details</h2><p style="color:var(--muted);font-size:14px;margin-bottom:24px">Step 3 of 3 · Helps match you by location and area</p>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            ${field('Full name *','<input placeholder="Your full name" value="'+form.name+'"/>')}
+            <div class="grid g2" style="gap:12px">
+              ${field('State *','<select><option>Telangana</option><option>Andhra Pradesh</option></select>')}
+              ${field('City *','<input placeholder="Your city"/>')}
+            </div>
+            ${field('Legal area <span style="font-weight:400;text-transform:none;color:var(--faint)">(helps filter advocates)</span>','<select><option value="">Select area</option>'+["Criminal","Civil","Corporate","Family","Real Estate","Consumer","Banking","Revenue"].map(m=>`<option>${m}</option>`).join('')+'</select>')}
+            ${field('Brief <span style="font-weight:400;text-transform:none;color:var(--faint)">(optional)</span>','<textarea rows="3" placeholder="Background of your matter…" style="resize:vertical"></textarea>')}
+            ${NoticeBox('info','info','By registering, you confirm you are accessing this platform of your own accord.')}
+            <button class="btn btn-primary btn-block" onclick="go('dashboard')" style="padding:14px">Complete &amp; access platform ${Icon('arrow',16)}</button>
+          </div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ RETAINER ════════
+function renderRetainer(){
+  const a=state.selAdv;
+  return `${Nav()}
+  <div class="tech" style="padding:48px 40px;text-align:center">
+    <div style="position:relative;z-index:1">
+      <h1 class="display" style="color:#fff;font-size:30px;margin-bottom:8px">Ongoing engagement with ${a.name}</h1>
+      <p style="color:rgba(255,255,255,.5);font-size:14px;margin-bottom:4px">Platform subscription plans — scheduling access, case tools, and monitoring.</p>
+      <p style="color:rgba(255,255,255,.3);font-size:12px;font-style:italic">Professional fees are agreed directly with ${a.name}, independent of this platform.</p>
+    </div>
+  </div>
+  <div class="section-sm" style="background:var(--bg)">
+    <div class="wrap" style="max-width:960px">
+      ${NoticeBox('info','info',`These are platform subscription fees for scheduling access and case management tools. They are not payments for legal services. Advocate professional fees are separate and agreed directly with ${a.name}.`)}
+      <div style="height:24px"></div>
+      <div class="grid g3" style="margin-bottom:24px">
+        ${[
+          {name:"Basic",price:"₹4,999",per:"/ month",highlight:false,features:["2 scheduled appointments / month","Secure evidence vault (500 MB)","SMS &amp; email reminders","Case notes and timeline","Automated hearing reminders","GST-compliant invoice","Cancel any time"]},
+          {name:"Standard",price:"₹9,999",per:"/ month",highlight:true,features:["5 scheduled appointments / month","Full case intelligence access","Priority scheduling queue","Evidence vault (2 GB) with annotations","Gap alert and cross-exam tools","ClearCase-managed follow-ups","Hearing countdown alerts","Cancel any time"]},
+          {name:"Extended",price:"₹19,999",per:"/ month",highlight:false,features:["Unlimited scheduled appointments","Unrestricted evidence vault","Unlimited case intelligence queries","Full case tools suite","Priority urgent connection access","Dedicated case timeline tracking","Multi-document case folders","Cancel any time"]},
+        ].map(p=>`<div class="panel" style="padding:28px;position:relative;${p.highlight?'border-top:2px solid transparent;background-image:linear-gradient(var(--surface),var(--surface)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box;box-shadow:var(--shadow-glow)':''}">
+          ${p.highlight?`<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:5px 16px;border-radius:999px;white-space:nowrap">RECOMMENDED</div>`:''}
+          <div class="lbl" style="margin-bottom:8px">${p.name}</div>
+          <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:20px"><span class="display" style="font-size:27px;color:var(--ink)">${p.price}</span><span style="font-size:13px;color:var(--muted)">${p.per}</span></div>
+          <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px">${p.features.map(f=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink)"><span style="color:var(--ok);flex-shrink:0;margin-top:1px">${Icon('check',14)}</span>${f}</div>`).join('')}</div>
+          <button class="${p.highlight?'btn btn-primary':'btn btn-line'} btn-block">Choose ${p.name}</button>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════ COMPLIANCE ════════
+function renderCompliance(){
+  return `${Nav(false)}
+  <div style="background:var(--bg);min-height:100vh;padding:44px 40px">
+    <div class="wrap" style="max-width:760px">
+      <button onclick="go('landing')" class="btn btn-line btn-sm" style="margin-bottom:22px">${Icon('back',15)} Back</button>
+      <h1 class="display" style="font-size:30px;color:var(--ink);margin-bottom:8px">Compliance &amp; disclaimer</h1>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:28px">As required under the Advocates Act, 1961, the BCI Rules, and the DPDP Act, 2023.</p>
+      ${[
+        ["Nature of platform","ClearCase (clearcase.in) is a technology platform. It is not a law firm and does not practise law, provide legal advice, or represent clients in any capacity."],
+        ["No solicitation","This website is not an advertisement for legal services. No solicitation of work is made by this platform or by any advocate listed here, in compliance with Rule 36 of the Bar Council of India Rules."],
+        ["Independent advocates","All advocates are independently enrolled with their State Bar Councils and maintain independent professional practices. ClearCase does not supervise their legal work."],
+        ["No ranking or recommendation","ClearCase does not rank, rate, compare, or recommend any advocate. The display of advocates is neutral and informational only."],
+        ["Platform fees","ClearCase charges advocates a platform subscription fee (B2B SaaS). Client facilitation fees, where applicable, are for use of the scheduling technology, not for legal services. Advocate professional fees are entirely separate."],
+        ["Data protection","Personal data is handled under the DPDP Act, 2023. Session recordings, made only with user consent, are stored encrypted. You may request deletion at any time via privacy@clearcase.in."],
+        ["Grievance redressal","Grievance Officer: legal@clearcase.in. Acknowledged within 48 hours, resolved within 30 days. Jurisdiction: Hyderabad, Telangana."],
+      ].map(([h,t])=>`<div class="panel" style="padding:22px;margin-bottom:12px">
+        <h3 class="head" style="font-size:15px;color:var(--ink);margin-bottom:8px">${h}</h3>
+        <p style="font-size:13.5px;color:var(--muted);line-height:1.8">${t}</p>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ════════ ROUTER ════════
+function render(){
+  const screens={landing:renderLanding,intelligence:renderIntelligence,'case-library':renderCaseLibrary,'case-tools':renderCaseTools,dashboard:renderDashboard,advocates:renderAdvocates,profile:renderProfile,booking:renderBooking,session:renderSession,urgent:renderUrgent,register:renderRegister,retainer:renderRetainer,compliance:renderCompliance};
+  document.getElementById('app').innerHTML=(screens[state.screen]||renderLanding)();
+}
+render();
+</script>
+</body>
+</html>

@@ -40,7 +40,7 @@ export default function AILegalGuide() {
   return (
     <div className="ai-guide page-with-nav">
       <button className="back-btn" onClick={() => window.history.back()}>← Back</button>
-      <h2 style={{ color: '#0A1628', marginBottom: 4 }}>AI Legal Guide 🤖</h2>
+      <h2 style={{ color: '#1C2A40', marginBottom: 4 }}>AI Legal Guide 🤖</h2>
       <p style={{ color: '#94A3B8', fontSize: 13, marginBottom: 20 }}>Not a substitute for professional advice.</p>
 
       {conversation.length === 0 && (

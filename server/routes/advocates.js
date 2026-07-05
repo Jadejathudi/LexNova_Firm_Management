@@ -1,6 +1,8 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 const { authenticateToken } = require('../middleware/auth');
+const { requireRole } = require('../middleware/rbac');
 
 const ALL_SLOTS_24 = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -243,6 +245,62 @@ module.exports = function (sql) {
       });
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch earnings' });
+    }
+  });
+
+  // POST /admin/create — managing partner creates a new advocate account + profile
+  router.post('/admin/create', authenticateToken, requireRole('managing_partner'), async (req, res) => {
+    const {
+      full_name, email, phone, password, role,
+      bar_number, experience_years, specializations,
+      state, city, bio, languages, profile_photo, is_verified,
+    } = req.body;
+
+    if (!full_name || !email || !phone || !password || !bar_number || !experience_years || !state || !city) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+      const dupUser = await sql`SELECT user_id FROM users WHERE email = ${email} OR phone = ${phone}`;
+      if (dupUser.length) return res.status(409).json({ error: 'Email or phone already in use' });
+
+      const dupBar = await sql`SELECT advocate_id FROM advocates WHERE bar_number = ${bar_number}`;
+      if (dupBar.length) return res.status(409).json({ error: 'Bar number already registered' });
+
+      const user_id = uuidv4();
+      const advocate_id = uuidv4();
+      const password_hash = bcrypt.hashSync(password, 10);
+      const advocateRole = role || 'senior_advocate';
+
+      await sql`
+        INSERT INTO users (user_id, full_name, email, phone, role, password_hash, is_active)
+        VALUES (${user_id}, ${full_name}, ${email}, ${phone}, ${advocateRole}, ${password_hash}, 1)
+      `;
+
+      await sql`
+        INSERT INTO advocates (
+          advocate_id, user_id, bar_number, experience_years, specializations,
+          state, city, bio, languages, profile_photo, is_verified, is_available
+        ) VALUES (
+          ${advocate_id}, ${user_id}, ${bar_number}, ${parseInt(experience_years)},
+          ${JSON.stringify(specializations || [])}, ${state}, ${city},
+          ${bio || ''}, ${JSON.stringify(languages || [])},
+          ${profile_photo || null}, ${is_verified ? 1 : 0}, 1
+        )
+      `;
+
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      for (const day of days) {
+        await sql`
+          INSERT INTO advocate_availability (availability_id, advocate_id, day_of_week, is_available, start_time, end_time)
+          VALUES (${uuidv4()}, ${advocate_id}, ${day}, 1, '09:00', '18:00')
+        `;
+      }
+
+      res.status(201).json({ user_id, advocate_id, full_name, message: 'Advocate created successfully' });
+    } catch (err) {
+      console.error('Create advocate error:', err);
+      res.status(500).json({ error: 'Failed to create advocate' });
     }
   });
 

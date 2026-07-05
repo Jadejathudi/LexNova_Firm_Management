@@ -127,6 +127,7 @@ export const api = {
   updateAdvocateAvailability: (id, availability) => apiFetch(`/advocates/${id}/availability`, { method: 'PUT', body: JSON.stringify({ availability }) }),
   getAdvocateEarnings: (id, period) => apiFetch(`/advocates/${id}/earnings?period=${period}`),
   getOnCallAdvocate: () => apiFetch('/advocates/on-call'),
+  createAdvocate: (data) => apiFetch('/advocates/admin/create', { method: 'POST', body: JSON.stringify(data) }),
 
   // Users
   getTeam: () => apiFetch('/users'),

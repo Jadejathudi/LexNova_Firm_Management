@@ -134,9 +134,10 @@ export default function AdvocateProfile() {
       <div style={{ background: NAVY, padding: '32px 48px' }}>
         <div onClick={() => navigate('/advocates')} style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', cursor: 'pointer', marginBottom: '20px' }}>← Back to Advocates</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '40px', background: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GOLD, fontSize: '28px', fontWeight: 700 }}>
-            {initials}
-          </div>
+          {a.profile_photo
+            ? <img src={a.profile_photo} alt={displayName} style={{ width: '80px', height: '80px', borderRadius: '40px', objectFit: 'cover', flexShrink: 0, border: '3px solid rgba(255,255,255,0.2)' }} />
+            : <div style={{ width: '80px', height: '80px', borderRadius: '40px', background: GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: '28px', fontWeight: 700 }}>{initials}</div>
+          }
           <div>
             <h1 style={{ color: WHITE, fontSize: '28px', fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", marginBottom: '4px' }}>{displayName}</h1>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>{a.experience_years} years experience • {a.city}, {a.state}</p>

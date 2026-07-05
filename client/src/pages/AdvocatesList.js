@@ -45,7 +45,10 @@ function AdvocateCard({ advocate, onViewProfile, onBook }) {
   return (
     <div style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '22px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', gap: '13px', alignItems: 'flex-start', marginBottom: '14px' }}>
-        <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: '16px', fontWeight: 800 }}>{initials}</div>
+        {advocate.profile_photo
+          ? <img src={advocate.profile_photo} alt={name} style={{ width: '50px', height: '50px', borderRadius: '25px', objectFit: 'cover', flexShrink: 0, border: '2px solid #E2E8F0' }} />
+          : <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: '16px', fontWeight: 800 }}>{initials}</div>
+        }
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '17px', fontWeight: 700, color: NAVY, lineHeight: 1.2 }}>{name}</div>
           <div style={{ fontSize: '12px', color: GRAY, marginTop: '3px' }}>{advocate.city} · {advocate.state} · {yrs} yrs at Bar</div>

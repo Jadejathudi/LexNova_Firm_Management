@@ -202,7 +202,7 @@ export default function Landing() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '22px' }}>
             {[
               { icon: '🏢', col: '#0E7490', title: 'Corporate Law', desc: 'Company formation, shareholder disputes, M&A, NCLT proceedings, and employment contracts handled by verified corporate advocates.', path: '/corporate', cta: 'Explore Corporate →' },
-              { icon: '💳', col: '#B45309', title: 'Credit / Debit Fraud', desc: 'Unauthorized transactions, card cloning, OTP fraud, UPI scams — banking fraud advocates who know how to file, dispute, and recover.', path: '/credit-debit', cta: 'Explore Credit/Debit →' },
+              { icon: '💳', col: '#B45309', title: 'Credit/Bank Loans', desc: 'Dishonoured cheques, Section 138 complaints, payment defaults, willful non-payment — advocates who know how to notify, prosecute, and recover.', path: '/credit-debit', cta: 'Explore Credit/Bank Loans →' },
               { icon: '🔐', col: '#4F46E5', title: 'Cyber Crime', desc: 'Online fraud, cyberstalking, identity theft, hacking, and digital extortion — cyber law advocates backed by IT Act expertise.', path: '/cyber-crime', cta: 'Explore Cyber Crime →' },
             ].map(v => (
               <div key={v.title} style={{ background: WHITE, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,.05)', padding: '28px', borderTop: `3px solid ${v.col}` }}>
@@ -299,6 +299,7 @@ export default function Landing() {
               <span style={{ background: GRAD, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ClearCase</span>
             </div>
             <p style={{ color: 'rgba(255,255,255,.38)', fontSize: '13px', lineHeight: 1.7 }}>Legal technology platform. Not a law firm. Does not provide legal advice.</p>
+            <p style={{ color: 'rgba(255,255,255,.28)', fontSize: '12px', marginTop: 8 }}>Support: <span style={{ color: 'rgba(255,255,255,.5)' }}>+91 9701833676</span> · Mon–Sat, 9AM–6PM</p>
           </div>
           <div>
             <div style={{ color: 'rgba(255,255,255,.5)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '10px' }}>Compliance</div>
@@ -308,7 +309,7 @@ export default function Landing() {
           </div>
           <div>
             <div style={{ color: 'rgba(255,255,255,.5)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '10px' }}>Links</div>
-            {[['Full Disclaimer', '/compliance'], ['The Bench', '/bench/directory'], ['Find Advocate', '/advocates'], ['Corporate Law', '/corporate'], ['Credit/Debit Fraud', '/credit-debit'], ['Cyber Crime', '/cyber-crime']].map(([label, path]) => (
+            {[['Full Disclaimer', '/compliance'], ['The Bench', '/bench/directory'], ['Find Advocate', '/advocates'], ['Corporate Law', '/corporate'], ['Credit/Bank Loans', '/credit-debit'], ['Cyber Crime', '/cyber-crime']].map(([label, path]) => (
               <div key={path} onClick={() => navigate(path)} style={{ color: 'rgba(255,255,255,.38)', fontSize: '13px', marginBottom: '5px', cursor: 'pointer', textDecoration: 'underline' }}>{label}</div>
             ))}
           </div>

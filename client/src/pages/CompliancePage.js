@@ -5,6 +5,7 @@ import PublicNavbar from '../components/PublicNavbar';
 const NAVY = '#1C2A40', GRAY = '#5E6577', BG = '#F5F5F1';
 
 const sections = [
+  ['About ClearCase', 'ClearCase is a legal technology platform connecting individuals and businesses with verified, Bar Council enrolled advocates across Andhra Pradesh and Telangana. We provide a transparent, technology-driven environment to find advocates, track legal matters, schedule judicial consultations, and access case intelligence — without replacing the attorney-client relationship. ClearCase does not provide legal advice, represent clients, or act as a law firm.'],
   ['Nature of Platform', 'ClearCase (clearcase.in) is a technology platform. It is not a law firm and does not practice law, provide legal advice, or represent clients in any capacity.'],
   ['No Solicitation', 'This website is not an advertisement for legal services. No solicitation of work is made by this platform or by any advocate listed herein, in compliance with Rule 36 of the Bar Council of India Rules.'],
   ['Independent Advocates', 'All advocates are independently enrolled with their State Bar Councils and maintain independent professional practices. ClearCase does not supervise their legal work.'],
@@ -12,6 +13,7 @@ const sections = [
   ['Platform Fees', 'ClearCase charges advocates a platform subscription fee (B2B SaaS). Client facilitation fees, where applicable, are for use of the scheduling technology — not for legal services. Advocate professional fees are entirely separate.'],
   ['Data Protection', 'Personal data is handled under DPDP Act 2023. Session recordings (with user consent only) are stored encrypted. Users may request deletion at any time via privacy@clearcase.in'],
   ['Grievance Redressal', 'Grievance Officer: legal@clearcase.in. Acknowledged within 48 hours, resolved within 30 days. Jurisdiction: Hyderabad, Telangana.'],
+  ['Contact & Support', 'For queries, support, or assistance — contact us at +91 9701833676. Available Monday–Saturday, 9 AM–6 PM IST. You may also write to us at legal@clearcase.in.'],
 ];
 
 export default function CompliancePage() {

@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: '⚖ The Bench', path: '/bench/directory' },
   { label: 'Corporate', path: '/corporate' },
   { label: 'Cyber Crime', path: '/cyber-crime' },
-  { label: 'Credit/Bank Loans', path: '/credit-debit' },
+  { label: 'Loan Recovery', path: '/credit-debit' },
 ];
 
 export default function PublicNavbar() {

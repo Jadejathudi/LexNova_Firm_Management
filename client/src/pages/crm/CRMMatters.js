@@ -11,7 +11,7 @@ const TYPE_BADGE = {
   real_estate: '#78716C', bench: '#1C2A40',
 };
 const TYPE_LABEL = {
-  corporate: 'Corporate', credit_debit: 'Credit/Bank Loans', cyber_crime: 'Cyber Crime',
+  corporate: 'Corporate', credit_debit: 'Loan Recovery', cyber_crime: 'Cyber Crime',
   criminal: 'Criminal', civil: 'Civil', family: 'Family',
   real_estate: 'Real Estate', bench: 'Bench Session',
 };

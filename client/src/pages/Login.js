@@ -80,14 +80,6 @@ export default function Login() {
           </p>
         </div>
 
-        <div style={{ marginTop: 24, padding: 16, background: '#F5F5F1', borderRadius: 11, fontSize: 12, color: '#5E6577' }}>
-          <strong style={{ color: '#1C2A40' }}>Demo Accounts:</strong><br />
-          Partner: prashanth@clearcase.in<br />
-          Sr. Advocate: meera@clearcase.in<br />
-          Client: rahul@example.com<br />
-          Bench Judge: judge.rn@clearcase.legal<br />
-          <em>Password for all: password123</em>
-        </div>
       </div>
     </div>
   );

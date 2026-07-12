@@ -210,7 +210,7 @@ export default function Dashboard() {
           <h3>📁 My Matters</h3>
           {lightMatters.map(m => {
             const typeColors = { bench: '#1C2A40', corporate: '#0E7490', credit_debit: '#B45309', cyber_crime: '#4F46E5', criminal: '#DC2626', civil: '#16A34A', family: '#D97706', real_estate: '#78716C' };
-            const typeLabels = { bench: 'Bench Session', corporate: 'Corporate', credit_debit: 'Credit/Bank Loans', cyber_crime: 'Cyber Crime', criminal: 'Criminal', civil: 'Civil', family: 'Family', real_estate: 'Real Estate' };
+            const typeLabels = { bench: 'Bench Session', corporate: 'Corporate', credit_debit: 'Loan Recovery', cyber_crime: 'Cyber Crime', criminal: 'Criminal', civil: 'Civil', family: 'Family', real_estate: 'Real Estate' };
             const col = typeColors[m.matter_type] || '#64748B';
             return (
               <div key={m.matter_id} onClick={() => navigate(`/matters/${m.matter_id}`)}

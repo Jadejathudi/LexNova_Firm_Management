@@ -63,7 +63,7 @@ export default function CreditDebitLanding() {
 
         {/* Matters handled */}
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '60px 24px 40px' }}>
-          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Credit & loan matters we handle</h2>
+          <h2 style={{ color: NAVY, textAlign: 'center', fontSize: 26, marginBottom: 8 }}>Loan recovery matters we handle</h2>
           <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 36 }}>Dishonoured cheques, payment defaults, and recovery — under NI Act, CPC, and IPC</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
             {MATTERS.map((m, i) => (

@@ -364,6 +364,140 @@ module.exports = function (sql) {
     }
   );
 
+  // ── Admin: POST /admin/judges ─────────────────────────────────
+  router.post('/admin/judges',
+    authenticateToken,
+    requireRole('managing_partner', 'advisor'),
+    async (req, res) => {
+      const {
+        name, initials, tier, retired_year, years_on_bench,
+        city, state, areas, bio, education, notable_areas,
+        languages, total_slots, is_active,
+      } = req.body;
+
+      if (!name || !initials || !tier || !retired_year || !years_on_bench || !city || !state || !areas || !bio || !languages) {
+        return res.status(400).json({ error: 'Missing required judge fields' });
+      }
+
+      try {
+        const judgeId = uuidv4();
+        const areaList = Array.isArray(areas)
+          ? areas
+          : String(areas).split(',').map(a => a.trim()).filter(Boolean);
+        const languageList = Array.isArray(languages)
+          ? languages
+          : String(languages).split(',').map(l => l.trim()).filter(Boolean);
+
+        await sql`
+          INSERT INTO bench_judges (
+            judge_id, user_id, name, initials, tier, retired_year,
+            years_on_bench, city, state, areas, bio, education,
+            notable_areas, languages, total_slots, is_active, created_at
+          ) VALUES (
+            ${judgeId}, NULL, ${name}, ${initials}, ${tier}, ${Number(retired_year)},
+            ${Number(years_on_bench)}, ${city}, ${state}, ${JSON.stringify(areaList)}, ${bio},
+            ${education || null}, ${notable_areas || null}, ${JSON.stringify(languageList)}, ${Number(total_slots || 8)}, ${is_active ? 1 : 0}, NOW()
+          )
+        `;
+
+        await sql`
+          INSERT INTO bench_judge_slots (slot_id, judge_id, month_year, slots_booked)
+          VALUES (${uuidv4()}, ${judgeId}, ${currentMonthYear()}, 0)
+          ON CONFLICT (judge_id, month_year) DO NOTHING
+        `;
+
+        res.status(201).json({ success: true, message: 'Judge created successfully' });
+      } catch (err) {
+        console.error('POST /bench/admin/judges:', err);
+        res.status(500).json({ error: 'Failed to create judge' });
+      }
+    }
+  );
+
+  // ── Admin: PUT /admin/judges/:id ─────────────────────────────────
+  router.put('/admin/judges/:id',
+    authenticateToken,
+    requireRole('managing_partner', 'advisor'),
+    async (req, res) => {
+      const {
+        name, initials, tier, retired_year, years_on_bench,
+        city, state, areas, bio, education, notable_areas,
+        languages, total_slots, is_active,
+      } = req.body;
+
+      if (!name || !initials || !tier || !retired_year || !years_on_bench || !city || !state || !areas || !bio || !languages) {
+        return res.status(400).json({ error: 'Missing required judge fields' });
+      }
+
+      try {
+        const existing = await sql`SELECT judge_id, user_id FROM bench_judges WHERE judge_id = ${req.params.id}`;
+        if (!existing.length) return res.status(404).json({ error: 'Judge not found' });
+
+        const areaList = Array.isArray(areas)
+          ? areas
+          : String(areas).split(',').map(a => a.trim()).filter(Boolean);
+        const languageList = Array.isArray(languages)
+          ? languages
+          : String(languages).split(',').map(l => l.trim()).filter(Boolean);
+
+        await sql`
+          UPDATE bench_judges
+          SET name = ${name},
+              initials = ${initials},
+              tier = ${tier},
+              retired_year = ${Number(retired_year)},
+              years_on_bench = ${Number(years_on_bench)},
+              city = ${city},
+              state = ${state},
+              areas = ${JSON.stringify(areaList)},
+              bio = ${bio},
+              education = ${education || null},
+              notable_areas = ${notable_areas || null},
+              languages = ${JSON.stringify(languageList)},
+              total_slots = ${Number(total_slots || 8)},
+              is_active = ${is_active ? 1 : 0}
+          WHERE judge_id = ${req.params.id}
+        `;
+
+        if (existing[0].user_id) {
+          await sql`
+            UPDATE users
+            SET full_name = ${name}, updated_at = NOW()
+            WHERE user_id = ${existing[0].user_id}
+          `;
+        }
+
+        res.json({ success: true, message: 'Judge updated successfully' });
+      } catch (err) {
+        console.error('PUT /bench/admin/judges/:id:', err);
+        res.status(500).json({ error: 'Failed to update judge' });
+      }
+    }
+  );
+
+  // ── Admin: DELETE /admin/judges/:id ─────────────────────────────
+  router.delete('/admin/judges/:id',
+    authenticateToken,
+    requireRole('managing_partner', 'advisor'),
+    async (req, res) => {
+      try {
+        const existing = await sql`SELECT judge_id, user_id FROM bench_judges WHERE judge_id = ${req.params.id}`;
+        if (!existing.length) return res.status(404).json({ error: 'Judge not found' });
+
+        await sql`
+          UPDATE bench_judges
+          SET is_active = 0
+          WHERE judge_id = ${req.params.id}
+        `;
+
+        res.json({ success: true, message: 'Judge removed successfully' });
+      } catch (err) {
+        console.error('DELETE /bench/admin/judges/:id:', err);
+        res.status(500).json({ error: 'Failed to remove judge' });
+      }
+    }
+  );
+
   // ── Admin: GET /admin/stats ────────────────────────────────────
   router.get('/admin/stats',
     authenticateToken,

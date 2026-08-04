@@ -128,6 +128,8 @@ export const api = {
   getAdvocateEarnings: (id, period) => apiFetch(`/advocates/${id}/earnings?period=${period}`),
   getOnCallAdvocate: () => apiFetch('/advocates/on-call'),
   createAdvocate: (data) => apiFetch('/advocates/admin/create', { method: 'POST', body: JSON.stringify(data) }),
+  updateAdvocate: (id, data) => apiFetch(`/advocates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAdvocate: (id) => apiFetch(`/advocates/${id}`, { method: 'DELETE' }),
 
   // Users
   getTeam: () => apiFetch('/users'),
@@ -168,6 +170,7 @@ export const api = {
   updateBenchBooking: (id, data) => apiFetch(`/bench/admin/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getBenchAdminStats: () => apiFetch('/bench/admin/stats'),
   getBenchAdminJudges: () => apiFetch('/bench/admin/judges'),
+  updateBenchJudge: (id, data) => apiFetch(`/bench/admin/judges/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Google Calendar admin
   getCalendarStatus: () => apiFetch('/admin/google-status'),

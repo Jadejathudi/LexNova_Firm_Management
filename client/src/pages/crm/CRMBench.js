@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { API_BASE } from '../bench/benchConstants';
 
 const TIERS = {
@@ -26,6 +27,11 @@ const STATUS_COLORS = {
   cancelled:         { bg: 'rgba(255,255,255,.04)',color: '#6E7288' },
 };
 
+const BLANK_JUDGE_FORM = {
+  name: '', initials: '', tier: 'junior', retired_year: '', years_on_bench: '', city: '', state: '',
+  areas: '', bio: '', education: '', notable_areas: '', languages: '', total_slots: '8', is_active: true,
+};
+
 async function adminFetch(endpoint, options = {}) {
   const token = localStorage.getItem('clearcase_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...options.headers };
@@ -51,6 +57,8 @@ function StatCard({ label, value, sub }) {
 }
 
 export default function CRMBench() {
+  const { user } = useAuth();
+  const canManageJudges = ['managing_partner', 'advisor'].includes(user?.role);
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
   const [judges, setJudges] = useState([]);
@@ -61,6 +69,10 @@ export default function CRMBench() {
   const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('bookings');
+  const [showJudgeForm, setShowJudgeForm] = useState(false);
+  const [editingJudgeId, setEditingJudgeId] = useState(null);
+  const [judgeForm, setJudgeForm] = useState(BLANK_JUDGE_FORM);
+  const [savingJudge, setSavingJudge] = useState(false);
 
   const loadBookings = (status = statusFilter) => {
     const q = status !== 'all' ? `?status=${status}` : '';
@@ -107,6 +119,86 @@ export default function CRMBench() {
     setStatusFilter(s);
     const q = s !== 'all' ? `?status=${s}` : '';
     adminFetch(`/admin/bookings${q}`).then(setBookings).catch(err => setError(err.message));
+  }
+
+  function resetJudgeForm() {
+    setShowJudgeForm(false);
+    setEditingJudgeId(null);
+    setJudgeForm(BLANK_JUDGE_FORM);
+  }
+
+  function openJudgeCreate() {
+    setShowJudgeForm(true);
+    setEditingJudgeId(null);
+    setJudgeForm(BLANK_JUDGE_FORM);
+  }
+
+  function openJudgeEdit(judge) {
+    setShowJudgeForm(true);
+    setEditingJudgeId(judge.judge_id);
+    setJudgeForm({
+      name: judge.name || '',
+      initials: judge.initials || '',
+      tier: judge.tier || 'junior',
+      retired_year: judge.retired_year || '',
+      years_on_bench: judge.years_on_bench || '',
+      city: judge.city || '',
+      state: judge.state || '',
+      areas: Array.isArray(judge.areas) ? judge.areas.join(', ') : '',
+      bio: judge.bio || '',
+      education: judge.education || '',
+      notable_areas: judge.notable_areas || '',
+      languages: Array.isArray(judge.languages) ? judge.languages.join(', ') : '',
+      total_slots: judge.total_slots || 8,
+      is_active: Boolean(judge.is_active),
+    });
+  }
+
+  async function handleDeleteJudge(judge) {
+    if (!window.confirm(`Remove ${judge.name} from the judge roster?`)) return;
+    try {
+      await adminFetch(`/admin/judges/${judge.judge_id}`, { method: 'DELETE' });
+      setError('');
+      Promise.all([
+        adminFetch('/admin/bookings'),
+        adminFetch('/admin/stats'),
+        adminFetch('/admin/judges'),
+      ]).then(([b, s, j]) => { setBookings(b); setStats(s); setJudges(j); }).catch(err => setError(err.message));
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function saveJudgeForm() {
+    setSavingJudge(true);
+    try {
+      const payload = {
+        ...judgeForm,
+        retired_year: Number(judgeForm.retired_year),
+        years_on_bench: Number(judgeForm.years_on_bench),
+        total_slots: Number(judgeForm.total_slots),
+        areas: judgeForm.areas.split(',').map(s => s.trim()).filter(Boolean),
+        languages: judgeForm.languages.split(',').map(s => s.trim()).filter(Boolean),
+        is_active: Boolean(judgeForm.is_active),
+      };
+
+      if (editingJudgeId) {
+        await adminFetch(`/admin/judges/${editingJudgeId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        await adminFetch('/admin/judges', { method: 'POST', body: JSON.stringify(payload) });
+      }
+
+      resetJudgeForm();
+      Promise.all([
+        adminFetch('/admin/bookings'),
+        adminFetch('/admin/stats'),
+        adminFetch('/admin/judges'),
+      ]).then(([b, s, j]) => { setBookings(b); setStats(s); setJudges(j); }).catch(err => setError(err.message));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSavingJudge(false);
+    }
   }
 
   const inputSt = {
@@ -253,46 +345,144 @@ export default function CRMBench() {
 
       {/* Judges Tab */}
       {activeTab === 'judges' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
-          {judges.map(j => {
-            const t = TIERS[j.tier] || TIERS.junior;
-            const pct = j.total_slots > 0 ? Math.round((j.slots_left / j.total_slots) * 100) : 0;
-            return (
-              <div key={j.judge_id} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 10, padding: 20 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}22`, border: `2px solid ${t.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: t.color, flexShrink: 0 }}>
-                    {j.initials}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3, background: `${t.color}18`, color: t.color }}>{t.badge}</span>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                  {[
-                    ['City', j.city], ['State', j.state],
-                    ['Yrs on Bench', j.years_on_bench], ['Retired', j.retired_year],
-                  ].map(([l, v]) => (
-                    <div key={l}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 1 }}>{l}</div>
-                      <div style={{ fontSize: 12, color: '#334155' }}>{v}</div>
-                    </div>
-                  ))}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A40' }}>Judge Roster</div>
+            {canManageJudges && (
+              <button onClick={openJudgeCreate} style={{ background: 'linear-gradient(135deg, #3D6FB0, #2E8E86)', color: '#fff', border: 'none', borderRadius: 9, padding: '10px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                + Add Judge
+              </button>
+            )}
+          </div>
+
+          {canManageJudges && showJudgeForm && (
+            <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12, padding: 18, marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#1C2A40' }}>{editingJudgeId ? 'Update Judge' : 'New Judge'}</div>
+                <button onClick={resetJudgeForm} style={{ background: 'transparent', border: '1px solid #CBD5E1', color: '#64748B', borderRadius: 6, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={labelSt}>Name</label>
+                  <input value={judgeForm.name || ''} onChange={e => setJudgeForm(p => ({ ...p, name: e.target.value }))} style={inputSt} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0' }}>
-                      {j.slots_left === 0 ? 'Fully Booked' : `${j.slots_left} / ${j.total_slots} slots available`}
-                    </span>
-                    <span style={{ fontSize: 11, color: '#94A3B8' }}>{j.slots_booked} booked</span>
-                  </div>
-                  <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0', borderRadius: 2 }} />
-                  </div>
+                  <label style={labelSt}>Initials</label>
+                  <input value={judgeForm.initials || ''} onChange={e => setJudgeForm(p => ({ ...p, initials: e.target.value }))} style={inputSt} />
+                </div>
+                <div>
+                  <label style={labelSt}>Tier</label>
+                  <select value={judgeForm.tier || 'junior'} onChange={e => setJudgeForm(p => ({ ...p, tier: e.target.value }))} style={inputSt}>
+                    <option value="hc">High Court</option>
+                    <option value="district">District Court</option>
+                    <option value="senior">Senior Civil</option>
+                    <option value="junior">Junior Civil</option>
+                  </select>
                 </div>
               </div>
-            );
-          })}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={labelSt}>City</label>
+                  <input value={judgeForm.city || ''} onChange={e => setJudgeForm(p => ({ ...p, city: e.target.value }))} style={inputSt} />
+                </div>
+                <div>
+                  <label style={labelSt}>State</label>
+                  <input value={judgeForm.state || ''} onChange={e => setJudgeForm(p => ({ ...p, state: e.target.value }))} style={inputSt} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={labelSt}>Years on Bench</label>
+                  <input type="number" value={judgeForm.years_on_bench || ''} onChange={e => setJudgeForm(p => ({ ...p, years_on_bench: e.target.value }))} style={inputSt} />
+                </div>
+                <div>
+                  <label style={labelSt}>Retired Year</label>
+                  <input type="number" value={judgeForm.retired_year || ''} onChange={e => setJudgeForm(p => ({ ...p, retired_year: e.target.value }))} style={inputSt} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelSt}>Areas</label>
+                <input value={judgeForm.areas || ''} onChange={e => setJudgeForm(p => ({ ...p, areas: e.target.value }))} placeholder="Civil, Criminal" style={inputSt} />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelSt}>Languages</label>
+                <input value={judgeForm.languages || ''} onChange={e => setJudgeForm(p => ({ ...p, languages: e.target.value }))} placeholder="English, Hindi" style={inputSt} />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelSt}>Bio</label>
+                <textarea rows={3} value={judgeForm.bio || ''} onChange={e => setJudgeForm(p => ({ ...p, bio: e.target.value }))} style={{ ...inputSt, resize: 'vertical' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={labelSt}>Education</label>
+                  <input value={judgeForm.education || ''} onChange={e => setJudgeForm(p => ({ ...p, education: e.target.value }))} style={inputSt} />
+                </div>
+                <div>
+                  <label style={labelSt}>Total Slots</label>
+                  <input type="number" value={judgeForm.total_slots || 8} onChange={e => setJudgeForm(p => ({ ...p, total_slots: e.target.value }))} style={inputSt} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelSt}>Notable Areas</label>
+                <input value={judgeForm.notable_areas || ''} onChange={e => setJudgeForm(p => ({ ...p, notable_areas: e.target.value }))} style={inputSt} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <input type="checkbox" checked={Boolean(judgeForm.is_active)} onChange={e => setJudgeForm(p => ({ ...p, is_active: e.target.checked }))} />
+                <span style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>Active Judge</span>
+              </div>
+              <button onClick={saveJudgeForm} disabled={savingJudge} style={{ background: savingJudge ? '#CBD5E1' : '#3D6FB0', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 18px', fontSize: 13, fontWeight: 700, cursor: savingJudge ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
+                {savingJudge ? 'Saving…' : (editingJudgeId ? 'Save Judge' : 'Create Judge')}
+              </button>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
+            {judges.map(j => {
+              const t = TIERS[j.tier] || TIERS.junior;
+              const pct = j.total_slots > 0 ? Math.round((j.slots_left / j.total_slots) * 100) : 0;
+              return (
+                <div key={j.judge_id} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 10, padding: 20 }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}22`, border: `2px solid ${t.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: t.color, flexShrink: 0 }}>
+                      {j.initials}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3, background: `${t.color}18`, color: t.color }}>{t.badge}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                    {[
+                      ['City', j.city], ['State', j.state],
+                      ['Yrs on Bench', j.years_on_bench], ['Retired', j.retired_year],
+                    ].map(([l, v]) => (
+                      <div key={l}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 1 }}>{l}</div>
+                        <div style={{ fontSize: 12, color: '#334155' }}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0' }}>
+                        {j.slots_left === 0 ? 'Fully Booked' : `${j.slots_left} / ${j.total_slots} slots available`}
+                      </span>
+                      <span style={{ fontSize: 11, color: '#94A3B8' }}>{j.slots_booked} booked</span>
+                    </div>
+                    <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0', borderRadius: 2 }} />
+                    </div>
+                  </div>
+                  {canManageJudges && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                      <button onClick={() => openJudgeEdit(j)} style={{ background: '#E0F2FE', color: '#075985', border: 'none', borderRadius: 7, padding: '6px 10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>
+                      <button onClick={() => handleDeleteJudge(j)} style={{ background: '#FEE2E2', color: '#B91C1C', border: 'none', borderRadius: 7, padding: '6px 10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Delete</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

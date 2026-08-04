@@ -154,6 +154,96 @@ module.exports = function (sql) {
     }
   });
 
+  // PUT /:id — update advocate details (managing partner / advisor)
+  router.put('/:id', authenticateToken, requireRole('managing_partner', 'advisor'), async (req, res) => {
+    const { id } = req.params;
+    const {
+      full_name, email, phone, role,
+      bar_number, experience_years, specializations,
+      state, city, bio, languages, profile_photo, is_verified, is_available,
+    } = req.body;
+
+    if (!full_name || !email || !phone || !bar_number || !experience_years || !state || !city) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+      const advocateRows = await sql`
+        SELECT a.advocate_id, a.user_id, a.bar_number, u.email, u.phone
+        FROM advocates a JOIN users u ON a.user_id = u.user_id
+        WHERE a.advocate_id = ${id}
+      `;
+      if (advocateRows.length === 0) return res.status(404).json({ error: 'Advocate not found' });
+
+      const current = advocateRows[0];
+      const dupUser = await sql`
+        SELECT user_id FROM users
+        WHERE (email = ${email} OR phone = ${phone}) AND user_id != ${current.user_id}
+      `;
+      if (dupUser.length) return res.status(409).json({ error: 'Email or phone already in use' });
+
+      const dupBar = await sql`
+        SELECT advocate_id FROM advocates
+        WHERE bar_number = ${bar_number} AND advocate_id != ${id}
+      `;
+      if (dupBar.length) return res.status(409).json({ error: 'Bar number already registered' });
+
+      const normalizedSpecs = Array.isArray(specializations)
+        ? JSON.stringify(specializations)
+        : JSON.stringify((specializations || []).length ? specializations : []);
+      const normalizedLanguages = Array.isArray(languages)
+        ? JSON.stringify(languages)
+        : JSON.stringify(String(languages || '').split(',').map(x => x.trim()).filter(Boolean));
+
+      await sql`
+        UPDATE users
+        SET full_name = ${full_name}, email = ${email}, phone = ${phone}, role = ${role || 'senior_advocate'}, updated_at = NOW()
+        WHERE user_id = ${current.user_id}
+      `;
+
+      await sql`
+        UPDATE advocates
+        SET bar_number = ${bar_number},
+            experience_years = ${parseInt(experience_years, 10)},
+            specializations = ${normalizedSpecs},
+            state = ${state},
+            city = ${city},
+            bio = ${bio || ''},
+            languages = ${normalizedLanguages},
+            profile_photo = ${profile_photo || null},
+            is_verified = ${is_verified ? 1 : 0},
+            is_available = ${is_available ? 1 : 0}
+        WHERE advocate_id = ${id}
+      `;
+
+      res.json({ message: 'Advocate updated successfully' });
+    } catch (err) {
+      console.error('Update advocate error:', err);
+      res.status(500).json({ error: 'Failed to update advocate' });
+    }
+  });
+
+  // DELETE /:id — deactivate advocate from managing partner UI
+  router.delete('/:id', authenticateToken, requireRole('managing_partner', 'advisor'), async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const advocateRows = await sql`
+        SELECT a.user_id FROM advocates a WHERE a.advocate_id = ${id}
+      `;
+      if (advocateRows.length === 0) return res.status(404).json({ error: 'Advocate not found' });
+
+      await sql`DELETE FROM advocate_availability WHERE advocate_id = ${id}`;
+      await sql`DELETE FROM advocates WHERE advocate_id = ${id}`;
+      await sql`UPDATE users SET is_active = 0 WHERE user_id = ${advocateRows[0].user_id}`;
+
+      res.json({ message: 'Advocate deleted successfully' });
+    } catch (err) {
+      console.error('Delete advocate error:', err);
+      res.status(500).json({ error: 'Failed to delete advocate' });
+    }
+  });
+
   // GET /:id/availability
   router.get('/:id/availability', async (req, res) => {
     try {

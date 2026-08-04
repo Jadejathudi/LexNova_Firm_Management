@@ -23,6 +23,8 @@ export default function CRMTeam() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingAdvocateId, setEditingAdvocateId] = useState(null);
 
   const load = () =>
     Promise.all([api.getTeam(), api.getAdvocates()])
@@ -31,6 +33,54 @@ export default function CRMTeam() {
       .finally(() => setLoading(false));
 
   useEffect(() => { load(); }, []);
+
+  const resetForm = () => {
+    setShowForm(false);
+    setForm(BLANK);
+    setPhotoPreview(null);
+    setError('');
+    setSuccess('');
+    setIsEditing(false);
+    setEditingAdvocateId(null);
+  };
+
+  const startEdit = (advocate) => {
+    const member = team.find(t => t.user_id === advocate.user_id) || {};
+    setForm({
+      full_name: advocate.full_name || '',
+      email: advocate.email || member.email || '',
+      phone: member.phone || advocate.phone || '',
+      password: '',
+      role: advocate.role || member.role || 'senior_advocate',
+      bar_number: advocate.bar_number || '',
+      experience_years: advocate.experience_years || '',
+      specializations: Array.isArray(advocate.specializations) ? advocate.specializations : [],
+      state: advocate.state || '',
+      city: advocate.city || '',
+      bio: advocate.bio || '',
+      languages: Array.isArray(advocate.languages) ? advocate.languages.join(', ') : (advocate.languages || ''),
+      is_verified: Boolean(advocate.is_verified),
+      profile_photo: advocate.profile_photo || '',
+    });
+    setPhotoPreview(advocate.profile_photo || null);
+    setEditingAdvocateId(advocate.advocate_id);
+    setIsEditing(true);
+    setShowForm(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleDelete = async (advocate) => {
+    if (!window.confirm(`Delete ${advocate.full_name} from the advocate roster?`)) return;
+    try {
+      await api.deleteAdvocate(advocate.advocate_id);
+      setSuccess(`${advocate.full_name} has been removed successfully.`);
+      setLoading(true);
+      load();
+    } catch (err) {
+      setError(err.message || 'Failed to delete advocate.');
+    }
+  };
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
@@ -61,18 +111,24 @@ export default function CRMTeam() {
     try {
       const payload = {
         ...form,
-        experience_years: parseInt(form.experience_years),
+        experience_years: parseInt(form.experience_years, 10),
         languages: form.languages.split(',').map(s => s.trim()).filter(Boolean),
+        specializations: form.specializations,
       };
-      await api.createAdvocate(payload);
-      setSuccess(`${form.full_name} has been added successfully.`);
-      setShowForm(false);
-      setForm(BLANK);
-      setPhotoPreview(null);
+
+      if (isEditing) {
+        await api.updateAdvocate(editingAdvocateId, payload);
+        setSuccess(`${form.full_name} has been updated successfully.`);
+      } else {
+        await api.createAdvocate(payload);
+        setSuccess(`${form.full_name} has been added successfully.`);
+      }
+
+      resetForm();
       setLoading(true);
       load();
     } catch (err) {
-      setError(err.message || 'Failed to create advocate.');
+      setError(err.message || (isEditing ? 'Failed to update advocate.' : 'Failed to create advocate.'));
     } finally {
       setSubmitting(false);
     }
@@ -88,7 +144,19 @@ export default function CRMTeam() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ color: NAVY }}>Team Members ({team.length})</h2>
         {user?.role === 'managing_partner' && (
-          <button onClick={() => { setShowForm(s => !s); setError(''); setSuccess(''); }}
+          <button onClick={() => {
+            if (showForm) {
+              resetForm();
+              return;
+            }
+            setShowForm(true);
+            setIsEditing(false);
+            setEditingAdvocateId(null);
+            setError('');
+            setSuccess('');
+            setForm(BLANK);
+            setPhotoPreview(null);
+          }}
             style={{ background: GRAD, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
             {showForm ? '✕ Cancel' : '+ Add Advocate'}
           </button>
@@ -101,10 +169,12 @@ export default function CRMTeam() {
         </div>
       )}
 
-      {/* Add Advocate Form */}
+      {/* Add / Edit Advocate Form */}
       {showForm && (
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #E2E8F0', padding: 28, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.06)' }}>
-          <h3 style={{ color: NAVY, fontSize: 18, fontWeight: 700, marginBottom: 20, fontFamily: "'Space Grotesk', sans-serif" }}>New Advocate Profile</h3>
+          <h3 style={{ color: NAVY, fontSize: 18, fontWeight: 700, marginBottom: 20, fontFamily: "'Space Grotesk', sans-serif" }}>
+            {isEditing ? 'Update Advocate Profile' : 'New Advocate Profile'}
+          </h3>
 
           {error && (
             <div style={{ background: '#FAEAE8', border: '1px solid #C2453D', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#C2453D', fontSize: 13 }}>
@@ -127,18 +197,20 @@ export default function CRMTeam() {
               </div>
             </div>
 
-            {/* Row 2: Phone + Password */}
+            {/* Row 2: Phone + Password (create only) */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <div>
                 <label style={labelStyle}>Phone *</label>
                 <input style={inputStyle} type="text" required value={form.phone}
                   onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="10-digit mobile" />
               </div>
-              <div>
-                <label style={labelStyle}>Login Password *</label>
-                <input style={inputStyle} type="password" required value={form.password}
-                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Min 8 characters" />
-              </div>
+              {!isEditing && (
+                <div>
+                  <label style={labelStyle}>Login Password *</label>
+                  <input style={inputStyle} type="password" required value={form.password}
+                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Min 8 characters" />
+                </div>
+              )}
             </div>
 
             {/* Row 3: Role + Bar Number */}
@@ -236,9 +308,9 @@ export default function CRMTeam() {
             <div style={{ display: 'flex', gap: 12 }}>
               <button type="submit" disabled={submitting}
                 style={{ background: GRAD, color: '#fff', border: 'none', borderRadius: 9, padding: '12px 28px', fontWeight: 700, fontSize: 15, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: submitting ? 0.7 : 1 }}>
-                {submitting ? 'Creating...' : 'Create Advocate →'}
+                {submitting ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Advocate →' : 'Create Advocate →')}
               </button>
-              <button type="button" onClick={() => { setShowForm(false); setForm(BLANK); setPhotoPreview(null); setError(''); }}
+              <button type="button" onClick={resetForm}
                 style={{ background: 'transparent', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: 9, padding: '12px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Cancel
               </button>
@@ -282,27 +354,39 @@ export default function CRMTeam() {
             <th>Phone</th>
             <th>Status</th>
             <th>Last Login</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {team.map(t => (
-            <tr key={t.user_id}>
-              <td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {t.profile_photo
-                    ? <img src={t.profile_photo} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
-                    : <div style={{ width: 28, height: 28, borderRadius: '50%', background: BLUE + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: BLUE }}>{t.full_name?.[0]}</div>
-                  }
-                  <strong>{t.full_name}</strong>
-                </div>
-              </td>
-              <td><span className="badge badge-active">{t.role?.replace('_', ' ')}</span></td>
-              <td>{t.email}</td>
-              <td>{t.phone}</td>
-              <td>{t.is_active ? '🟢 Active' : '🔴 Inactive'}</td>
-              <td>{t.last_login ? new Date(t.last_login).toLocaleString('en-IN') : 'Never'}</td>
-            </tr>
-          ))}
+          {team.map(t => {
+            const advocateRef = advocates.find(a => a.user_id === t.user_id);
+            return (
+              <tr key={t.user_id}>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {t.profile_photo
+                      ? <img src={t.profile_photo} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+                      : <div style={{ width: 28, height: 28, borderRadius: '50%', background: BLUE + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: BLUE }}>{t.full_name?.[0]}</div>
+                    }
+                    <strong>{t.full_name}</strong>
+                  </div>
+                </td>
+                <td><span className="badge badge-active">{t.role?.replace('_', ' ')}</span></td>
+                <td>{t.email}</td>
+                <td>{t.phone}</td>
+                <td>{t.is_active ? '🟢 Active' : '🔴 Inactive'}</td>
+                <td>{t.last_login ? new Date(t.last_login).toLocaleString('en-IN') : 'Never'}</td>
+                <td>
+                  {user?.role === 'managing_partner' && advocateRef && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={() => startEdit(advocateRef)} style={{ background: '#E0F2FE', color: '#075985', border: 'none', borderRadius: 7, padding: '6px 10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>
+                      <button type="button" onClick={() => handleDelete(advocateRef)} style={{ background: '#FEE2E2', color: '#B91C1C', border: 'none', borderRadius: 7, padding: '6px 10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Delete</button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

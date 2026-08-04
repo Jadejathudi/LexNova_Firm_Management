@@ -121,5 +121,65 @@ module.exports = function (sql) {
     }
   });
 
+  // PUT /api/auth/me
+  router.put('/me', authenticateToken, async (req, res) => {
+    const { full_name, email, phone } = req.body;
+    if (!full_name || !email || !phone) {
+      return res.status(400).json({ error: 'full_name, email, and phone are required' });
+    }
+
+    try {
+      const dup = await sql`
+        SELECT user_id FROM users
+        WHERE (email = ${email} OR phone = ${phone}) AND user_id != ${req.user.user_id}
+      `;
+      if (dup.length > 0) return res.status(409).json({ error: 'Email or phone already in use' });
+
+      await sql`
+        UPDATE users
+        SET full_name = ${full_name}, email = ${email}, phone = ${phone}, updated_at = NOW()
+        WHERE user_id = ${req.user.user_id}
+      `;
+
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/auth/me/password
+  router.put('/me/password', authenticateToken, async (req, res) => {
+    const { current_password, new_password, confirm_password } = req.body;
+    if (!current_password || !new_password || !confirm_password) {
+      return res.status(400).json({ error: 'Current password, new password, and confirm password are required' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+    if (new_password !== confirm_password) {
+      return res.status(400).json({ error: 'New password and confirm password do not match' });
+    }
+
+    try {
+      const rows = await sql`SELECT password_hash FROM users WHERE user_id = ${req.user.user_id}`;
+      const current = rows[0];
+      if (!current) return res.status(404).json({ error: 'User not found' });
+      if (!bcrypt.compareSync(current_password, current.password_hash)) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      const password_hash = bcrypt.hashSync(new_password, 10);
+      await sql`
+        UPDATE users
+        SET password_hash = ${password_hash}, updated_at = NOW()
+        WHERE user_id = ${req.user.user_id}
+      `;
+
+      res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };

@@ -21,6 +21,86 @@ function fmt12h(time24) {
 module.exports = function (sql) {
   const router = express.Router();
 
+  // GET /me — current advocate's editable profile
+  router.get('/me', authenticateToken, async (req, res) => {
+    try {
+      const rows = await sql`
+        SELECT a.*, u.full_name, u.email, u.phone
+        FROM advocates a
+        JOIN users u ON a.user_id = u.user_id
+        WHERE a.user_id = ${req.user.user_id}
+      `;
+      if (!rows.length) return res.status(404).json({ error: 'Advocate profile not found' });
+      const advocate = { ...rows[0] };
+      advocate.specializations = JSON.parse(advocate.specializations || '[]');
+      advocate.languages = JSON.parse(advocate.languages || '[]');
+      res.json(advocate);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to fetch advocate profile' });
+    }
+  });
+
+  // PUT /me — current advocate updates own editable profile fields only
+  router.put('/me', authenticateToken, async (req, res) => {
+    const {
+      full_name, email, phone,
+      experience_years, state, city, bio, languages,
+      specializations, profile_photo, is_available,
+    } = req.body;
+
+    if (!full_name || !email || !phone || !state || !city) {
+      return res.status(400).json({ error: 'Missing required profile fields' });
+    }
+
+    try {
+      const advocateRows = await sql`
+        SELECT a.advocate_id, a.user_id, a.bar_number
+        FROM advocates a
+        JOIN users u ON a.user_id = u.user_id
+        WHERE a.user_id = ${req.user.user_id}
+      `;
+      if (!advocateRows.length) return res.status(404).json({ error: 'Advocate profile not found' });
+
+      const current = advocateRows[0];
+      const dupUser = await sql`
+        SELECT user_id FROM users
+        WHERE (email = ${email} OR phone = ${phone}) AND user_id != ${current.user_id}
+      `;
+      if (dupUser.length) return res.status(409).json({ error: 'Email or phone already in use' });
+
+      const normalizedSpecs = Array.isArray(specializations)
+        ? JSON.stringify(specializations)
+        : JSON.stringify([]);
+      const normalizedLanguages = Array.isArray(languages)
+        ? JSON.stringify(languages)
+        : JSON.stringify(String(languages || '').split(',').map(x => x.trim()).filter(Boolean));
+
+      await sql`
+        UPDATE users
+        SET full_name = ${full_name}, email = ${email}, phone = ${phone}, updated_at = NOW()
+        WHERE user_id = ${current.user_id}
+      `;
+
+      await sql`
+        UPDATE advocates
+        SET experience_years = ${parseInt(experience_years || 0, 10)},
+            specializations = ${normalizedSpecs},
+            state = ${state},
+            city = ${city},
+            bio = ${bio || ''},
+            languages = ${normalizedLanguages},
+            profile_photo = ${profile_photo || null},
+            is_available = ${is_available ? 1 : 0}
+        WHERE advocate_id = ${current.advocate_id}
+      `;
+
+      res.json({ success: true, message: 'Advocate profile updated successfully' });
+    } catch (err) {
+      console.error('Update own advocate profile error:', err);
+      res.status(500).json({ error: 'Failed to update advocate profile' });
+    }
+  });
+
   // GET / — List verified advocates (with optional filters)
   router.get('/', async (req, res) => {
     const { state, spec, available } = req.query;

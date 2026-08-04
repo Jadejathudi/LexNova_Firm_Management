@@ -82,6 +82,14 @@ export default function Navbar() {
           >
             🔔{notifCount > 0 && <span className="count">{notifCount}</span>}
           </Link>
+          <Link
+            to={user.role.includes('advocate') ? '/advocate-profile' : '/profile'}
+            className="profile-icon-link"
+            aria-label="Profile"
+            title="Profile"
+          >
+            👤
+          </Link>
           <span className="user-info">{user.full_name}</span>
           <button className="logout-btn" onClick={logout}>Logout</button>
 

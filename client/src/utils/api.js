@@ -25,6 +25,10 @@ export const api = {
   login: (data) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
   getMe: () => apiFetch('/auth/me'),
+  updateMyProfile: (data) => apiFetch('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
+  changePassword: (data) => apiFetch('/auth/me/password', { method: 'PUT', body: JSON.stringify(data) }),
+  getMyAdvocateProfile: () => apiFetch('/advocates/me'),
+  updateMyAdvocateProfile: (data) => apiFetch('/advocates/me', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Dashboard
   getDashboard: () => apiFetch('/dashboard'),

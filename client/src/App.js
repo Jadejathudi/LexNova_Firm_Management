@@ -17,6 +17,7 @@ import AILegalGuide from './pages/AILegalGuide';
 import DocumentVault from './pages/DocumentVault';
 import SecureMessaging from './pages/SecureMessaging';
 import Profile from './pages/Profile';
+import AdvocateSelfProfile from './pages/AdvocateSelfProfile';
 import AdvocateDashboard from './pages/AdvocateDashboard';
 import CRMLayout from './pages/crm/CRMLayout';
 import CRMDashboardPage from './pages/crm/CRMDashboardPage';
@@ -73,6 +74,7 @@ function InternalRoute({ children }) {
   if (!user) return <Navigate to="/login" />;
   if (user.role === 'client') return <Navigate to="/dashboard" />;
   if (user.role === 'judge') return <Navigate to="/judge/dashboard" />;
+  if (user.role.includes('advocate') && user.role !== 'managing_partner') return <Navigate to="/advocate-dashboard" />;
   return children;
 }
 
@@ -165,6 +167,9 @@ function AppRoutes() {
       } />
       <Route path="/profile" element={
         <PrivateRoute><ClientLayout><Profile /></ClientLayout></PrivateRoute>
+      } />
+      <Route path="/advocate-profile" element={
+        <PrivateRoute><ClientLayout><AdvocateSelfProfile /></ClientLayout></PrivateRoute>
       } />
       <Route path="/matters" element={
         <PrivateRoute><ClientLayout><MattersList /></ClientLayout></PrivateRoute>

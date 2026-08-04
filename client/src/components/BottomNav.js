@@ -16,7 +16,6 @@ export default function BottomNav() {
       { path: '/crm/consultations', icon: '📅', label: 'Consult' },
       { path: '/crm/matters', icon: '📁', label: 'Cases' },
       { path: '/chat', icon: '💬', label: 'Chat' },
-      { path: '/profile', icon: '👤', label: 'Profile' },
     ];
   } else if (isInternal) {
     NAV_ITEMS = [
@@ -24,7 +23,6 @@ export default function BottomNav() {
       { path: '/crm/matters', icon: '📁', label: 'Matters' },
       { path: '/crm/clients', icon: '👥', label: 'Clients' },
       { path: '/chat', icon: '💬', label: 'Chat' },
-      { path: '/profile', icon: '👤', label: 'Profile' },
     ];
   } else {
     NAV_ITEMS = [
@@ -32,7 +30,6 @@ export default function BottomNav() {
       { path: '/cases', icon: '📁', label: 'Cases' },
       { path: '/chat', icon: '💬', label: 'Chat' },
       { path: '/documents', icon: '📄', label: 'Docs' },
-      { path: '/profile', icon: '👤', label: 'Profile' },
     ];
   }
 

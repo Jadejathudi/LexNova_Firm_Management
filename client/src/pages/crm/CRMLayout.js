@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
-  { path: '/crm', label: '📊 Dashboard', roles: ['managing_partner', 'advisor'] },
+  { path: '/crm', label: '📊 Dashboard', roles: ['managing_partner'] },
   { path: '/crm/matters', label: '📁 Matters', roles: ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate'] },
   { path: '/crm/cases', label: '⚖ Filed Cases', roles: ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate', 'billing', 'reception'] },
   { path: '/crm/clients', label: '👥 Clients', roles: ['managing_partner', 'advisor', 'senior_advocate', 'junior_advocate', 'reception'] },

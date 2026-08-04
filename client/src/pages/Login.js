@@ -26,6 +26,8 @@ export default function Login() {
       const isInternal = INTERNAL_ROLES.includes(user.role);
       const destination = from || (
         user.role === 'judge' ? '/judge/dashboard' :
+        user.role === 'managing_partner' ? '/crm' :
+        user.role.includes('advocate') ? '/advocate-dashboard' :
         isInternal ? '/crm' : '/dashboard'
       );
       navigate(destination, { replace: true });

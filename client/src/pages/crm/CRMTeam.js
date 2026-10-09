@@ -21,7 +21,9 @@ export default function CRMTeam() {
   const [form, setForm] = useState(BLANK);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [error, setError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
   const [success, setSuccess] = useState('');
 
   const load = () =>
@@ -78,6 +80,27 @@ export default function CRMTeam() {
     }
   };
 
+  const handleDeleteAdvocate = async (advocate) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${advocate.full_name}? Their advocate account, bookings, sessions, and advocate-linked records will be removed. Client accounts and case records will remain, but this advocate's case assignments will be removed.`
+    );
+    if (!confirmed) return;
+
+    setDeleteError('');
+    setSuccess('');
+    setDeletingUserId(advocate.user_id);
+    try {
+      const result = await api.deleteAdvocate(advocate.user_id);
+      setSuccess(result.message || `${advocate.full_name} and linked records were deleted.`);
+      setLoading(true);
+      await load();
+    } catch (err) {
+      setDeleteError(err.message || 'Failed to delete advocate.');
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
   if (loading) return <div className="loading">Loading team...</div>;
 
   const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', fontFamily: 'inherit' };
@@ -98,6 +121,12 @@ export default function CRMTeam() {
       {success && (
         <div style={{ background: '#E7F3EC', border: '1px solid #2F8F5B', borderRadius: 10, padding: '12px 16px', marginBottom: 16, color: '#1A6640', fontSize: 14, fontWeight: 600 }}>
           ✓ {success}
+        </div>
+      )}
+
+      {deleteError && (
+        <div role="alert" style={{ background: '#FAEAE8', border: '1px solid #C2453D', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#C2453D', fontSize: 13 }}>
+          {deleteError}
         </div>
       )}
 
@@ -282,6 +311,7 @@ export default function CRMTeam() {
             <th>Phone</th>
             <th>Status</th>
             <th>Last Login</th>
+            {user?.role === 'managing_partner' && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -301,6 +331,20 @@ export default function CRMTeam() {
               <td>{t.phone}</td>
               <td>{t.is_active ? '🟢 Active' : '🔴 Inactive'}</td>
               <td>{t.last_login ? new Date(t.last_login).toLocaleString('en-IN') : 'Never'}</td>
+              {user?.role === 'managing_partner' && (
+                <td>
+                  {['senior_advocate', 'junior_advocate'].includes(t.role) && (
+                    <button
+                      type="button"
+                      disabled={deletingUserId === t.user_id}
+                      onClick={() => handleDeleteAdvocate(t)}
+                      style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingUserId === t.user_id ? 'wait' : 'pointer', opacity: deletingUserId === t.user_id ? 0.65 : 1 }}
+                    >
+                      {deletingUserId === t.user_id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

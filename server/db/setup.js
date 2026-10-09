@@ -1,4 +1,11 @@
 require('dotenv').config();
+
+// Safety: prevent accidental destructive runs against production DB.
+// To run in production deliberately set ALLOW_DB_SETUP=true in the environment.
+if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DB_SETUP !== 'true') {
+  console.error('Refusing to run server/db/setup.js in production. Set ALLOW_DB_SETUP=true to override.');
+  process.exit(1);
+}
 const { neon } = require('@neondatabase/serverless');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');

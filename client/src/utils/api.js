@@ -128,6 +128,7 @@ export const api = {
   getAdvocateEarnings: (id, period) => apiFetch(`/advocates/${id}/earnings?period=${period}`),
   getOnCallAdvocate: () => apiFetch('/advocates/on-call'),
   createAdvocate: (data) => apiFetch('/advocates/admin/create', { method: 'POST', body: JSON.stringify(data) }),
+  deleteAdvocate: (userId) => apiFetch(`/advocates/admin/${userId}`, { method: 'DELETE' }),
 
   // Users
   getTeam: () => apiFetch('/users'),

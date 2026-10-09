@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
+const { del } = require('@vercel/blob');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole } = require('../middleware/rbac');
 
@@ -301,6 +302,102 @@ module.exports = function (sql) {
     } catch (err) {
       console.error('Create advocate error:', err);
       res.status(500).json({ error: 'Failed to create advocate' });
+    }
+  });
+
+  // DELETE /admin/:userId — permanently remove an advocate and their linked records
+  router.delete('/admin/:userId', authenticateToken, requireRole('managing_partner'), async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      const advocateRows = await sql`
+        SELECT a.advocate_id, u.full_name
+        FROM advocates a
+        JOIN users u ON u.user_id = a.user_id
+        WHERE u.user_id = ${userId}
+          AND u.role IN ('senior_advocate', 'junior_advocate')
+      `;
+      if (advocateRows.length === 0) return res.status(404).json({ error: 'Advocate not found' });
+
+      const advocateId = advocateRows[0].advocate_id;
+      const uploadedDocuments = await sql`
+        SELECT stored_path FROM documents WHERE uploaded_by = ${userId} AND stored_path LIKE 'http%'
+      `;
+      const matterDocuments = await sql`
+        SELECT blob_url FROM matter_documents WHERE uploader_id = ${userId} AND blob_url LIKE 'http%'
+      `;
+      const blobUrls = [...uploadedDocuments, ...matterDocuments]
+        .map(document => document.stored_path || document.blob_url);
+      const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+      if (blobUrls.length > 0 && !blobToken) {
+        return res.status(503).json({ error: "BLOB_READ_WRITE_TOKEN is required to remove this advocate's uploaded files." });
+      }
+
+      await sql.transaction([
+        sql`UPDATE clients SET user_id = NULL WHERE user_id = ${userId}`,
+        sql`UPDATE clients SET onboarded_by = NULL WHERE onboarded_by = ${userId}`,
+        sql`UPDATE cases SET conflict_checked_by = NULL WHERE conflict_checked_by = ${userId}`,
+        sql`UPDATE matters SET user_id = NULL WHERE user_id = ${userId}`,
+        sql`UPDATE matters SET created_by = NULL WHERE created_by = ${userId}`,
+        sql`UPDATE consultation_requests SET user_id = NULL WHERE user_id = ${userId}`,
+        sql`UPDATE bench_bookings SET user_id = NULL WHERE user_id = ${userId}`,
+        sql`UPDATE matter_assignments SET assigned_by = NULL WHERE assigned_by = ${userId}`,
+        sql`UPDATE matters SET consultation_id = NULL WHERE consultation_id IN (
+          SELECT request_id FROM consultation_requests WHERE advocate_id = ${advocateId}
+        )`,
+        sql`DELETE FROM matter_assignments WHERE advocate_id = ${userId}`,
+        sql`DELETE FROM matter_advocates WHERE advocate_id = ${userId}`,
+        sql`DELETE FROM matter_notes WHERE author_id = ${userId}`,
+        sql`DELETE FROM matter_messages WHERE sender_id = ${userId}`,
+        sql`UPDATE messages SET attachment_id = NULL WHERE attachment_id IN (
+          SELECT document_id FROM documents WHERE uploaded_by = ${userId}
+        )`,
+        sql`DELETE FROM messages WHERE sender_id = ${userId}`,
+        sql`DELETE FROM documents WHERE uploaded_by = ${userId}`,
+        sql`DELETE FROM matter_documents WHERE uploader_id = ${userId}`,
+        sql`DELETE FROM notifications WHERE user_id = ${userId}`,
+        sql`DELETE FROM audit_logs WHERE actor_id = ${userId}`,
+        sql`DELETE FROM advocate_earnings
+          WHERE advocate_id = ${advocateId}
+            OR session_id IN (
+              SELECT session_id FROM consultation_sessions
+              WHERE advocate_id = ${advocateId} OR request_id IN (
+                SELECT request_id FROM consultation_requests WHERE advocate_id = ${advocateId}
+              )
+            )
+            OR retainer_id IN (SELECT retainer_id FROM retainer_clients WHERE advocate_id = ${advocateId})`,
+        sql`DELETE FROM consultation_sessions
+          WHERE advocate_id = ${advocateId} OR request_id IN (
+            SELECT request_id FROM consultation_requests WHERE advocate_id = ${advocateId}
+          )`,
+        sql`DELETE FROM consultation_requests WHERE advocate_id = ${advocateId}`,
+        sql`DELETE FROM retainer_clients WHERE advocate_id = ${advocateId}`,
+        sql`DELETE FROM advocate_reviews WHERE advocate_id = ${advocateId}`,
+        sql`DELETE FROM advocate_availability WHERE advocate_id = ${advocateId}`,
+        sql`DELETE FROM advocates WHERE advocate_id = ${advocateId}`,
+        sql`DELETE FROM users WHERE user_id = ${userId}`,
+      ]);
+
+      let storageWarning = false;
+      if (blobUrls.length > 0) {
+        try {
+          await Promise.all(blobUrls.map(url => del(url, { token: blobToken })));
+        } catch (err) {
+          storageWarning = true;
+          console.error('Advocate document storage cleanup failed:', err);
+        }
+      }
+
+      res.json({
+        message: storageWarning
+          ? 'Advocate and application records deleted, but some stored files could not be removed.'
+          : 'Advocate and linked records deleted successfully.',
+        storage_warning: storageWarning,
+      });
+    } catch (err) {
+      console.error('Delete advocate error:', err);
+      res.status(500).json({ error: 'Failed to delete advocate and linked records' });
     }
   });
 

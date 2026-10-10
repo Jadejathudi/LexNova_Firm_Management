@@ -135,6 +135,7 @@ export const api = {
 
   // Users
   getTeam: () => apiFetch('/users'),
+  updateTeamMember: (id, data) => apiFetch(`/users/team/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getNotifications: () => apiFetch('/users/notifications'),
   getUnreadNotifCount: () => apiFetch('/users/notifications/unread-count'),
   markNotifRead: (id) => apiFetch(`/users/notifications/${id}/read`, { method: 'PATCH' }),

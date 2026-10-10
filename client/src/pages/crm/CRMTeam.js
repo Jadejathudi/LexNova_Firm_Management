@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import JudgeAdminForm from '../../components/bench/JudgeAdminForm';
+import TeamMemberEditForm from '../../components/TeamMemberEditForm';
 
 const NAVY = '#1C2A40', BLUE = '#3D6FB0', GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 const STATES = ['Andhra Pradesh','Delhi','Karnataka','Maharashtra','Telangana','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Kerala'];
@@ -20,6 +21,7 @@ export default function CRMTeam() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showJudgeForm, setShowJudgeForm] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [form, setForm] = useState(BLANK);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -169,6 +171,20 @@ export default function CRMTeam() {
             setSuccess('Judge account and Bench profile created successfully.');
             setLoading(true);
             load();
+          }}
+        />
+      )}
+
+      {editingMember && user?.role === 'managing_partner' && (
+        <TeamMemberEditForm
+          key={editingMember.user_id}
+          member={editingMember}
+          onCancel={() => setEditingMember(null)}
+          onSaved={async message => {
+            setEditingMember(null);
+            setSuccess(message);
+            setLoading(true);
+            await load();
           }}
         />
       )}
@@ -376,25 +392,40 @@ export default function CRMTeam() {
               <td>{t.last_login ? new Date(t.last_login).toLocaleString('en-IN') : 'Never'}</td>
               {user?.role === 'managing_partner' && (
                 <td>
-                  {t.role === 'judge' ? (
+                  <div style={{ display: 'flex', gap: 6 }}>
                     <button
                       type="button"
-                      disabled={deletingJudgeId === t.user_id}
-                      onClick={() => handleDeleteJudge(t)}
-                      style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingJudgeId === t.user_id ? 'wait' : 'pointer', opacity: deletingJudgeId === t.user_id ? 0.65 : 1 }}
+                      onClick={() => {
+                        setEditingMember(t);
+                        setShowForm(false);
+                        setShowJudgeForm(false);
+                        setSuccess('');
+                        setDeleteError('');
+                      }}
+                      style={{ background: '#1C2A40', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: 'pointer' }}
                     >
-                      {deletingJudgeId === t.user_id ? 'Deleting...' : 'Delete'}
+                      Edit
                     </button>
-                  ) : ['senior_advocate', 'junior_advocate'].includes(t.role) ? (
-                    <button
-                      type="button"
-                      disabled={deletingUserId === t.user_id}
-                      onClick={() => handleDeleteAdvocate(t)}
-                      style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingUserId === t.user_id ? 'wait' : 'pointer', opacity: deletingUserId === t.user_id ? 0.65 : 1 }}
-                    >
-                      {deletingUserId === t.user_id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  ) : null}
+                    {t.role === 'judge' ? (
+                      <button
+                        type="button"
+                        disabled={deletingJudgeId === t.user_id}
+                        onClick={() => handleDeleteJudge(t)}
+                        style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingJudgeId === t.user_id ? 'wait' : 'pointer', opacity: deletingJudgeId === t.user_id ? 0.65 : 1 }}
+                      >
+                        {deletingJudgeId === t.user_id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    ) : ['senior_advocate', 'junior_advocate'].includes(t.role) ? (
+                      <button
+                        type="button"
+                        disabled={deletingUserId === t.user_id}
+                        onClick={() => handleDeleteAdvocate(t)}
+                        style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingUserId === t.user_id ? 'wait' : 'pointer', opacity: deletingUserId === t.user_id ? 0.65 : 1 }}
+                      >
+                        {deletingUserId === t.user_id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    ) : null}
+                  </div>
                 </td>
               )}
             </tr>

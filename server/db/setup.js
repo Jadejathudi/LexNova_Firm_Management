@@ -351,6 +351,7 @@ async function setup() {
       education      TEXT,
       notable_areas  TEXT,
       languages      TEXT NOT NULL,
+      profile_photo  TEXT,
       total_slots    INTEGER NOT NULL DEFAULT 8,
       is_active      SMALLINT DEFAULT 1,
       created_at     TIMESTAMPTZ DEFAULT NOW()

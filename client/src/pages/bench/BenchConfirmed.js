@@ -25,7 +25,7 @@ export default function BenchConfirmed() {
     benchFetch(`/bookings/ref/${ref}`)
       .then(row => setFallback({
         booking: row,
-        judge: { name: row.judge_name, tier: row.tier, city: row.city, initials: row.initials },
+        judge: { name: row.judge_name, tier: row.tier, city: row.city, initials: row.initials, profile_photo: row.profile_photo },
       }))
       .catch(() => setNotFound(true));
   }, [stateBooking, ref]);

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "seed": "node db/setup.js"
+    "seed": "node db/setup.js",
+    "migrate:bench-judge-photo": "node db/migrate-bench-judge-photo.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

@@ -67,6 +67,9 @@ export function BenchAvatar({ judge, size = 64 }) {
         <span style={{ position: 'relative', zIndex: 1, fontFamily: "'EB Garamond',serif", fontSize: fs, fontWeight: 700, color: t.color }}>
           {judge.initials}
         </span>
+        {judge.profile_photo && (
+          <img src={judge.profile_photo} alt={judge.name || ''} onError={event => { event.currentTarget.style.display = 'none'; }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 2 }} />
+        )}
       </div>
       <div style={{
         position: 'absolute', bottom: -3, right: -3,

@@ -128,7 +128,7 @@ export default function BenchMySessions() {
               const t = TIERS[s.tier] || TIERS.junior;
               const statusMeta = STATUS_META[s.status] || STATUS_META.pending;
               const service = SERVICES.find(sv => sv.id === s.service_type) || SERVICES[0];
-              const judge = { judge_id: s.judge_id, name: s.judge_name, tier: s.tier, initials: s.initials };
+              const judge = { judge_id: s.judge_id, name: s.judge_name, tier: s.tier, initials: s.initials, profile_photo: s.profile_photo };
 
               return (
                 <div key={s.booking_id} style={{ background: C.charcoal, border: `1px solid ${t.border}`, borderRadius: 4, padding: 22 }}>

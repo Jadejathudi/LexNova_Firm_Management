@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, JudgeName } from './benchConstants';
+import { C, TIERS, SERVICES, JudgeName, BenchAvatar } from './benchConstants';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
@@ -214,9 +214,7 @@ export default function JudgeDashboard() {
       {/* Judge header */}
       <div style={{ background: C.charcoal, padding: '20px 80px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: t.bg, border: `2px solid ${t.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: t.color }}>
-            {judge.initials}
-          </div>
+          <BenchAvatar judge={judge} size={48} />
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.parchment }}><JudgeName name={judge.name} /></div>
             <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>{t.badge} · {judge.city}</div>

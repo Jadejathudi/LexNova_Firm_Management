@@ -2,7 +2,10 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('clearcase_token');
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const headers = {
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+    ...options.headers,
+  };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
@@ -169,6 +172,8 @@ export const api = {
   updateBenchBooking: (id, data) => apiFetch(`/bench/admin/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getBenchAdminStats: () => apiFetch('/bench/admin/stats'),
   getBenchAdminJudges: () => apiFetch('/bench/admin/judges'),
+  createBenchJudge: (data) => apiFetch('/bench/admin/judges', { method: 'POST', body: JSON.stringify(data) }),
+  deleteBenchJudge: (id) => apiFetch(`/bench/admin/judges/${id}`, { method: 'DELETE' }),
 
   // Google Calendar admin
   getCalendarStatus: () => apiFetch('/admin/google-status'),

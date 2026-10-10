@@ -1,8 +1,23 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { del } = require('@vercel/blob');
 const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
 const { requireRole } = require('../middleware/rbac');
+
+function splitList(value) {
+  return String(value || '').split(',').map(item => item.trim()).filter(Boolean);
+}
+
+function isValidJudgePhoto(profilePhoto) {
+  if (!profilePhoto) return true;
+  const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(profilePhoto);
+  if (!match) return false;
+  const padding = match[2].endsWith('==') ? 2 : match[2].endsWith('=') ? 1 : 0;
+  const sizeBytes = Math.floor(match[2].length * 3 / 4) - padding;
+  return sizeBytes <= 500 * 1024;
+}
 
 const BENCH_SERVICES = [
   { id: 'review',  name: 'Case Review',          duration: '60 min call', icon: '📋',
@@ -256,7 +271,7 @@ module.exports = function (sql) {
   router.get('/bookings/ref/:ref', async (req, res) => {
     try {
       const rows = await sql`
-        SELECT b.*, j.name AS judge_name, j.tier, j.city, j.initials
+        SELECT b.*, j.name AS judge_name, j.tier, j.city, j.initials, j.profile_photo
         FROM bench_bookings b
         JOIN bench_judges j ON b.judge_id = j.judge_id
         WHERE b.booking_ref = ${req.params.ref}
@@ -273,7 +288,7 @@ module.exports = function (sql) {
   router.get('/my-sessions', authenticateToken, async (req, res) => {
     try {
       const rows = await sql`
-        SELECT b.*, j.name AS judge_name, j.tier, j.city, j.initials, j.years_on_bench,
+        SELECT b.*, j.name AS judge_name, j.tier, j.city, j.initials, j.profile_photo, j.years_on_bench,
                m.matter_id AS matter_id, m.matter_ref AS matter_ref, cd.case_summary
         FROM bench_bookings b
         JOIN bench_judges j ON b.judge_id = j.judge_id
@@ -363,6 +378,175 @@ module.exports = function (sql) {
       }
     }
   );
+
+  // ── Admin: POST /admin/judges — create judge login and Bench profile ──
+  router.post('/admin/judges', authenticateToken, requireRole('managing_partner'), async (req, res) => {
+    const {
+      name, initials, email, phone, password, tier, retired_year,
+      years_on_bench, city, state, bio, education, notable_areas, profile_photo,
+    } = req.body;
+    const areas = splitList(req.body.areas);
+    const languages = splitList(req.body.languages);
+    const retiredYear = Number(retired_year);
+    const yearsOnBench = Number(years_on_bench);
+    const totalSlots = req.body.total_slots === '' || req.body.total_slots === undefined
+      ? 8
+      : Number(req.body.total_slots);
+
+    if (!name?.trim() || !initials?.trim() || !email?.trim() || !phone?.trim() || !password ||
+        !tier || !retired_year || !years_on_bench || !city?.trim() || !state?.trim() ||
+        !bio?.trim() || areas.length === 0 || languages.length === 0) {
+      return res.status(400).json({ error: 'Complete all required judge and account fields.' });
+    }
+    if (!['hc', 'district', 'senior', 'junior'].includes(tier)) {
+      return res.status(400).json({ error: 'Invalid judge tier.' });
+    }
+    if (initials.trim().length > 4 || !Number.isInteger(retiredYear) || retiredYear < 1900 || retiredYear > new Date().getFullYear() ||
+      !Number.isInteger(yearsOnBench) ||
+        yearsOnBench < 0 || !Number.isInteger(totalSlots) || totalSlots < 1) {
+      return res.status(400).json({ error: 'Check initials, judge experience, retirement year, and monthly slots.' });
+    }
+    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    if (!isValidJudgePhoto(profile_photo)) {
+      return res.status(400).json({ error: 'Judge portrait must be a JPG, PNG, or WebP image no larger than 500 KB.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+    const profilePhoto = profile_photo || null;
+    try {
+      const duplicateRows = await sql`
+        SELECT user_id FROM users WHERE LOWER(email) = ${normalizedEmail} OR phone = ${normalizedPhone}
+      `;
+      if (duplicateRows.length > 0) return res.status(409).json({ error: 'Email or phone already in use.' });
+
+      const userId = uuidv4();
+      const judgeId = uuidv4();
+      const passwordHash = bcrypt.hashSync(password, 10);
+      await sql.transaction([
+        sql`INSERT INTO users (user_id, full_name, email, phone, role, password_hash, is_active)
+          VALUES (${userId}, ${name.trim()}, ${normalizedEmail}, ${normalizedPhone}, 'judge', ${passwordHash}, 1)`,
+        sql`INSERT INTO bench_judges (
+          judge_id, user_id, name, initials, tier, retired_year, years_on_bench,
+          city, state, areas, bio, education, notable_areas, languages, total_slots, profile_photo
+        ) VALUES (
+          ${judgeId}, ${userId}, ${name.trim()}, ${initials.trim().toUpperCase()}, ${tier},
+          ${retiredYear}, ${yearsOnBench}, ${city.trim()}, ${state.trim()}, ${JSON.stringify(areas)},
+          ${bio.trim()}, ${education?.trim() || null}, ${notable_areas?.trim() || null},
+          ${JSON.stringify(languages)}, ${totalSlots}, ${profilePhoto}
+        )`,
+      ]);
+
+      res.status(201).json({ judge_id: judgeId, user_id: userId, name: name.trim(), message: 'Judge created successfully.' });
+    } catch (err) {
+      if (err.code === '23505') return res.status(409).json({ error: 'Email or phone already in use.' });
+      console.error('POST /bench/admin/judges:', err);
+      res.status(500).json({ error: 'Failed to create judge.' });
+    }
+  });
+
+  // ── Admin: DELETE /admin/judges/:id — remove judge and linked Bench data ──
+  router.delete('/admin/judges/:id', authenticateToken, requireRole('managing_partner'), async (req, res) => {
+    try {
+      const judgeRows = await sql`
+        SELECT judge_id, user_id, profile_photo, name
+        FROM bench_judges WHERE judge_id = ${req.params.id}
+      `;
+      if (judgeRows.length === 0) return res.status(404).json({ error: 'Judge not found.' });
+
+      const judge = judgeRows[0];
+      const blobRows = await sql`
+        SELECT stored_path AS url FROM documents WHERE uploaded_by = ${judge.user_id} AND stored_path LIKE 'http%'
+        UNION
+        SELECT blob_url AS url FROM matter_documents WHERE uploader_id = ${judge.user_id} AND blob_url LIKE 'http%'
+        UNION
+        SELECT md.blob_url AS url FROM matter_documents md
+        WHERE md.blob_url LIKE 'http%' AND md.matter_id IN (
+          SELECT matter_id FROM matters WHERE bench_booking_id IN (
+            SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+          )
+        )
+      `;
+      const blobUrls = [...new Set([
+        judge.profile_photo,
+        ...blobRows.map(row => row.url),
+      ].filter(url => typeof url === 'string' && url.startsWith('http')) )];
+      const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+      if (blobUrls.length > 0 && !blobToken) {
+        return res.status(503).json({ error: 'BLOB_READ_WRITE_TOKEN is required to remove this judge’s uploaded files.' });
+      }
+
+      await sql.transaction([
+        sql`UPDATE clients SET user_id = NULL WHERE user_id = ${judge.user_id}`,
+        sql`UPDATE clients SET onboarded_by = NULL WHERE onboarded_by = ${judge.user_id}`,
+        sql`UPDATE cases SET conflict_checked_by = NULL WHERE conflict_checked_by = ${judge.user_id}`,
+        sql`UPDATE matters SET user_id = NULL WHERE user_id = ${judge.user_id}`,
+        sql`UPDATE matters SET created_by = NULL WHERE created_by = ${judge.user_id}`,
+        sql`UPDATE consultation_requests SET user_id = NULL WHERE user_id = ${judge.user_id}`,
+        sql`UPDATE bench_bookings SET user_id = NULL WHERE user_id = ${judge.user_id}`,
+        sql`UPDATE matter_assignments SET assigned_by = NULL WHERE assigned_by = ${judge.user_id}`,
+        sql`DELETE FROM matter_assignments WHERE advocate_id = ${judge.user_id}`,
+        sql`DELETE FROM matter_advocates WHERE advocate_id = ${judge.user_id} OR matter_id IN (
+          SELECT matter_id FROM matters WHERE bench_booking_id IN (
+            SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+          )
+        )`,
+        sql`DELETE FROM matter_notes WHERE author_id = ${judge.user_id} OR matter_id IN (
+          SELECT matter_id FROM matters WHERE bench_booking_id IN (
+            SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+          )
+        )`,
+        sql`DELETE FROM matter_messages WHERE sender_id = ${judge.user_id} OR matter_id IN (
+          SELECT matter_id FROM matters WHERE bench_booking_id IN (
+            SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+          )
+        )`,
+        sql`UPDATE messages SET attachment_id = NULL WHERE attachment_id IN (
+          SELECT document_id FROM documents WHERE uploaded_by = ${judge.user_id}
+        )`,
+        sql`DELETE FROM messages WHERE sender_id = ${judge.user_id}`,
+        sql`DELETE FROM documents WHERE uploaded_by = ${judge.user_id}`,
+        sql`DELETE FROM matter_documents WHERE uploader_id = ${judge.user_id} OR matter_id IN (
+          SELECT matter_id FROM matters WHERE bench_booking_id IN (
+            SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+          )
+        )`,
+        sql`DELETE FROM matters WHERE bench_booking_id IN (
+          SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+        )`,
+        sql`DELETE FROM notifications WHERE user_id = ${judge.user_id}`,
+        sql`DELETE FROM audit_logs WHERE actor_id = ${judge.user_id}`,
+        sql`DELETE FROM bench_case_details WHERE booking_id IN (
+          SELECT booking_id FROM bench_bookings WHERE judge_id = ${judge.judge_id}
+        )`,
+        sql`DELETE FROM bench_judge_slots WHERE judge_id = ${judge.judge_id}`,
+        sql`DELETE FROM bench_blocked_slots WHERE judge_id = ${judge.judge_id}`,
+        sql`DELETE FROM bench_bookings WHERE judge_id = ${judge.judge_id}`,
+        sql`DELETE FROM bench_judges WHERE judge_id = ${judge.judge_id}`,
+        sql`DELETE FROM users WHERE user_id = ${judge.user_id}`,
+      ]);
+
+      let storageWarning = false;
+      if (blobUrls.length > 0) {
+        try {
+          await Promise.all(blobUrls.map(url => del(url, { token: blobToken })));
+        } catch (err) {
+          storageWarning = true;
+          console.error('Judge Blob cleanup failed:', err);
+        }
+      }
+
+      res.json({
+        message: storageWarning
+          ? `${judge.name} and Bench records were deleted, but some stored images/files could not be removed.`
+          : `${judge.name} and linked Bench records were deleted successfully.`,
+        storage_warning: storageWarning,
+      });
+    } catch (err) {
+      console.error('DELETE /bench/admin/judges/:id:', err);
+      res.status(500).json({ error: 'Failed to delete judge and linked Bench records.' });
+    }
+  });
 
   // ── Admin: GET /admin/stats ────────────────────────────────────
   router.get('/admin/stats',

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../utils/api';
 import { API_BASE } from '../bench/benchConstants';
+import { BenchAvatar } from '../bench/benchConstants';
+import JudgeAdminForm from '../../components/bench/JudgeAdminForm';
 
 const TIERS = {
   hc:       { badge: 'High Court',    color: '#C4982A' },
@@ -51,6 +55,7 @@ function StatCard({ label, value, sub }) {
 }
 
 export default function CRMBench() {
+  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
   const [judges, setJudges] = useState([]);
@@ -61,6 +66,39 @@ export default function CRMBench() {
   const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('bookings');
+  const [showJudgeForm, setShowJudgeForm] = useState(false);
+  const [deletingJudgeId, setDeletingJudgeId] = useState(null);
+  const [success, setSuccess] = useState('');
+
+  const refreshJudges = async () => {
+    const [updatedJudges, updatedStats] = await Promise.all([
+      adminFetch('/admin/judges'),
+      adminFetch('/admin/stats'),
+    ]);
+    setJudges(updatedJudges);
+    setStats(updatedStats);
+  };
+
+  const handleDeleteJudge = async (judge) => {
+    const confirmation = window.prompt(
+      `Permanently delete ${judge.name} and all linked Bench bookings, sessions, and Bench matters? Client accounts and filed case records will remain. Type the judge's full name to confirm.`
+    );
+    if (confirmation !== judge.name) return;
+
+    setError('');
+    setSuccess('');
+    setDeletingJudgeId(judge.judge_id);
+    try {
+      const result = await api.deleteBenchJudge(judge.judge_id);
+      await refreshJudges();
+      if (result.storage_warning) setError(result.message);
+      else setSuccess(result.message);
+    } catch (err) {
+      setError(err.message || 'Failed to delete judge.');
+    } finally {
+      setDeletingJudgeId(null);
+    }
+  };
 
   const loadBookings = (status = statusFilter) => {
     const q = status !== 'all' ? `?status=${status}` : '';
@@ -124,6 +162,9 @@ export default function CRMBench() {
 
       {error && (
         <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 8, padding: '12px 16px', marginBottom: 20, color: '#DC2626', fontSize: 13 }}>{error}</div>
+      )}
+      {success && (
+        <div style={{ background: '#E7F3EC', border: '1px solid #2F8F5B', borderRadius: 8, padding: '12px 16px', marginBottom: 20, color: '#1A6640', fontSize: 13 }}>{success}</div>
       )}
 
       {/* Stats */}
@@ -253,46 +294,73 @@ export default function CRMBench() {
 
       {/* Judges Tab */}
       {activeTab === 'judges' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
-          {judges.map(j => {
-            const t = TIERS[j.tier] || TIERS.junior;
-            const pct = j.total_slots > 0 ? Math.round((j.slots_left / j.total_slots) * 100) : 0;
-            return (
-              <div key={j.judge_id} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 10, padding: 20 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${t.color}22`, border: `2px solid ${t.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: t.color, flexShrink: 0 }}>
-                    {j.initials}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3, background: `${t.color}18`, color: t.color }}>{t.badge}</span>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                  {[
-                    ['City', j.city], ['State', j.state],
-                    ['Yrs on Bench', j.years_on_bench], ['Retired', j.retired_year],
-                  ].map(([l, v]) => (
-                    <div key={l}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 1 }}>{l}</div>
-                      <div style={{ fontSize: 12, color: '#334155' }}>{v}</div>
+        <div>
+          {user?.role === 'managing_partner' && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+              <button type="button" onClick={() => setShowJudgeForm(open => !open)} style={{ background: '#C4982A', color: '#111827', border: 'none', borderRadius: 6, padding: '9px 15px', fontWeight: 700, cursor: 'pointer' }}>
+                {showJudgeForm ? 'Cancel' : '+ Add Judge'}
+              </button>
+            </div>
+          )}
+          {showJudgeForm && user?.role === 'managing_partner' && (
+            <JudgeAdminForm
+              onCancel={() => setShowJudgeForm(false)}
+              onCreated={async () => {
+                setShowJudgeForm(false);
+                setSuccess('Judge account and Bench profile created successfully.');
+                try {
+                  await refreshJudges();
+                  setActiveTab('judges');
+                } catch (err) {
+                  setError(err.message || 'Judge created, but the list could not be refreshed.');
+                }
+              }}
+            />
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
+            {judges.map(j => {
+              const t = TIERS[j.tier] || TIERS.junior;
+              const pct = j.total_slots > 0 ? Math.round((j.slots_left / j.total_slots) * 100) : 0;
+              return (
+                <div key={j.judge_id} style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 10, padding: 20 }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+                    <BenchAvatar judge={j} size={44} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A40', lineHeight: 1.3, marginBottom: 3 }}>{j.name}</div>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3, background: `${t.color}18`, color: t.color }}>{t.badge}</span>
                     </div>
-                  ))}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0' }}>
-                      {j.slots_left === 0 ? 'Fully Booked' : `${j.slots_left} / ${j.total_slots} slots available`}
-                    </span>
-                    <span style={{ fontSize: 11, color: '#94A3B8' }}>{j.slots_booked} booked</span>
                   </div>
-                  <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0', borderRadius: 2 }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                    {[
+                      ['City', j.city], ['State', j.state],
+                      ['Yrs on Bench', j.years_on_bench], ['Retired', j.retired_year],
+                    ].map(([l, v]) => (
+                      <div key={l}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 1 }}>{l}</div>
+                        <div style={{ fontSize: 12, color: '#334155' }}>{v}</div>
+                      </div>
+                    ))}
                   </div>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: j.slots_left === 0 ? '#94A3B8' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0' }}>
+                        {j.slots_left === 0 ? 'Fully Booked' : `${j.slots_left} / ${j.total_slots} slots available`}
+                      </span>
+                      <span style={{ fontSize: 11, color: '#94A3B8' }}>{j.slots_booked} booked</span>
+                    </div>
+                    <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: j.slots_left === 0 ? '#F1F5F9' : j.slots_left <= 2 ? '#EF4444' : '#3D6FB0', borderRadius: 2 }} />
+                    </div>
+                  </div>
+                  {user?.role === 'managing_partner' && (
+                    <button type="button" disabled={deletingJudgeId === j.judge_id} onClick={() => handleDeleteJudge(j)} style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingJudgeId === j.judge_id ? 'wait' : 'pointer', opacity: deletingJudgeId === j.judge_id ? 0.65 : 1, marginTop: 14 }}>
+                      {deletingJudgeId === j.judge_id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

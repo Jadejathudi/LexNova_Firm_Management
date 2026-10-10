@@ -9,9 +9,12 @@ module.exports = function (sql) {
   router.get('/', authenticateToken, requireRole('managing_partner', 'advisor'), async (req, res) => {
     try {
       const users = await sql`
-        SELECT user_id, full_name, email, phone, role, is_active, last_login, created_at
-        FROM users WHERE role != 'client'
-        ORDER BY role, full_name
+        SELECT u.user_id, u.full_name, u.email, u.phone, u.role, u.is_active, u.last_login, u.created_at,
+               bj.judge_id
+        FROM users u
+        LEFT JOIN bench_judges bj ON bj.user_id = u.user_id
+        WHERE u.role != 'client'
+        ORDER BY u.role, u.full_name
       `;
       res.json(users);
     } catch (err) {

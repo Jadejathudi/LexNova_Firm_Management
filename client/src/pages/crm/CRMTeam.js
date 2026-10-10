@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import JudgeAdminForm from '../../components/bench/JudgeAdminForm';
 
 const NAVY = '#1C2A40', BLUE = '#3D6FB0', GRAD = 'linear-gradient(135deg, #3D6FB0, #2E8E86)';
 const STATES = ['Andhra Pradesh','Delhi','Karnataka','Maharashtra','Telangana','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Kerala'];
@@ -18,10 +19,12 @@ export default function CRMTeam() {
   const [advocates, setAdvocates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showJudgeForm, setShowJudgeForm] = useState(false);
   const [form, setForm] = useState(BLANK);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const [deletingJudgeId, setDeletingJudgeId] = useState(null);
   const [error, setError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [success, setSuccess] = useState('');
@@ -101,6 +104,28 @@ export default function CRMTeam() {
     }
   };
 
+  const handleDeleteJudge = async (judge) => {
+    const confirmation = window.prompt(
+      `Permanently delete ${judge.full_name} and all linked Bench bookings, sessions, and Bench matters? Client accounts and filed case records will remain. Type the judge's full name to confirm.`
+    );
+    if (confirmation !== judge.full_name) return;
+
+    setDeleteError('');
+    setSuccess('');
+    setDeletingJudgeId(judge.user_id);
+    try {
+      const result = await api.deleteBenchJudge(judge.judge_id);
+      if (result.storage_warning) setDeleteError(result.message);
+      else setSuccess(result.message || `${judge.full_name} and linked Bench records were deleted.`);
+      setLoading(true);
+      await load();
+    } catch (err) {
+      setDeleteError(err.message || 'Failed to delete judge.');
+    } finally {
+      setDeletingJudgeId(null);
+    }
+  };
+
   if (loading) return <div className="loading">Loading team...</div>;
 
   const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', fontFamily: 'inherit' };
@@ -111,10 +136,16 @@ export default function CRMTeam() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ color: NAVY }}>Team Members ({team.length})</h2>
         {user?.role === 'managing_partner' && (
-          <button onClick={() => { setShowForm(s => !s); setError(''); setSuccess(''); }}
-            style={{ background: GRAD, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
-            {showForm ? '✕ Cancel' : '+ Add Advocate'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => { setShowForm(s => !s); setShowJudgeForm(false); setError(''); setSuccess(''); }}
+              style={{ background: GRAD, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+              {showForm ? '✕ Cancel' : '+ Add Advocate'}
+            </button>
+            <button onClick={() => { setShowJudgeForm(s => !s); setShowForm(false); setError(''); setSuccess(''); }}
+              style={{ background: '#C4982A', color: '#111827', border: 'none', borderRadius: 9, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+              {showJudgeForm ? '✕ Cancel' : '+ Add Judge'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -128,6 +159,18 @@ export default function CRMTeam() {
         <div role="alert" style={{ background: '#FAEAE8', border: '1px solid #C2453D', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#C2453D', fontSize: 13 }}>
           {deleteError}
         </div>
+      )}
+
+      {showJudgeForm && user?.role === 'managing_partner' && (
+        <JudgeAdminForm
+          onCancel={() => setShowJudgeForm(false)}
+          onCreated={() => {
+            setShowJudgeForm(false);
+            setSuccess('Judge account and Bench profile created successfully.');
+            setLoading(true);
+            load();
+          }}
+        />
       )}
 
       {/* Add Advocate Form */}
@@ -333,7 +376,16 @@ export default function CRMTeam() {
               <td>{t.last_login ? new Date(t.last_login).toLocaleString('en-IN') : 'Never'}</td>
               {user?.role === 'managing_partner' && (
                 <td>
-                  {['senior_advocate', 'junior_advocate'].includes(t.role) && (
+                  {t.role === 'judge' ? (
+                    <button
+                      type="button"
+                      disabled={deletingJudgeId === t.user_id}
+                      onClick={() => handleDeleteJudge(t)}
+                      style={{ background: '#B42318', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 10px', fontWeight: 600, cursor: deletingJudgeId === t.user_id ? 'wait' : 'pointer', opacity: deletingJudgeId === t.user_id ? 0.65 : 1 }}
+                    >
+                      {deletingJudgeId === t.user_id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  ) : ['senior_advocate', 'junior_advocate'].includes(t.role) ? (
                     <button
                       type="button"
                       disabled={deletingUserId === t.user_id}
@@ -342,7 +394,7 @@ export default function CRMTeam() {
                     >
                       {deletingUserId === t.user_id ? 'Deleting...' : 'Delete'}
                     </button>
-                  )}
+                  ) : null}
                 </td>
               )}
             </tr>

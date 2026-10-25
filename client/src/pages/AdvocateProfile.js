@@ -156,10 +156,6 @@ export default function AdvocateProfile() {
             <p style={{ color: GRAY, fontSize: '14px', lineHeight: '1.8' }}>{a.bio}</p>
             <div style={{ display: 'flex', gap: '22px', marginTop: '18px', paddingTop: '18px', borderTop: '1px solid #F3F4F6' }}>
               <div>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: NAVY }}>{a.cases_handled}</div>
-                <div style={{ fontSize: '12px', color: GRAY }}>Cases handled</div>
-              </div>
-              <div>
                 <div style={{ fontSize: '22px', fontWeight: 800, color: NAVY }}>{a.experience_years}</div>
                 <div style={{ fontSize: '12px', color: GRAY }}>Years experience</div>
               </div>

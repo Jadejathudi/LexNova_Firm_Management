@@ -221,9 +221,6 @@ export default function JudgeDashboard() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: C.gray }}>
-            {judge.slots_left} slot{judge.slots_left !== 1 ? 's' : ''} remaining this month
-          </span>
           <button
             onClick={handleLogout}
             style={{ padding: '9px 18px', background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.gray, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}

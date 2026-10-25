@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BenchNav from '../../components/bench/BenchNav';
-import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, SlotBar, JudgeName, benchFetch } from './benchConstants';
+import { C, TIERS, SERVICES, DISCLAIMER, BenchAvatar, TierBadge, JudgeName, benchFetch } from './benchConstants';
 
 function DiscStrip() {
   return (
@@ -48,7 +48,6 @@ export default function BenchJudgeProfile() {
 
   const t = TIERS[judge.tier] || TIERS.junior;
   const isFull = judge.slots_left === 0;
-  const isScarce = judge.slots_left <= 2 && judge.slots_left > 0;
 
   return (
     <div style={{ fontFamily: "'Jost',sans-serif", background: C.ink, color: C.parchment, minHeight: '100vh' }}>
@@ -65,11 +64,6 @@ export default function BenchJudgeProfile() {
           <div style={{ flex: 1, minWidth: 220 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
               <TierBadge tier={judge.tier} />
-              {isScarce && (
-                <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 2, padding: '3px 9px', background: 'rgba(220,38,38,.15)', color: '#FCA5A5', border: '1px solid rgba(220,38,38,.3)' }}>
-                  ⚡ Only {judge.slots_left} session{judge.slots_left !== 1 ? 's' : ''} left this month
-                </span>
-              )}
             </div>
             <h1 style={{ fontFamily: "'EB Garamond',serif", fontSize: 30, fontWeight: 700, lineHeight: 1.2, marginBottom: 8 }}><JudgeName name={judge.name} /></h1>
             <div style={{ fontSize: 14, color: C.grayLight, marginBottom: 4 }}>{judge.city}, {judge.state} · Retired {judge.retired_year}</div>
@@ -155,7 +149,6 @@ export default function BenchJudgeProfile() {
             <div style={{ fontFamily: "'EB Garamond',serif", fontSize: 17, fontWeight: 600, color: C.parchment, marginBottom: 4 }}>Book a Session</div>
             <div style={{ fontSize: 12, color: C.gray, marginBottom: 16 }}>{t.badge} · {judge.city}</div>
             <div style={{ height: 1, background: C.border, marginBottom: 14 }} />
-            <SlotBar left={judge.slots_left} total={judge.total_slots} />
             <button
               onClick={() => navigate(`/bench/schedule/${judge.judge_id}`)}
               style={{
@@ -170,23 +163,6 @@ export default function BenchJudgeProfile() {
             <p style={{ fontSize: 11, color: C.gray, textAlign: 'center', marginTop: 9, lineHeight: 1.5 }}>
               Intake call scheduled within 24 hours of booking.
             </p>
-          </div>
-
-          {/* Monthly availability indicator */}
-          <div style={{ background: C.charcoal, border: `1px solid ${C.border}`, borderRadius: 4, padding: 18 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.parchment, marginBottom: 12 }}>Monthly availability</div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {['W1', 'W2', 'W3', 'W4'].map((w, i) => {
-                const open = judge.slots_left > 0 && i < 2;
-                return (
-                  <div key={w} style={{ flex: 1, textAlign: 'center', padding: '8px 3px', borderRadius: 2, background: open ? 'rgba(21,128,61,.12)' : 'rgba(255,255,255,.03)' }}>
-                    <div style={{ fontSize: 10, color: C.gray }}>{w}</div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: open ? '#15803D' : C.border, marginTop: 2 }}>{open ? 'Open' : 'Full'}</div>
-                  </div>
-                );
-              })}
-            </div>
-            <p style={{ fontSize: 11, color: C.gray, marginTop: 9, lineHeight: 1.5 }}>Max {judge.total_slots} sessions/month. Slots reset on the 1st.</p>
           </div>
         </div>
       </div>
